@@ -6,10 +6,6 @@
 [![skhd](https://img.shields.io/badge/skhd-16a085?style=for-the-badge)](https://github.com/koekeishiya/skhd)
 [![Powerlevel10k](https://img.shields.io/badge/Powerlevel10k-1abc9c?style=for-the-badge)](https://github.com/romkatv/powerlevel10k)
 
-# My Dotfiles
-![Setup Screenshot](images/setup.png)
-This repository contains my personal dotfiles for setting up a new development environment.
-
 ## Installation
 
 To install these dotfiles on a new machine, follow these steps:
