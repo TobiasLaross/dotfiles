@@ -31,16 +31,11 @@ sh -c 'curl -fLo "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.
 ```
 5. Create symbolic links for each file that you want to include in your dotfiles repository.
 ```bash
-ln -s ~/.dotfiles/yabai/yabairc ~/.config/yabai/yabairc
-ln -s ~/.dotfiles/skhd/skhdrc ~/.config/skhd/skhdrc
-ln -s ~/.dotfiles/p10k/p10k.zsh ~/.p10.zsh
-ln -s ~/.dotfiles/zsh/.zshrc ~/.zshrc
-ln -s ~/.dotfiles/nvim/init.vim ~/.config/nvim/init.vim
-```
-
-Or run the script [symlinks.sh](https://github.com/AlexEkdahl/.dotfiles/blob/main/scripts/symlinks.sh)
-```bash
-./scripts/symlinks.sh
+ln -s ~/dotfiles/yabai/yabairc ~/.config/yabai/yabairc
+ln -s ~/dotfiles/skhd/skhdrc ~/.config/skhd/skhdrc
+ln -s ~/dotfiles/p10k/p10k.zsh ~/.p10.zsh
+ln -s ~/dotfiles/zsh/.zshrc ~/.zshrc
+ln -s ~/dotfiles/nvim/init.vim ~/.config/nvim/init.vim
 ```
 
 ### Iterm
