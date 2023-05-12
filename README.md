@@ -35,7 +35,6 @@ ln -s ~/.dotfiles/yabai/yabairc ~/.config/yabai/yabairc
 ln -s ~/.dotfiles/skhd/skhdrc ~/.config/skhd/skhdrc
 ln -s ~/.dotfiles/p10k/p10k.zsh ~/.p10.zsh
 ln -s ~/.dotfiles/zsh/.zshrc ~/.zshrc
-ln -s ~/.dotfiles/nvim/lua/ ~/.config/nvim/lua/
 ln -s ~/.dotfiles/nvim/init.vim ~/.config/nvim/init.vim
 ```
 
@@ -55,25 +54,3 @@ Or run the script [symlinks.sh](https://github.com/AlexEkdahl/.dotfiles/blob/mai
 5. Click on the "Browse" button and navigate to the `iterm2` folder in this dotfiles repository.
 7. Close and reopen iTerm2 to apply the new settings.
 
-
-## Features
-[![Neovim Startup Time](https://img.shields.io/badge/Neovim%20Startup%20Time-%3C80ms-brightgreen)](https://neovim.io/)
-[![Neovim Config](https://img.shields.io/badge/Neovim%20Config-%3C450LOC-brightgreen)](https://neovim.io)
-
-<p align="center">
-  <img src="images/nvim1.png" alt="Neovim Config 1" width="45%" />
-  <img src="images/nvim2.png" alt="Neovim Config 2" width="45%" />
-</p>
-
-Here are some of the features that are included in this dotfiles repository:
-
-- Customized `zsh` shell configuration with plugins like `zsh-autosuggestions` and `zsh-syntax-highlighting`
-- Custom `git` configuration and aliases like `gamend` for git commit --amend with confirmation for protected branches and `grename` for renaming branches locally and remotely.
-- Custom `fzf` configuration for fuzzy finding.
-- Custom `docker` aliases for managing containers like `ds` for selecting a running container to stop and `dbash` for selecting a running container to enter shell.
-- Custom `neovim` configuration and plugins including `onedark` theme, `lsp` and `treesitter` for language support, `telescope` for fuzzy finding, `spellbee` for spell checking, and more.
-- Custom `yabai` and `skhd` configuration files for macOS window and shortcut management.
-- Custom `iterm2` configuration files for terminal preferences.
-- Custom `p10k` configuration files for `powerlevel10k` theme.
-
-- Additional files for keyboard firmware configuration and fonts.
