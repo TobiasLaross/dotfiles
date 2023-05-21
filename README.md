@@ -29,14 +29,17 @@ brew bundle
 sh -c 'curl -fLo "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.vim --create-dirs \
        https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
 ```
-5. Create symbolic links for each file that you want to include in your dotfiles repository.
+5. Xcode
+Install XCode using App Store
+# Install FIRA fonts 
 ```bash
-ln -s ~/dotfiles/yabai/yabairc ~/.config/yabai/yabairc
-ln -s ~/dotfiles/skhd/skhdrc ~/.config/skhd/skhdrc
-ln -s ~/dotfiles/p10k/p10k.zsh ~/.p10.zsh
-ln -s ~/dotfiles/zsh/.zshrc ~/.zshrc
-ln -s ~/dotfiles/nvim/init.vim ~/.config/nvim/init.vim
+brew tap homebrew/cask-fonts
+brew install --cask font-fira-code
 ```
+
+6. Create symbolic links for each file that you want to include in your dotfiles repository.
+```bash
+./symlinks.sh
 
 ### Iterm
 

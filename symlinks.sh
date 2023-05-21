@@ -7,6 +7,7 @@ dotfiles=(
   "p10k/p10k.zsh:.p10k.zsh"
   "zsh/.zshrc:.zshrc"
   "nvim/init.vim:.config/nvim/init.vim"
+		"One\ Dark.xccolortheme:~/Library/Developer/Xcode/UserData/FontAndColorThemes"
 )
 
 # Get the current directory
