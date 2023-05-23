@@ -112,6 +112,7 @@ export MATCH_PASSWORD="j/>9qmhix+AKURAFYk%EmGM2gsoD4T6mGwihn(Tm8bJ6K,e9]DKr2a>63
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 #
 alias vim="nvim"
+alias ag='ag 2>/dev/null'
 
 alias gitdiffnameonly="git diff --name-status develop"
 alias gitl="git log"
