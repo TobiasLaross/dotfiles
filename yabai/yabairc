@@ -43,9 +43,13 @@ yabai -m rule --add app="Messages" manage=off
 yabai -m rule --add app="Activity Monitor" manage=off
 yabai -m rule --add app="Finder" manage=off
 yabai -m rule --add app="Postman" manage=off
+yabai -m rule --add app="Spotify" manage=off
+yabai -m rule --add app="Calendar" manage=off
 yabai -m rule --add app="Figma" manage=off
 yabai -m rule --add app="Insomnia" manage=off
 yabai -m rule --add app="Teams" manage=off
+yabai -m rule --add app="Discord" manage=off
+yabai -m rule --add app="Messages" manage=off
 
 # Space 2
 #yabai -m space --create
