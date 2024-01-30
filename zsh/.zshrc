@@ -125,6 +125,26 @@ alias gitcheckoutback="git checkout -"
 alias gitcommitamend="git commit --amend --no-edit"
 alias gitaddpv="git add -pv"
 alias gitdifftodoprint="git diff develop | grep -i todo; git diff develop | grep -i print\(" 
+alias gitrelease='if [[ $(basename $(pwd)) = "IntelliNest" ]]; then
+    current_version=$(grep -o "CURRENT_PROJECT_VERSION = [0-9]*;" IntelliNest.xcodeproj/project.pbxproj | head -1 | awk -F " " "{ print \$3 }" | sed "s/;//");
+    new_version=$((current_version + 1));
+    sed -i "" "s/CURRENT_PROJECT_VERSION = [0-9]*;/CURRENT_PROJECT_VERSION = $new_version;/g" IntelliNest.xcodeproj/project.pbxproj;
+    today=$(date "+%Y.%m.%d");
+    sed -i "" "s/MARKETING_VERSION = [0-9.]*;/MARKETING_VERSION = $today;/g" IntelliNest.xcodeproj/project.pbxproj;
+    echo "All instances of project and marketing versions updated";
+else
+    echo "Not in IntelliNest directory";
+fi'
+alias gittagrelease='if [[ $(git rev-parse --abbrev-ref HEAD) = "main" ]]; then
+    current_version=$(grep -o "CURRENT_PROJECT_VERSION = [0-9]*;" IntelliNest.xcodeproj/project.pbxproj | head -1 | awk -F " " "{ print \$3 }" | sed "s/;//");
+    today=$(date "+%Y.%m.%d");
+    git tag "$today-$current_version";
+    git push origin "$today-$current_version";
+else
+    echo "Please switch to the main branch before running gittag.";
+fi'
+
+
 function git-stats() {
   # ANSI color codes
   BOLD="\033[1m"
