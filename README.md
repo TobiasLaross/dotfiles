@@ -24,11 +24,6 @@ sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.
 ```bash
 brew bundle
 ```
-4. Install [vim-plug](https://github.com/junegunn/vim-plug)
-```bash
-sh -c 'curl -fLo "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.vim --create-dirs \
-       https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
-```
 5. Xcode
 Install XCode using App Store
 # Install FIRA fonts 

@@ -6,8 +6,8 @@ dotfiles=(
   "skhd/skhdrc:.config/skhd/skhdrc"
   "p10k/p10k.zsh:.p10k.zsh"
   "zsh/.zshrc:.zshrc"
-  "nvim/init.vim:.config/nvim/init.vim"
-		"OneDark.xccolortheme:Library/Developer/Xcode/UserData/FontAndColorThemes"
+  "nvim/init.lua:.config/nvim/init.lua"
+  "OneDark.xccolortheme:Library/Developer/Xcode/UserData/FontAndColorThemes"
 )
 
 # Get the current directory
