@@ -1,33 +1,10 @@
-#!/bin/bash
+#!/bin/zsh
 
-# Specify the dotfiles and their corresponding paths
-dotfiles=(
-  "yabai/yabairc:.config/yabai/yabairc"
-  "skhd/skhdrc:.config/skhd/skhdrc"
-  "p10k/p10k.zsh:.p10k.zsh"
-  "zsh/.zshrc:.zshrc"
-  "nvim/init.lua:.config/nvim/init.lua"
-  "OneDark.xccolortheme:Library/Developer/Xcode/UserData/FontAndColorThemes"
-)
+ln -sf $(pwd)/nvim/ ~/.config/
+ln -sf $(pwd)/yabai/ ~/.config/
+ln -sf $(pwd)/skhd/ ~/.config/
+ln -sf $(pwd)/p10k/p10k.zsh ~/.p10k.zsh
+ln -sf $(pwd)/zsh/.zshrc ~/.zshrc
+ln -sf $(pwd)/OneDark.xccolortheme $(pwd)/../Library/Developer/Xcode/UserData/FontAndColorThemes
 
-# Get the current directory
-current_dir=$(pwd)
-
-# Loop through each dotfile and create a symlink
-for dotfile in "${dotfiles[@]}"; do
-  src=$(echo "$dotfile" | cut -d':' -f1)
-  dest=$(echo "$dotfile" | cut -d':' -f2)
-  src_path="$current_dir/$src"
-  dest_path="$HOME/$dest"
-
-  # Check if the destination file already exists and is not a symlink
-  if [ -f "$dest_path" ] && [ ! -L "$dest_path" ]; then
-    echo "Backing up existing file at $dest_path..."
-    mv "$dest_path" "$dest_path.bak"
-  fi
-
-  # Create the symlink
-  echo "Creating symlink for $src_path at $dest_path..."
-  ln -sf "$src_path" "$dest_path"
-done
-
+. ~/.zshrc
