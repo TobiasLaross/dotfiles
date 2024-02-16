@@ -22,3 +22,5 @@ vim.opt.ignorecase = true
 vim.opt.termguicolors = true
 
 vim.g.mapleader = " "
+vim.keymap.set("n", "<leader>sv", ":vsplit<CR>", { desc = "Split Vertically" })
+vim.keymap.set("n", "<leader>sh", ":split<CR>", { desc = "Split Horizontally" })
