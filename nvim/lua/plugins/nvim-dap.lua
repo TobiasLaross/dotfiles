@@ -24,7 +24,7 @@ return {
       port = "13000",
       executable = {
         -- TODO: make sure to set path to your codelldb
-        command = os.getenv("HOME") .. "/dotfiles/nvim/codelldb-aarch64-darwin/extension/adapter/codelldb",
+        command = os.getenv("HOME") .. "/Developer/codelldb-aarch64-darwin/extension/adapter/codelldb",
         args = {
           "--port",
           "13000",
