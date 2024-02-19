@@ -19,6 +19,12 @@ return {
 
             opts.desc = "Show documentation for what is under cursor"
             vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
+
+            opts.desc = "Go to definition"
+            vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
+
+            opts.desc = "Go to definition with vsplit"
+            vim.keymap.set("n", "gD", "<cmd>vsp | vim.lsp.buf.definition<CR>", opts)
         end
 
         lspconfig["sourcekit"].setup({
