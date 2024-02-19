@@ -24,6 +24,10 @@ sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.
 ```bash
 brew bundle
 ```
+
+4. Unzip codelldb
+Unzip codelldb-aarch64-darwin and move into ~/Developer
+
 5. Xcode
 Install XCode using App Store
 # Install FIRA fonts 

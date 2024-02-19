@@ -20,6 +20,7 @@ local opts = {
 	defaults = {
 		lazy = false,
 	},
+--    checker = { enabled = true },
 	dev = {
 		path = "~/",
 	},
