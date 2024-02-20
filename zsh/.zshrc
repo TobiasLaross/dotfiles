@@ -113,6 +113,7 @@ export MATCH_PASSWORD="j/>9qmhix+AKURAFYk%EmGM2gsoD4T6mGwihn(Tm8bJ6K,e9]DKr2a>63
 #
 alias vim="nvim"
 alias ag='ag 2>/dev/null'
+alias pip='pip3'
 
 alias gitdiffnameonly="git diff --name-status develop"
 alias gitl="git log"
@@ -179,6 +180,7 @@ function gits2 () {
 
 # Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
 export PATH="$PATH:$HOME/.rvm/bin"
+export PATH="$PATH:/Users/tobias/Library/Python/3.9/bin"
 
 # To customize prompt, run `p10k configure` or edit ~/dotfiles/p10k/p10k.zsh.
 [[ ! -f ~/dotfiles/p10k/p10k.zsh ]] || source ~/dotfiles/p10k/p10k.zsh
