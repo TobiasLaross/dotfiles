@@ -25,7 +25,8 @@ sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.
 brew bundle
 ```
 
-4. Unzip codelldb
+4. Nvim debugger
+Download codelldb-aarch64-darwin.vsix from https://github.com/vadimcn/codelldb/releases
 Unzip codelldb-aarch64-darwin and move into ~/Developer
 
 5. Xcode
