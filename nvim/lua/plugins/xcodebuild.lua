@@ -5,7 +5,7 @@ return {
         "MunifTanjim/nui.nvim",
     },
     config = function()
-        require("xcodebuild").setup({ 
+        require("xcodebuild").setup({
             code_coverage = {
                 enabled = true,
             },
@@ -20,7 +20,12 @@ return {
         vim.keymap.set("n", "<leader>xd", "<cmd>XcodebuildSelectDevice<cr>", { desc = "Select Device" })
         vim.keymap.set("n", "<leader>xp", "<cmd>XcodebuildSelectTestPlan<cr>", { desc = "Select Test Plan" })
         vim.keymap.set("n", "<leader>xc", "<cmd>XcodebuildToggleCodeCoverage<cr>", { desc = "Toggle Code Coverage" })
-        vim.keymap.set("n", "<leader>xC", "<cmd>XcodebuildShowCodeCoverageReport<cr>", { desc = "Show Code Coverage Report" })
+        vim.keymap.set(
+            "n",
+            "<leader>xC",
+            "<cmd>XcodebuildShowCodeCoverageReport<cr>",
+            { desc = "Show Code Coverage Report" }
+        )
         vim.keymap.set("n", "<leader>xq", "<cmd>Telescope quickfix<cr>", { desc = "Show QuickFix List" })
     end,
 }
