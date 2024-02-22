@@ -30,6 +30,7 @@ vim.g.gitblame_date_format = "%r"
 
 vim.keymap.set("n", "<leader>vs", ":vsplit<CR>", { desc = "Split Vertically" })
 vim.keymap.set("n", "<leader>hs", ":split<CR>", { desc = "Split Horizontally" })
+vim.keymap.set("n", "<leader>s", "<cmd>wa!<CR>", { desc = "Save all" })
 
 -- Navigate between splits
 vim.keymap.set("n", "<C-J>", "<C-W><C-J>")
