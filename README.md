@@ -31,11 +31,6 @@ Unzip codelldb-aarch64-darwin and move into ~/Developer
 
 5. Xcode
 Install XCode using App Store
-# Install FIRA fonts 
-```bash
-brew tap homebrew/cask-fonts
-brew install --cask font-fira-code
-```
 
 6. Create symbolic links for each file that you want to include in your dotfiles repository.
 ```bash
