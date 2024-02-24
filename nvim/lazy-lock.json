@@ -33,6 +33,7 @@
   "onedarkpro.nvim": { "branch": "main", "commit": "3fbb6e8c35589e6373fcb8d49b6318f794740343" },
   "plenary.nvim": { "branch": "master", "commit": "4f71c0c4a196ceb656c824a70792f3df3ce6bb6d" },
   "telescope.nvim": { "branch": "master", "commit": "2e1e382df42467029b493c143c2e727028140214" },
+  "vim-illuminate": { "branch": "master", "commit": "305bf07b919ac526deb5193280379e2f8b599926" },
   "vim-vsnip": { "branch": "master", "commit": "02a8e79295c9733434aab4e0e2b8c4b7cea9f3a9" },
   "xcodebuild.nvim": { "branch": "main", "commit": "cfe0fc5cae28da0c0bc7fa8f3e428143a957d83b" }
 }
