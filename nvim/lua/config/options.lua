@@ -20,11 +20,12 @@ vim.opt.inccommand = "split"
 vim.opt.ignorecase = true
 
 vim.opt.termguicolors = true
+vim.opt.colorcolumn = "140"
 
 vim.g.mapleader = " "
 vim.g.gitblame_display_virtual_text = 0
-vim.g.gitblame_message_template = "<author> • <date> • <sha>"
-vim.g.gitblame_date_format = "%r"
+vim.g.gitblame_message_template = "<author> • <date>"
+vim.g.gitblame_date_format = "%d/%m-%y" --"%r"
 
 -- Keymap
 
@@ -49,3 +50,5 @@ vim.keymap.set(
 	{ desc = "Fuzzy find files in cwd" }
 )
 vim.keymap.set("n", "<leader>fg", "<cmd>Telescope live_grep<cr>", { desc = "Live grep in cwd" })
+vim.keymap.set("n", "<leader>fr", "<cmd>Telescope lsp_references<cr>")
+--vim.keymap.set("n", "<leader>fc", "<cmd>Telescope find_changed_files<cr>")

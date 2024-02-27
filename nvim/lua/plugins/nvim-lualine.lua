@@ -27,6 +27,22 @@ return {
 			update_in_insert = false,
 			always_visible = false,
 		}
+
+		local function xcodebuild_info()
+			local scheme_prefix = ""
+			if vim.g.xcodebuild_scheme then
+				scheme_prefix = vim.g.xcodebuild_scheme .. " - "
+			end
+
+			if vim.g.xcodebuild_platform == "macOS" then
+				return scheme_prefix .. " macOS"
+			elseif vim.g.xcodebuild_os then
+				return scheme_prefix .. " " .. vim.g.xcodebuild_device_name .. " (" .. vim.g.xcodebuild_os .. ")"
+			else
+				return scheme_prefix .. " " .. vim.g.xcodebuild_device_name
+			end
+		end
+
 		vim.o.laststatus = vim.g.lualine_laststatus
 
 		return {
@@ -46,7 +62,13 @@ return {
 						cond = git_blame.is_blame_text_available,
 					},
 				},
-				lualine_x = { diagnostics },
+				lualine_x = {
+					{
+						xcodebuild_info,
+						color = { fg = "#f9e2af", bg = "#161622" },
+					},
+					diagnostics,
+				},
 				lualine_y = {
 					{ "progress", separator = " ", padding = { left = 1, right = 1 } },
 				},
