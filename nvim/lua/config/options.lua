@@ -34,6 +34,10 @@ vim.keymap.set("n", "<leader>hs", ":split<CR>", { desc = "Split Horizontally" })
 vim.keymap.set("n", "<leader>s", ":wa!<CR>", { desc = "Save all" })
 vim.keymap.set("n", "<leader>sq", ":wqa<CR>", { desc = "Save all and quit" })
 
+-- NvimTree
+vim.keymap.set("n", "<leader>e", "<cmd>NvimTreeToggle<cr>", { desc = "Toggle nvim tree" })
+vim.keymap.set("n", "<leader>ntl", "<cmd>NvimTreeResize +5<cr>", { desc = "Increase size of nvim tree" })
+vim.keymap.set("n", "<leader>nth", "<cmd>NvimTreeResize -5<cr>", { desc = "Decrease size of nvim tree" })
 -- Navigate between splits
 vim.keymap.set("n", "<C-J>", "<C-W><C-J>")
 vim.keymap.set("n", "<C-H>", "<C-W><C-H>")

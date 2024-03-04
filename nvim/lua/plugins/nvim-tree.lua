@@ -74,7 +74,4 @@ return {
 			},
 		},
 	},
-	keys = {
-		{ "<leader>e", "<cmd>NvimTreeToggle<cr>" },
-	},
 }
