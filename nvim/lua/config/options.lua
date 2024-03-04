@@ -48,11 +48,14 @@ vim.keymap.set("n", "<C-L>", "<C-W><C-L>")
 vim.keymap.set("n", "<esc>", ":noh<CR><esc>", { silent = true, noremap = true })
 
 vim.keymap.set(
-	"n",
-	"<leader>ff",
-	"<cmd>Telescope find_files theme=dropdown previewer=false<cr>",
-	{ desc = "Fuzzy find files in cwd" }
+    "n",
+    "<leader>ff",
+    "<cmd>Telescope find_files theme=dropdown previewer=false<cr>",
+    { desc = "Fuzzy find files in cwd" }
 )
 vim.keymap.set("n", "<leader>fg", "<cmd>Telescope live_grep<cr>", { desc = "Live grep in cwd" })
 vim.keymap.set("n", "<leader>fr", "<cmd>Telescope lsp_references<cr>")
 --vim.keymap.set("n", "<leader>fc", "<cmd>Telescope find_changed_files<cr>")
+
+-- Debug
+vim.keymap.set("n", "<C-k>", "<cmd>lua require('dapui').eval()<CR>", { silent = true, noremap = true })
