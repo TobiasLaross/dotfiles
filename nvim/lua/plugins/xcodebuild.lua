@@ -13,7 +13,8 @@ return {
 
         vim.keymap.set("n", "<leader>xl", "<cmd>XcodebuildToggleLogs<cr>", { desc = "Toggle Xcodebuild Logs" })
         vim.keymap.set("n", "<leader>xb", "<cmd>XcodebuildBuild<cr>", { desc = "Build Project" })
-        vim.keymap.set("n", "<leader>xr", "<cmd>XcodebuildBuildRun<cr>", { desc = "Build & Run Project" })
+        vim.keymap.set("n", "<leader>xx", "<cmd>XcodebuildBuildRun<cr>", { desc = "Build & Run Project" })
+        vim.keymap.set("n", "<leader>xr", "<cmd>XcodebuildRun<cr>", { desc = "Build & Run Project" })
         vim.keymap.set("n", "<leader>xt", "<cmd>XcodebuildTest<cr>", { desc = "Run Tests" })
         vim.keymap.set("n", "<leader>xT", "<cmd>XcodebuildTestClass<cr>", { desc = "Run This Test Class" })
         vim.keymap.set("n", "<leader>X", "<cmd>XcodebuildPicker<cr>", { desc = "Show All Xcodebuild Actions" })
@@ -26,6 +27,5 @@ return {
             "<cmd>XcodebuildShowCodeCoverageReport<cr>",
             { desc = "Show Code Coverage Report" }
         )
-        vim.keymap.set("n", "<leader>xq", "<cmd>Telescope quickfix<cr>", { desc = "Show QuickFix List" })
     end,
 }

@@ -47,6 +47,7 @@ vim.keymap.set("n", "<C-L>", "<C-W><C-L>")
 -- Remove search highlight using esc
 vim.keymap.set("n", "<esc>", ":noh<CR><esc>", { silent = true, noremap = true })
 
+-- Telescope
 vim.keymap.set(
     "n",
     "<leader>ff",
@@ -55,7 +56,8 @@ vim.keymap.set(
 )
 vim.keymap.set("n", "<leader>fg", "<cmd>Telescope live_grep<cr>", { desc = "Live grep in cwd" })
 vim.keymap.set("n", "<leader>fr", "<cmd>Telescope lsp_references<cr>")
+vim.keymap.set("n", "<leader>fq", "<cmd>Telescope quickfix<cr>", { desc = "Show QuickFix List" })
 --vim.keymap.set("n", "<leader>fc", "<cmd>Telescope find_changed_files<cr>")
 
 -- Debug
-vim.keymap.set("n", "<C-k>", "<cmd>lua require('dapui').eval()<CR>", { silent = true, noremap = true })
+vim.keymap.set("n", "<C-S-k>", "<cmd>lua require('dapui').eval()<CR>", { silent = true, noremap = true })
