@@ -55,6 +55,12 @@ vim.keymap.set(
     { desc = "Fuzzy find files in cwd" }
 )
 vim.keymap.set("n", "<leader>fg", "<cmd>Telescope live_grep<cr>", { desc = "Live grep in cwd" })
+vim.keymap.set("n", "<leader>fh", function()
+    require("telescope.builtin").grep_string({
+        find_command = { "rg", "--files", "--hidden", "-g", "!.git" },
+        search = vim.fn.input("Grep For > "),
+    })
+end, { desc = "Live grep in cwd" })
 vim.keymap.set("n", "<leader>fr", "<cmd>Telescope lsp_references<cr>")
 vim.keymap.set("n", "<leader>fq", "<cmd>Telescope quickfix<cr>", { desc = "Show QuickFix List" })
 --vim.keymap.set("n", "<leader>fc", "<cmd>Telescope find_changed_files<cr>")
