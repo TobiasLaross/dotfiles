@@ -9,6 +9,8 @@ return {
                 "vimdoc",
                 "query",
                 "swift",
+                "python",
+                "java",
                 "typescript",
                 "javascript",
                 "markdown",
