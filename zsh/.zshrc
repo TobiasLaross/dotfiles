@@ -96,7 +96,7 @@ export MATCH_PASSWORD="j/>9qmhix+AKURAFYk%EmGM2gsoD4T6mGwihn(Tm8bJ6K,e9]DKr2a>63
 # if [[ -n $SSH_CONNECTION ]]; then
 #   export EDITOR='vim'
 # else
-#   export EDITOR='mvim'
+export EDITOR='nvim'
 # fi
 
 # Compilation flags
@@ -115,6 +115,7 @@ alias vim="nvim"
 alias ag='ag 2>/dev/null'
 alias pip='pip3'
 
+alias notes="glow ~/notes"
 alias gitdiffnameonly="git diff --name-status develop"
 alias gitl="git log"
 alias gits="git status"
