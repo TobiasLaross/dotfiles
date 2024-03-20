@@ -5,7 +5,9 @@ ln -sf $(pwd)/yabai/ ~/.config/
 ln -sf $(pwd)/skhd/ ~/.config/
 ln -sf $(pwd)/p10k/p10k.zsh ~/.p10k.zsh
 ln -sf $(pwd)/zsh/.zshrc ~/.zshrc
-ln -sf $(pwd)/tmux/.tmux.conf ~/.tmux.conf
+mkdir -p ~/.config/tmux
+ln -sf $(pwd)/tmux/tmux.conf ~/.tmux.conf
+ln -sf $(pwd)/tmux/conf ~/.config/tmux/
 ln -sf $(pwd)/OneDark.xccolortheme $(pwd)/../Library/Developer/Xcode/UserData/FontAndColorThemes
 
 . ~/.zshrc

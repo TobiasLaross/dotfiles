@@ -114,6 +114,9 @@ export EDITOR='nvim'
 alias vim="nvim"
 alias ag='ag 2>/dev/null'
 alias pip='pip3'
+alias brewski="brew doctor; brew update && brew upgrade && brew cleanup -s"
+alias reload='source ~/.zshrc'
+alias :q='exit'
 
 alias notes="glow ~/notes"
 alias gitdiffnameonly="git diff --name-status develop"
