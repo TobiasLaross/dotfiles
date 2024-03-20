@@ -36,6 +36,10 @@ Install XCode using App Store
 ```bash
 ./symlinks.sh
 
+7. Tmux
+git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm
+Open tmux, C-f I (capital i) to install plugins
+
 ### Iterm
 
 0. Unzip the fonts in `/fonts` and install.
