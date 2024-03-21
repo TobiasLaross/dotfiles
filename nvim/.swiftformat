@@ -1,1 +1,4 @@
---disable wrapMultilineStatementBraces
+--exclude Carthage,.build,vendor
+--commas inline
+--disable specifiers, wrapMultilineStatementBraces, fileHeader, andOperator, unusedArguments
+--header strip
