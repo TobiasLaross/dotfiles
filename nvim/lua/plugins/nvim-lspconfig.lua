@@ -8,7 +8,7 @@ local config = function()
 		capabilities = capabilities,
 		filetypes = {
 			"swift",
-			"objective-c",
+			"objc",
 			"c",
 			"cpp",
 			"objective-cpp",
