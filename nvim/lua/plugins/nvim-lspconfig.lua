@@ -26,6 +26,7 @@ local config = function()
 		end,
 	})
 
+	require("mason").setup()
 	require("mason-lspconfig").setup_handlers({
 		["lua_ls"] = function()
 			lspconfig.lua_ls.setup({
@@ -44,6 +45,12 @@ local config = function()
 						},
 					},
 				},
+			})
+		end,
+		["kotlin_language_server"] = function()
+			lspconfig.kotlin_language_server.setup({
+				capabilities = capabilities,
+				on_attach = on_attach,
 			})
 		end,
 		["pyright"] = function()
@@ -90,6 +97,8 @@ local config = function()
 					"javascript",
 					"typescript",
 					"objc",
+					"kotlin",
+					"java",
 				},
 				init_options = {
 					documentFormatting = true,
