@@ -26,7 +26,6 @@ local config = function()
 		end,
 	})
 
-	require("mason").setup()
 	require("mason-lspconfig").setup_handlers({
 		["lua_ls"] = function()
 			lspconfig.lua_ls.setup({
