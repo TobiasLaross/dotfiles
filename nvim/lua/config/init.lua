@@ -43,7 +43,11 @@ local opts = {
 }
 
 vim.api.nvim_create_user_command("TrimXcodeLogFile", function()
-	vim.fn.system("tail -n 700 .nvim/xcodebuild/xcodebuild.log > tmplog && mv tmplog .nvim/xcodebuild/xcodebuild.log")
+	if vim.fn.filereadable(".nvim/xcodebuild/xcodebuild.log") == 1 then
+		vim.fn.system(
+			"tail -n 700 .nvim/xcodebuild/xcodebuild.log > tmplog && mv tmplog .nvim/xcodebuild/xcodebuild.log"
+		)
+	end
 end, {})
 
 require("lazy").setup(plugins, opts)

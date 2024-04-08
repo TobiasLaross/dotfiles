@@ -60,5 +60,3 @@ vim.keymap.set("n", "<leader>fj", "<cmd>Telescope jumplist<cr>")
 
 -- Debug
 vim.keymap.set("n", "<C-S-k>", "<cmd>lua require('dapui').eval()<CR>", { silent = true, noremap = true })
-
-vim.api.nvim_set_keymap("n", "<Leader>xo", ":TrimXcodeLogFile<CR>", { noremap = true, silent = true })

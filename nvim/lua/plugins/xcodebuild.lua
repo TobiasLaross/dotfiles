@@ -50,10 +50,6 @@ return {
 		})
 
 		vim.keymap.set("n", "<leader>xl", "<cmd>XcodebuildToggleLogs<cr>", { desc = "Toggle Xcodebuild Logs" })
-		vim.keymap.set("n", "<leader>xö", function()
-			vim.cmd([[!tail -n 700 .nvim/xcodebuild/xcodebuild.log > .nvim/xcodebuild/tmplog]])
-			vim.cmd([[!mv .nvim/xcodebuild/tmplog .nvim/xcodebuild/xcodebuild.log]])
-		end, { desc = "Trim Xcodebuild Logs" })
 		vim.keymap.set("n", "<leader>xb", "<cmd>XcodebuildBuild<cr>", { desc = "Build Project" })
 		vim.keymap.set("n", "<leader>xx", "<cmd>XcodebuildBuildRun<cr>", { desc = "Build & Run Project" })
 		vim.keymap.set("n", "<leader>xr", "<cmd>XcodebuildRun<cr>", { desc = "Build & Run Project" })
