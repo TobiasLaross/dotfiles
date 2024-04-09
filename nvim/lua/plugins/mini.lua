@@ -40,12 +40,12 @@ return {
             mappings = {
                 left = "<A-h>",
                 right = "<A-l>",
-                down = "<leader>md",
-                up = "<leader>mu",
+                down = "J",
+                up = "K",
                 line_left = "<A-h>",
                 line_right = "<A-l>",
-                line_down = "<leader>md",
-                line_up = "<leader>mu",
+                line_down = "J",
+                line_up = "K",
             },
         })
     end,
