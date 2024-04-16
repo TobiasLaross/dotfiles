@@ -41,10 +41,20 @@ M.on_attach = function(client, bufnr)
         autocmd({ "CursorHold", augroup_highlight, vim.lsp.buf.document_highlight, bufnr })
         autocmd({ "CursorMoved", augroup_highlight, vim.lsp.buf.clear_references, bufnr })
     end
+
+    vim.lsp.handlers["textDocument/definition"] = M.handlers["textDocument/definition"]
 end
 
 M.handlers = {
     ["textDocument/publishDiagnostics"] = vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, { signs = false }),
+    ["textDocument/definition"] = function(_, result, ctx)
+        if not result or vim.tbl_isempty(result) then
+            print("No definition found")
+            return
+        end
+
+        vim.lsp.util.jump_to_location(result[1])
+    end,
 }
 
 return M

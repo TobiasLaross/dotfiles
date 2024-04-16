@@ -31,7 +31,8 @@ vim.g.gitblame_date_format = "%d/%m-%y" --"%r"
 
 vim.keymap.set("n", "<leader>vs", ":vsplit<CR>", { desc = "Split Vertically" })
 vim.keymap.set("n", "<leader>hs", ":split<CR>", { desc = "Split Horizontally" })
-vim.keymap.set("n", "<leader>s", ":wa!<CR>:TrimXcodeLogFile<CR>", { desc = "Save all and trim xcode log file" })
+vim.keymap.set("n", "<leader>s", ":wa!<CR>", { desc = "Save all" })
+-- vim.keymap.set("n", "<leader>s", ":wa!<CR>:TrimXcodeLogFile<CR>", { desc = "Save all and trim xcode log file" })
 vim.keymap.set("n", "<leader>sq", ":wqa<CR>", { desc = "Save all and quit" })
 
 -- NvimTree
