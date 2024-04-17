@@ -22,6 +22,9 @@ vim.opt.ignorecase = true
 vim.opt.termguicolors = true
 vim.opt.colorcolumn = "140"
 
+vim.opt.spelllang = "en_us"
+vim.opt.spell = true
+
 vim.g.mapleader = " "
 vim.g.gitblame_display_virtual_text = 0
 vim.g.gitblame_message_template = "<author> • <date>"
