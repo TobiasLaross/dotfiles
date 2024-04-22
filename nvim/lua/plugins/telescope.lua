@@ -1,86 +1,152 @@
 return {
-	"nvim-telescope/telescope.nvim",
-	dependencies = {
-		"nvim-lua/plenary.nvim",
-		"nvim-treesitter/nvim-treesitter",
-	},
-	config = function()
-		local telescope = require("telescope")
-		local actions = require("telescope.actions")
-		local opts = {
-			defaults = {
-				prompt_prefix = "> ",
-				selection_caret = "> ",
-				entry_prefix = "  ",
-				multi_icon = "<>",
-				previewer = true,
-				layout_strategy = "vertical",
-				layout_config = {
-					mirror = false,
-					width = 0.95,
-					height = 0.85,
-					prompt_position = "top",
-					horizontal = {
-						preview_width = function(_, cols, _)
-							if cols > 200 then
-								return math.floor(cols * 0.4)
-							else
-								return math.floor(cols * 0.6)
-							end
-						end,
-					},
-					vertical = {
-						width = 0.9,
-						height = 0.95,
-						preview_height = 0.7,
-					},
-					flex = {
-						horizontal = {
-							preview_width = 0.75,
-						},
-					},
-				},
-				selection_strategy = "reset",
-				sorting_strategy = "ascending",
-				scroll_strategy = "cycle",
-				color_devicons = true,
-				mappings = {
-					i = {
-						["<Tab>"] = actions.move_selection_next,
-						["<S-Tab>"] = actions.move_selection_previous,
-					},
-					n = {
-						["<Tab>"] = actions.move_selection_next,
-						["<S-Tab>"] = actions.move_selection_previous,
-					},
-				},
-			},
-			pickers = {
-				find_files = {
-					find_command = { "rg", "--files", "--hidden", "-g", "!.git" },
-				},
-				lsp_implementations = {
-					find_command = { "rg", "--files", "--hidden", "-g", "!.git" },
-					layout_strategy = "vertical",
-					layout_config = {
-						prompt_position = "top",
-					},
-					sorting_strategy = "ascending",
-					ignore_filename = false,
-				},
-				live_grep = {
-					path_display = { "truncate" },
-					find_command = { "rg", "--files", "--hidden", "-g", "!.git" },
-					layout_strategy = "vertical",
-					only_sort_text = true,
-				},
-				grep_string = {
-					path_display = { shorten = 5 },
-					find_command = { "rg", "--files", "--hidden", "-g", "!.git" },
-					layout_strategy = "vertical",
-				},
-			},
-		}
-		telescope.setup(opts)
-	end,
+    "nvim-telescope/telescope.nvim",
+    dependencies = {
+        "nvim-lua/plenary.nvim",
+        "nvim-treesitter/nvim-treesitter",
+    },
+    config = function()
+        local telescope = require("telescope")
+        local actions = require("telescope.actions")
+        local opts = {
+            defaults = {
+                prompt_prefix = "> ",
+                selection_caret = "> ",
+                entry_prefix = "  ",
+                multi_icon = "<>",
+                previewer = true,
+                layout_strategy = "vertical",
+                layout_config = {
+                    mirror = false,
+                    width = 0.95,
+                    height = 0.85,
+                    prompt_position = "top",
+                    horizontal = {
+                        preview_width = function(_, cols, _)
+                            if cols > 200 then
+                                return math.floor(cols * 0.4)
+                            else
+                                return math.floor(cols * 0.6)
+                            end
+                        end,
+                    },
+                    vertical = {
+                        width = 0.9,
+                        height = 0.95,
+                        preview_height = 0.7,
+                    },
+                    flex = {
+                        horizontal = {
+                            preview_width = 0.75,
+                        },
+                    },
+                },
+                selection_strategy = "reset",
+                sorting_strategy = "ascending",
+                scroll_strategy = "cycle",
+                color_devicons = true,
+                mappings = {
+                    i = {
+                        ["<Tab>"] = actions.move_selection_next,
+                        ["<S-Tab>"] = actions.move_selection_previous,
+                    },
+                    n = {
+                        ["<Tab>"] = actions.move_selection_next,
+                        ["<S-Tab>"] = actions.move_selection_previous,
+                    },
+                },
+            },
+            pickers = {
+                find_files = {
+                    find_command = { "rg", "--files", "--hidden", "-g", "!.git" },
+                },
+                lsp_implementations = {
+                    find_command = { "rg", "--files", "--hidden", "-g", "!.git" },
+                    layout_strategy = "vertical",
+                    layout_config = {
+                        prompt_position = "top",
+                    },
+                    sorting_strategy = "ascending",
+                    ignore_filename = false,
+                },
+                live_grep = {
+                    path_display = { "truncate" },
+                    find_command = {
+                        "rg",
+                        "--hidden",
+                        "--color=never",
+                        "--no-heading",
+                        "--with-filename",
+                        "--line-number",
+                        "--column",
+                        "--smart-case",
+                    },
+                    layout_strategy = "vertical",
+                    only_sort_text = true,
+                    additional_args = function(opts)
+                        -- Exclude all language files except for en.lproj
+                        return {
+                            "--g",
+                            "!**/hr.lproj/Localizable.strings",
+                            "--g",
+                            "!**/ro.lproj/Localizable.strings",
+                            "--g",
+                            "!**/it.lproj/Localizable.strings",
+                            "--g",
+                            "!**/sv.lproj/Localizable.strings",
+                            "--g",
+                            "!**/fr.lproj/Localizable.strings",
+                            "--g",
+                            "!**/pt.lproj/Localizable.strings",
+                            "--g",
+                            "!**/nl.lproj/Localizable.strings",
+                            "--g",
+                            "!**/fi.lproj/Localizable.strings",
+                            "--g",
+                            "!**/lv.lproj/Localizable.strings",
+                            "--g",
+                            "!**/pl.lproj/Localizable.strings",
+                            "--g",
+                            "!**/tr.lproj/Localizable.strings",
+                            "--g",
+                            "!**/en-AU.lproj/Localizable.strings",
+                            "--g",
+                            "!**/hu.lproj/Localizable.strings",
+                            "--g",
+                            "!**/cs.lproj/Localizable.strings",
+                            "--g",
+                            "!**/et.lproj/Localizable.strings",
+                            "--g",
+                            "!**/da.lproj/Localizable.strings",
+                            "--g",
+                            "!**/sl.lproj/Localizable.strings",
+                            "--g",
+                            "!**/es.lproj/Localizable.strings",
+                            "--g",
+                            "!**/nb.lproj/Localizable.strings",
+                            "--g",
+                            "!**/ar-001.lproj/Localizable.strings",
+                            "--g",
+                            "!**/uk.lproj/Localizable.strings",
+                            "--g",
+                            "!**/zh-Hant.lproj/Localizable.strings",
+                            "--g",
+                            "!**/ko.lproj/Localizable.strings",
+                            "--g",
+                            "!**/ar.lproj/Localizable.strings",
+                            "--g",
+                            "!**/he.lproj/Localizable.strings",
+                            "--g",
+                            "!**/de.lproj/Localizable.strings",
+                        }
+                    end,
+                },
+                grep_string = {
+                    path_display = { shorten = 5 },
+                    find_command = { "rg", "--files", "--hidden", "-g", "!.git" },
+                    layout_strategy = "vertical",
+                },
+            },
+        }
+        telescope.setup(opts)
+    end,
 }
