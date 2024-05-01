@@ -56,6 +56,7 @@ vim.keymap.set("n", "<leader>ff", "<cmd>Telescope find_files<cr>", { desc = "Fuz
 vim.keymap.set("n", "<leader>fg", "<cmd>Telescope live_grep<cr>", { desc = "Live grep in cwd" })
 vim.keymap.set("n", "<leader>fr", "<cmd>Telescope resume<cr>", { desc = "Live grep resume" })
 vim.keymap.set("n", "<leader>fl", "<cmd>Telescope lsp_references<cr>")
+vim.keymap.set("n", "<leader>fd", "<cmd>Telescope diagnostics<cr>")
 vim.keymap.set("n", "<leader>fq", "<cmd>Telescope quickfix<cr>", { desc = "Show QuickFix List" })
 vim.keymap.set("n", "<leader>fc", "<cmd>Telescope git_status<cr>")
 vim.keymap.set("n", "<leader>fb", "<cmd>Telescope buffers<cr>")
