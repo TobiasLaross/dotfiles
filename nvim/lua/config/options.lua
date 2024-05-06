@@ -62,6 +62,7 @@ vim.keymap.set("n", "<leader>fc", "<cmd>Telescope git_status<cr>")
 vim.keymap.set("n", "<leader>fb", "<cmd>Telescope buffers<cr>")
 vim.keymap.set("n", "<leader>fo", "<cmd>Telescope oldfiles<cr>")
 vim.keymap.set("n", "<leader>fj", "<cmd>Telescope jumplist<cr>")
+vim.keymap.set("n", "<leader>fs", "<cmd>lua SwitchToRelatedFile()<CR>", { noremap = true, silent = true })
 
 -- Debug
 vim.keymap.set("n", "<C-S-k>", "<cmd>lua require('dapui').eval()<CR>", { silent = true, noremap = true })
