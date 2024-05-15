@@ -42,6 +42,7 @@ vim.keymap.set("n", "<leader>sq", ":wqa<CR>", { desc = "Save all and quit" })
 vim.keymap.set("n", "<leader>e", "<cmd>NvimTreeToggle<cr>", { desc = "Toggle nvim tree" })
 vim.keymap.set("n", "<leader>ntl", "<cmd>NvimTreeResize +5<cr>", { desc = "Increase size of nvim tree" })
 vim.keymap.set("n", "<leader>nth", "<cmd>NvimTreeResize -5<cr>", { desc = "Decrease size of nvim tree" })
+
 -- Navigate between splits
 vim.keymap.set("n", "<C-J>", "<C-W><C-J>")
 vim.keymap.set("n", "<C-H>", "<C-W><C-H>")
@@ -63,6 +64,10 @@ vim.keymap.set("n", "<leader>fb", "<cmd>Telescope buffers<cr>")
 vim.keymap.set("n", "<leader>fo", "<cmd>Telescope oldfiles<cr>")
 vim.keymap.set("n", "<leader>fj", "<cmd>Telescope jumplist<cr>")
 vim.keymap.set("n", "<leader>fs", "<cmd>lua SwitchToRelatedFile()<CR>", { noremap = true, silent = true })
+
+-- Harpoon
+-- local harpoon = require("harpoon")
+-- harpoon:setup()
 
 -- LSP
 vim.keymap.set("n", "<leader>lr", "<cmd>LspRestart<cr>")
