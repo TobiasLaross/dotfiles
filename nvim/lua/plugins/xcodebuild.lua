@@ -50,6 +50,10 @@ return {
                     enabled = true, -- run "xcode-build-server config" when scheme changes
                 },
             },
+            commands = {
+                extra_build_args = "-parallelizeTargets -toolchain swift-latest",
+                extra_test_args = "-parallelizeTargets -toolchain swift-latest",
+            },
         })
 
         vim.keymap.set("n", "<leader>xl", "<cmd>XcodebuildToggleLogs<cr>", { desc = "Toggle Xcodebuild Logs" })
