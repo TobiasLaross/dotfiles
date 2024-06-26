@@ -90,7 +90,7 @@ source $ZSH/oh-my-zsh.sh
 export MATCH_PASSWORD="j/>9qmhix+AKURAFYk%EmGM2gsoD4T6mGwihn(Tm8bJ6K,e9]DKr2a>63BVLc{k^"
 
 # You may need to manually set your language environment
-# export LANG=en_US.UTF-8
+export LANG=en_US.UTF-8
 
 # Preferred editor for local and remote sessions
 # if [[ -n $SSH_CONNECTION ]]; then
