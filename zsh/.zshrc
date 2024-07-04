@@ -82,6 +82,9 @@ plugins=(git ssh-agent zsh-autosuggestions)
 
 source $ZSH/oh-my-zsh.sh
 
+if [ -f ~/gcr-docker.env ]; then
+  source ~/gcr-docker.env
+fi
 # User configuration
 
 # export MANPATH="/usr/local/man:$MANPATH"
@@ -137,8 +140,15 @@ alias gitrelease='if [[ $(basename $(pwd)) = "IntelliNest" ]]; then
     today=$(date "+%Y.%m.%d");
     sed -i "" "s/MARKETING_VERSION = [0-9.]*;/MARKETING_VERSION = $today;/g" IntelliNest.xcodeproj/project.pbxproj;
     echo "All instances of project and marketing versions updated";
+elif [[ $(basename $(pwd)) = "Lilium" ]]; then
+    current_version=$(grep -o "CURRENT_PROJECT_VERSION = [0-9]*;" Lilium.xcodeproj/project.pbxproj | head -1 | awk -F " " "{ print \$3 }" | sed "s/;//");
+    new_version=$((current_version + 1));
+    sed -i "" "s/CURRENT_PROJECT_VERSION = [0-9]*;/CURRENT_PROJECT_VERSION = $new_version;/g" Lilium.xcodeproj/project.pbxproj;
+    today=$(date "+%Y.%m.%d");
+    sed -i "" "s/MARKETING_VERSION = [0-9.]*;/MARKETING_VERSION = $today;/g" Lilium.xcodeproj/project.pbxproj;
+    echo "All instances of project and marketing versions updated";
 else
-    echo "Not in IntelliNest directory";
+    echo "Not in IntelliNest or Lilium directory";
 fi'
 alias gittagrelease='if [[ $(git rev-parse --abbrev-ref HEAD) = "main" ]]; then
     current_version=$(grep -o "CURRENT_PROJECT_VERSION = [0-9]*;" IntelliNest.xcodeproj/project.pbxproj | head -1 | awk -F " " "{ print \$3 }" | sed "s/;//");
@@ -148,7 +158,9 @@ alias gittagrelease='if [[ $(git rev-parse --abbrev-ref HEAD) = "main" ]]; then
 else
     echo "Please switch to the main branch before running gittag.";
 fi'
-
+alias dockerDeployLila='docker build --platform linux/amd64 -t gcr.io/$GCP_PROJECT_ID/lila:latest . && \
+docker push gcr.io/$GCP_PROJECT_ID/lila:latest && \
+gcloud run deploy lila --image gcr.io/$GCP_PROJECT_ID/lila:latest --platform managed --region $GCP_REGION --set-secrets="FIREBASE_KEY=projects/$GCP_PROJECT_NUMBER/secrets/firebase-key:latest"'
 
 function git-stats() {
   # ANSI color codes
@@ -189,3 +201,9 @@ export PATH="$PATH:/Users/tobias/Library/Python/3.9/bin"
 # To customize prompt, run `p10k configure` or edit ~/dotfiles/p10k/p10k.zsh.
 [[ ! -f ~/dotfiles/p10k/p10k.zsh ]] || source ~/dotfiles/p10k/p10k.zsh
 if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/Users/tobias/Developer/Lila/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/tobias/Developer/Lila/google-cloud-sdk/path.zsh.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/Users/tobias/Developer/Lila/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/tobias/Developer/Lila/google-cloud-sdk/completion.zsh.inc'; fi
