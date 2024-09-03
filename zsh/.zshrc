@@ -140,7 +140,7 @@ alias gitrelease='if [[ $(basename $(pwd)) = "IntelliNest" ]]; then
     today=$(date "+%Y.%m.%d");
     sed -i "" "s/MARKETING_VERSION = [0-9.]*;/MARKETING_VERSION = $today;/g" IntelliNest.xcodeproj/project.pbxproj;
     echo "All instances of project and marketing versions updated";
-elif [[ $(basename $(pwd)) = "Lilium" ]]; then
+elif [[ $(basename $(pwd)) = "lilium" ]]; then
     current_version=$(grep -o "CURRENT_PROJECT_VERSION = [0-9]*;" Lilium.xcodeproj/project.pbxproj | head -1 | awk -F " " "{ print \$3 }" | sed "s/;//");
     new_version=$((current_version + 1));
     sed -i "" "s/CURRENT_PROJECT_VERSION = [0-9]*;/CURRENT_PROJECT_VERSION = $new_version;/g" Lilium.xcodeproj/project.pbxproj;
@@ -158,9 +158,21 @@ alias gittagrelease='if [[ $(git rev-parse --abbrev-ref HEAD) = "main" ]]; then
 else
     echo "Please switch to the main branch before running gittag.";
 fi'
-alias dockerDeployLila='docker build --platform linux/amd64 -t gcr.io/$GCP_PROJECT_ID/lila:latest . && \
+
+alias deployLilaStage='npm install && npx jest && \
+docker build --platform linux/amd64 -t gcr.io/$GCP_PROJECT_ID/lila:latest . --build-arg NODE_ENV=stage && \
 docker push gcr.io/$GCP_PROJECT_ID/lila:latest && \
-gcloud run deploy lila --image gcr.io/$GCP_PROJECT_ID/lila:latest --platform managed --region $GCP_REGION --set-secrets="FIREBASE_KEY=projects/$GCP_PROJECT_NUMBER/secrets/firebase-key:latest"'
+gcloud run deploy lila --image gcr.io/$GCP_PROJECT_ID/lila:latest --platform managed --region $GCP_REGION \
+--update-secrets=MONGODB_URI=projects/$GCP_PROJECT_NUMBER/secrets/mongodb-uri:latest \
+--set-env-vars=NODE_ENV=stage,GCLOUD_PROJECT_ID=$GCP_PROJECT_ID,GCLOUD_PROJECT_NUMBER=$GCP_PROJECT_NUMBER'
+
+alias deployLilaStageNoTests='npm install &&  \
+docker build --platform linux/amd64 -t gcr.io/$GCP_PROJECT_ID/lila:latest . --build-arg NODE_ENV=stage && \
+docker push gcr.io/$GCP_PROJECT_ID/lila:latest && \
+gcloud run deploy lila --image gcr.io/$GCP_PROJECT_ID/lila:latest --platform managed --region $GCP_REGION \
+--update-secrets=MONGODB_URI=projects/$GCP_PROJECT_NUMBER/secrets/mongodb-uri:latest \
+--set-env-vars=NODE_ENV=stage,GCLOUD_PROJECT_ID=$GCP_PROJECT_ID,GCLOUD_PROJECT_NUMBER=$GCP_PROJECT_NUMBER'
+alias deployLilaDev='npm install && npx jest && docker compose up --build' # && docker compose logs -f app'
 
 function git-stats() {
   # ANSI color codes
