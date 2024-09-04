@@ -30,6 +30,14 @@ vim.g.gitblame_display_virtual_text = 0
 vim.g.gitblame_message_template = "<author> • <date>"
 vim.g.gitblame_date_format = "%d/%m-%y" --"%r"
 
+-- Workaround for switching between nvim and xcode to reload files
+vim.opt.autoread = true
+
+-- refresh files if changed outside
+vim.fn.timer_start(2000, function()
+    vim.cmd("silent! checktime")
+end, { ["repeat"] = -1 })
+
 -- Keymap
 
 vim.keymap.set("n", "<leader>vs", ":vsplit<CR>", { desc = "Split Vertically" })
