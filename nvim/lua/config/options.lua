@@ -35,11 +35,18 @@ vim.opt.autoread = true
 
 -- refresh files if changed outside
 vim.fn.timer_start(2000, function()
-    vim.cmd("silent! checktime")
+	vim.cmd("silent! checktime")
 end, { ["repeat"] = -1 })
 
 -- Keymap
+-- Text
+vim.api.nvim_set_keymap("n", "<leader>p", "o<Esc>p", { noremap = true, silent = true })
 
+-- Navigation
+vim.keymap.set("n", "<leader>k", "[{", { noremap = true, silent = true }) -- Move up to the previous function
+vim.keymap.set("n", "<leader>j", "]}", { noremap = true, silent = true }) -- Move down to the next function
+
+-- Panes
 vim.keymap.set("n", "<leader>vs", ":vsplit<CR>", { desc = "Split Vertically" })
 vim.keymap.set("n", "<leader>hs", ":split<CR>", { desc = "Split Horizontally" })
 vim.keymap.set("n", "<leader>s", ":wa!<CR>", { desc = "Save all" })
