@@ -68,6 +68,9 @@ return {
                     sorting_strategy = "ascending",
                     ignore_filename = false,
                 },
+                oldfiles = {
+                    only_cwd = true,
+                },
                 live_grep = {
                     path_display = { "truncate" },
                     find_command = {
