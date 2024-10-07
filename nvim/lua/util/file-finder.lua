@@ -1,3 +1,9 @@
+local has_telescope, telescope = pcall(require, "telescope.builtin")
+if not has_telescope then
+	vim.notify("Telescope not found! Please install it to use SwitchToRelatedFile.", vim.log.levels.ERROR)
+	return
+end
+
 local function getTargetFilename()
 	local filepath = vim.fn.expand("%:p") -- Get the full path of the current file
 	local name = vim.fn.fnamemodify(filepath, ":t:r")
@@ -20,37 +26,21 @@ end
 
 function SwitchToRelatedFile()
 	local target = getTargetFilename()
-	if target then
-		local pwd = vim.fn.expand("%:p:h") -- Get the current directory
-		local parent = vim.fn.fnamemodify(pwd, ":h") -- Get the parent directory
-		local grandparent = vim.fn.fnamemodify(parent, ":h") -- Get the parent of the parent directory
-
-		-- Construct a list of possible related files
-		local files = vim.fn.systemlist({
-			"rg",
-			"--files",
-			"--ignore",
-			"--hidden",
-			"--follow",
-			"--glob",
-			"!{.git,node_modules,venv}/*",
-			"--maxdepth",
-			"5", -- Limit search depth to 3 levels
-			vim.fn.fnameescape(pwd),
-			vim.fn.fnameescape(parent),
-			vim.fn.fnameescape(grandparent),
-		})
-
-		-- Iterate over the list of files to find the exact match for the target filename
-		for _, file in ipairs(files) do
-			if vim.fn.fnamemodify(file, ":t") == target and vim.fn.filereadable(file) == 1 then
-				vim.cmd("edit " .. vim.fn.fnameescape(file))
-				return
-			end
-		end
-
-		print("No file named " .. target .. " found.")
-	else
-		print("No related target file found to switch to.")
+	if not target then
+		vim.notify("No related target file pattern found to switch to.", vim.log.levels.WARN)
+		return
 	end
+
+	local ag_command = { "ag", "-wsg", target }
+	local found_files = vim.fn.systemlist(ag_command)
+
+	if #found_files == 0 then
+		vim.notify("No file named " .. target .. " found.", vim.log.levels.INFO)
+		return
+	end
+
+	-- Open the first found file
+	local first_match = found_files[1]
+	print("Opening file:", first_match)
+	vim.cmd("edit " .. vim.fn.fnameescape(first_match))
 end

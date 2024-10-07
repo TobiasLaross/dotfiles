@@ -6,32 +6,13 @@ return {
 	config = function()
 		local dap = require("dap")
 		local xcodebuild = require("xcodebuild.dap")
+		local codelldbPath = os.getenv("HOME") .. "/Developer/codelldb-aarch64-darwin/extension/adapter/codelldb"
 
-		dap.configurations.swift = {
-			{
-				name = "iOS App Debugger",
-				type = "codelldb",
-				request = "attach",
-				program = xcodebuild.get_program_path,
-				cwd = "${workspaceFolder}",
-				stopOnEntry = false,
-				waitFor = true,
-			},
+		xcodebuild.setup(codelldbPath)
+		require("dap").configurations.swift[1].postRunCommands = {
+			"breakpoint delete cpp_exception",
 		}
 
-		dap.adapters.codelldb = {
-			type = "server",
-			port = "13000",
-			executable = {
-				command = os.getenv("HOME") .. "/Developer/codelldb-aarch64-darwin/extension/adapter/codelldb",
-				args = {
-					"--port",
-					"13000",
-					"--liblldb",
-					"/Applications/Xcode.app/Contents/SharedFrameworks/LLDB.framework/Versions/A/LLDB",
-				},
-			},
-		}
 		dap.listeners.after.event_initialized["remove_cpp_exception"] = function(session)
 			session:request("evaluate", {
 				expression = "breakpoint delete cpp_exception",
