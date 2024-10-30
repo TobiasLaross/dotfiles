@@ -141,15 +141,8 @@ alias gitrelease='if [[ $(basename $(pwd)) = "IntelliNest" ]]; then
     today=$(date "+%Y.%m.%d");
     sed -i "" "s/MARKETING_VERSION = [0-9.]*;/MARKETING_VERSION = $today;/g" IntelliNest.xcodeproj/project.pbxproj;
     echo "All instances of project and marketing versions updated";
-elif [[ $(basename $(pwd)) = "lilium" ]]; then
-    current_version=$(grep -o "CURRENT_PROJECT_VERSION = [0-9]*;" Lilium.xcodeproj/project.pbxproj | head -1 | awk -F " " "{ print \$3 }" | sed "s/;//");
-    new_version=$((current_version + 1));
-    sed -i "" "s/CURRENT_PROJECT_VERSION = [0-9]*;/CURRENT_PROJECT_VERSION = $new_version;/g" Lilium.xcodeproj/project.pbxproj;
-    today=$(date "+%Y.%m.%d");
-    sed -i "" "s/MARKETING_VERSION = [0-9.]*;/MARKETING_VERSION = $today;/g" Lilium.xcodeproj/project.pbxproj;
-    echo "All instances of project and marketing versions updated";
 else
-    echo "Not in IntelliNest or Lilium directory";
+    echo "Not in IntelliNest directory";
 fi'
 alias gittagrelease='if [[ $(git rev-parse --abbrev-ref HEAD) = "main" ]]; then
     current_version=$(grep -o "CURRENT_PROJECT_VERSION = [0-9]*;" IntelliNest.xcodeproj/project.pbxproj | head -1 | awk -F " " "{ print \$3 }" | sed "s/;//");
