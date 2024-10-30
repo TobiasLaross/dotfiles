@@ -37,7 +37,7 @@ return {
 			if vim.g.xcodebuild_platform == "macOS" then
 				return scheme_prefix .. " macOS"
 			elseif vim.g.xcodebuild_os then
-				return scheme_prefix .. " " .. vim.g.xcodebuild_device_name .. " (" .. vim.g.xcodebuild_os .. ")"
+				return " " .. vim.g.xcodebuild_device_name .. " (" .. vim.g.xcodebuild_last_status .. ")"
 			else
 				return scheme_prefix .. " " .. vim.g.xcodebuild_device_name
 			end
