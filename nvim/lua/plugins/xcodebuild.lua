@@ -11,7 +11,7 @@ return {
 	},
 	config = function()
 		require("xcodebuild").setup({
-			show_build_progress_bar = false, -- shows [ ...    ] progress bar during build, based on the last duration
+			show_build_progress_bar = true, -- shows [ ...    ] progress bar during build, based on the last duration
 			logs = {
 				notify = function(message, severity)
 					local fidget = require("fidget")
@@ -41,6 +41,13 @@ return {
 						})
 					end
 				end,
+				auto_open_on_success_tests = false, -- open logs when tests succeeded
+				auto_open_on_failed_tests = false, -- open logs when tests failed
+				auto_open_on_success_build = false, -- open logs when build succeeded
+				auto_open_on_failed_build = false, -- open logs when build failed
+				auto_close_on_app_launch = false, -- close logs when app is launched
+				auto_close_on_success_build = false, -- close logs when build succeeded (only if auto_open_on_success_build=false)
+				auto_focus = true,
 			},
 			code_coverage = {
 				enabled = true,
@@ -76,12 +83,7 @@ return {
 		vim.keymap.set("n", "<leader>xf", "<cmd>XcodebuildQuickfixLine<cr>", { desc = "Quickfix Line" })
 		vim.keymap.set("n", "<leader>xd", "<cmd>XcodebuildSelectDevice<cr>", { desc = "Select Device" })
 		vim.keymap.set("n", "<leader>xp", "<cmd>XcodebuildSelectTestPlan<cr>", { desc = "Select Test Plan" })
-		vim.keymap.set("n", "<leader>xc", "<cmd>XcodebuildToggleCodeCoverage<cr>", { desc = "Toggle Code Coverage" })
-		vim.keymap.set(
-			"n",
-			"<leader>xC",
-			"<cmd>XcodebuildShowCodeCoverageReport<cr>",
-			{ desc = "Show Code Coverage Report" }
-		)
+		vim.keymap.set("n", "<leader>xc", "<cmd>XcodebuildCancel<cr>", { desc = "Cancel Build" })
+		vim.keymap.set("n", "<leader>xC", "<cmd>XcodebuildToggleCodeCoverage<cr>", { desc = "Toggle Code Coverage" })
 	end,
 }
