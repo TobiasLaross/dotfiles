@@ -64,8 +64,8 @@ return {
                 },
             },
             commands = {
-                extra_build_args = { "-parallelizeTargets, -toolchain, swift-latest" },
-                extra_test_args = { "-parallelizeTargets, -toolchain, swift-latest," },
+                extra_build_args = { "-parallelizeTargets" }, -- extra arguments for `xcodebuild build`
+                extra_test_args = { "-parallelizeTargets" }, -- extra arguments for `xcodebuild test`
             },
         })
 
