@@ -21,7 +21,7 @@ return {
                 enable = true,
             },
             autopairs = {
-                enable = true,
+                enable = false,
             },
 
             incremental_selection = {
