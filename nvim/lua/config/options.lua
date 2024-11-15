@@ -42,10 +42,6 @@ end, { ["repeat"] = -1 })
 -- Text
 vim.api.nvim_set_keymap("n", "<leader>p", "o<Esc>p", { noremap = true, silent = true })
 
--- Navigation
-vim.keymap.set("n", "<leader>k", "[{", { noremap = true, silent = true }) -- Move up to the previous function
-vim.keymap.set("n", "<leader>j", "]}", { noremap = true, silent = true }) -- Move down to the next function
-
 -- Panes
 vim.keymap.set("n", "<leader>vs", ":vsplit<CR>", { desc = "Split Vertically" })
 vim.keymap.set("n", "<leader>hs", ":split<CR>", { desc = "Split Horizontally" })
@@ -91,22 +87,22 @@ vim.keymap.set("n", "<leader>lr", "<cmd>LspRestart<cr>")
 vim.keymap.set("n", "<C-S-k>", "<cmd>lua require('dapui').eval()<CR>", { silent = true, noremap = true })
 
 vim.api.nvim_create_autocmd("User", {
-  pattern = { "XcodebuildBuildFinished", "XcodebuildTestsFinished" },
-  callback = function(event)
-    if event.data.cancelled then
-      return
-    end
+	pattern = { "XcodebuildBuildFinished", "XcodebuildTestsFinished" },
+	callback = function(event)
+		if event.data.cancelled then
+			return
+		end
 
-    if event.data.success then
-      require("trouble").close()
-    elseif not event.data.failedCount or event.data.failedCount > 0 then
-      if next(vim.fn.getqflist()) then
-        require("trouble").open("quickfix")
-      else
-        require("trouble").close()
-      end
+		if event.data.success then
+			require("trouble").close()
+		elseif not event.data.failedCount or event.data.failedCount > 0 then
+			if next(vim.fn.getqflist()) then
+				require("trouble").open("quickfix")
+			else
+				require("trouble").close()
+			end
 
-      require("trouble").refresh()
-    end
-  end,
+			require("trouble").refresh()
+		end
+	end,
 })
