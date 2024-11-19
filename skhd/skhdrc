@@ -44,7 +44,7 @@ ctrl + alt - j : yabai -m window --resize top:0:100
 # Float and center window, make it taller than it is wide, position more to the right and up
 shift + alt - c : yabai -m window --toggle float; \
                   yabai -m window --grid 10:20:8:1:6:8;
-#																																								HxW   xxy wxh
+# HxW   xxy wxh
 
 # Set insertion point for focused container
 shift + ctrl + alt - h : yabai -m window --insert west
