@@ -213,3 +213,7 @@ if [ -f '/Users/tobias/Developer/Lila/google-cloud-sdk/completion.zsh.inc' ]; th
 
 # Created by `pipx` on 2024-11-07 12:28:47
 export PATH="$PATH:/Users/tobias/.local/bin"
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
