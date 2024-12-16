@@ -30,11 +30,10 @@ M.on_attach = function(client, bufnr)
     vim.keymap.set("n", "gt", "<cmd>Lspsaga goto_type_definition<CR>", bufopts)
     vim.keymap.set("n", "gk", "<cmd> Lspsaga hover_doc<CR>", bufopts)
     vim.keymap.set("n", "gn", "<cmd> Lspsaga diagnostic_jump_next<CR>", bufopts)
+    vim.keymap.set("n", "gf", "<cmd> Lspsaga finder tyd+ref+imp+def<CR>", bufopts)
     vim.keymap.set("n", "<leader>r", vim.lsp.buf.rename, bufopts)
     vim.keymap.set("n", "<leader>k", vim.diagnostic.open_float, bufopts)
     vim.keymap.set("n", "<leader>a", "<cmd> Lspsaga code_action<CR>", bufopts)
-    vim.keymap.set("n", "<leader>gl", "<cmd> Lspsaga outline<CR>", bufopts)
-    vim.keymap.set("n", "<leader>gf", "<cmd> Lspsaga finder tyd+ref+imp+def<CR>", bufopts)
 
     -- Set autocommands conditional on server_capabilities
     if client.server_capabilities.documentHighlightProvider then

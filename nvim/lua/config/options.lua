@@ -35,7 +35,7 @@ vim.opt.autoread = true
 
 -- refresh files if changed outside
 vim.fn.timer_start(2000, function()
-	vim.cmd("silent! checktime")
+    vim.cmd("silent! checktime")
 end, { ["repeat"] = -1 })
 
 -- Keymap
@@ -87,22 +87,22 @@ vim.keymap.set("n", "<leader>lr", "<cmd>LspRestart<cr>")
 vim.keymap.set("n", "<C-S-k>", "<cmd>lua require('dapui').eval()<CR>", { silent = true, noremap = true })
 
 vim.api.nvim_create_autocmd("User", {
-	pattern = { "XcodebuildBuildFinished", "XcodebuildTestsFinished" },
-	callback = function(event)
-		if event.data.cancelled then
-			return
-		end
+    pattern = { "XcodebuildBuildFinished", "XcodebuildTestsFinished" },
+    callback = function(event)
+        if event.data.cancelled then
+            return
+        end
 
-		if event.data.success then
-			require("trouble").close()
-		elseif not event.data.failedCount or event.data.failedCount > 0 then
-			if next(vim.fn.getqflist()) then
-				require("trouble").open("quickfix")
-			else
-				require("trouble").close()
-			end
+        if event.data.success then
+            require("trouble").close()
+        elseif not event.data.failedCount or event.data.failedCount > 0 then
+            if next(vim.fn.getqflist()) then
+                require("trouble").open("quickfix")
+            else
+                require("trouble").close()
+            end
 
-			require("trouble").refresh()
-		end
-	end,
+            require("trouble").refresh()
+        end
+    end,
 })
