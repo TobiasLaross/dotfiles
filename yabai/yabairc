@@ -1,5 +1,5 @@
 # General Settings
-yabai -m config mouse_follows_focus      off
+yabai -m config mouse_follows_focus      on
 yabai -m config focus_follows_mouse      off
 yabai -m config window_placement         center
 yabai -m config window_topmost           off

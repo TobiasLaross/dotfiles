@@ -65,6 +65,7 @@ vim.keymap.set("n", "<esc>", ":noh<CR><esc>", { silent = true, noremap = true })
 
 -- Telescope
 vim.keymap.set("n", "<leader>ff", "<cmd>Telescope find_files<cr>", { desc = "Fuzzy find files in cwd" })
+vim.keymap.set("n", "<leader>fh", "<cmd>Telescope help_tags<cr>", { desc = "Show Help tags" })
 vim.keymap.set("n", "<leader>fg", "<cmd>Telescope live_grep<cr>", { desc = "Live grep in cwd" })
 vim.keymap.set("n", "<leader>fr", "<cmd>Telescope resume<cr>", { desc = "Live grep resume" })
 vim.keymap.set("n", "<leader>fl", "<cmd>Telescope lsp_references<cr>")
@@ -75,6 +76,9 @@ vim.keymap.set("n", "<leader>fb", "<cmd>Telescope buffers<cr>")
 vim.keymap.set("n", "<leader>fo", "<cmd>Telescope oldfiles<cr>")
 vim.keymap.set("n", "<leader>fj", "<cmd>Telescope jumplist<cr>")
 vim.keymap.set("n", "<leader>fs", "<cmd>lua SwitchToRelatedFile()<CR>", { noremap = true, silent = true })
+
+-- Vim terminal
+vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { noremap = true, silent = true })
 
 -- Harpoon
 -- local harpoon = require("harpoon")
@@ -106,3 +110,18 @@ vim.api.nvim_create_autocmd("User", {
         end
     end,
 })
+
+vim.api.nvim_create_autocmd("TermOpen", {
+    group = vim.api.nvim_create_augroup("custom-term-open", { clear = true }),
+    callback = function()
+        vim.opt.number = false
+        vim.opt.relativenumber = false
+    end,
+})
+
+vim.keymap.set("n", "<space>to", function()
+    vim.cmd.vnew()
+    vim.cmd.term()
+    vim.cmd.wincmd("J")
+    vim.api.nvim_win_set_height(0, 20)
+end)

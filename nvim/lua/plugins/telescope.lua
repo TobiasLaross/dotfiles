@@ -4,7 +4,6 @@ return {
 		"nvim-lua/plenary.nvim",
 		"nvim-treesitter/nvim-treesitter",
 		{ "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
-		"nvim-telescope/telescope-smart-history.nvim",
 	},
 	config = function()
 		local telescope = require("telescope")
@@ -156,6 +155,10 @@ return {
 							"!**/nb-NO.lproj/Localizable.strings",
 							"--g",
 							"!**/zh-Hans.lproj/Localizable.strings",
+							"--g",
+							"!**/th.lproj/Localizable.strings",
+							"--g",
+							"!**/id.lproj/Localizable.strings",
 						}
 					end,
 				},
@@ -165,6 +168,10 @@ return {
 					layout_strategy = "vertical",
 				},
 			},
+			extensions = {
+				fzf = {},
+			},
+			require("telescope").load_extension("fzf"),
 		}
 		telescope.setup(opts)
 	end,
