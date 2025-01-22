@@ -46,8 +46,17 @@ vim.api.nvim_set_keymap("n", "<leader>p", "o<Esc>p", { noremap = true, silent = 
 vim.keymap.set("n", "<leader>vs", ":vsplit<CR>", { desc = "Split Vertically" })
 vim.keymap.set("n", "<leader>hs", ":split<CR>", { desc = "Split Horizontally" })
 vim.keymap.set("n", "<leader>s", ":wa!<CR>", { desc = "Save all" })
--- vim.keymap.set("n", "<leader>s", ":wa!<CR>:TrimXcodeLogFile<CR>", { desc = "Save all and trim xcode log file" })
-vim.keymap.set("n", "<leader>sq", ":wqa<CR>", { desc = "Save all and quit" })
+-- vim.keymap.set("n", "<leader>sq", ":wqa<CR>", { desc = "Save all and quit" })
+vim.keymap.set("n", "<leader>sq", function()
+	-- Close all terminal jobs gracefully
+	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+		if vim.bo[buf].buftype == "terminal" then
+			vim.fn.jobstop(vim.b[buf].terminal_job_id or 0) -- Stop the job
+			vim.api.nvim_buf_delete(buf, { force = true }) -- Force delete the buffer
+		end
+	end
+	vim.cmd("wqa") -- Save all and quit
+end, { desc = "Save all and quit, killing terminals" })
 
 -- NvimTree
 vim.keymap.set("n", "<leader>e", "<cmd>NvimTreeToggle<cr>", { desc = "Toggle nvim tree" })
