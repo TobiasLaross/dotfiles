@@ -55,7 +55,12 @@ vim.keymap.set("n", "<leader>ntl", "<cmd>NvimTreeResize +5<cr>", { desc = "Incre
 vim.keymap.set("n", "<leader>nth", "<cmd>NvimTreeResize -5<cr>", { desc = "Decrease size of nvim tree" })
 
 -- Oil
-vim.keymap.set("n", "<leader>-", "<cmd>Oil --float<cr>", { desc = "Open OIL" })
+vim.keymap.set(
+	"n",
+	"<leader>-",
+	"<cmd>lua require('oil').toggle_float()<CR>",
+	{ noremap = true, silent = true, desc = "Toggle Oil float" }
+)
 
 -- Navigate between splits
 vim.keymap.set("n", "<C-J>", "<C-W><C-J>")

@@ -1,5 +1,3 @@
-vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { noremap = true, silent = true })
-
 local state = {
     floating = {
         buf = -1,
@@ -49,6 +47,7 @@ local toggle_terminal = function()
     vim.cmd("normal i")
 end
 
+vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { noremap = true, silent = true })
 vim.keymap.set({ "n", "t" }, "<space>tt", toggle_terminal)
 vim.keymap.set("n", "<space>to", function()
     vim.cmd.vnew()
