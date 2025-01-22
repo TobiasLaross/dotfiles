@@ -35,7 +35,7 @@ vim.opt.autoread = true
 
 -- refresh files if changed outside
 vim.fn.timer_start(2000, function()
-    vim.cmd("silent! checktime")
+	vim.cmd("silent! checktime")
 end, { ["repeat"] = -1 })
 
 -- Keymap
@@ -53,6 +53,9 @@ vim.keymap.set("n", "<leader>sq", ":wqa<CR>", { desc = "Save all and quit" })
 vim.keymap.set("n", "<leader>e", "<cmd>NvimTreeToggle<cr>", { desc = "Toggle nvim tree" })
 vim.keymap.set("n", "<leader>ntl", "<cmd>NvimTreeResize +5<cr>", { desc = "Increase size of nvim tree" })
 vim.keymap.set("n", "<leader>nth", "<cmd>NvimTreeResize -5<cr>", { desc = "Decrease size of nvim tree" })
+
+-- Oil
+vim.keymap.set("n", "<leader>-", "<cmd>Oil --float<cr>", { desc = "Open OIL" })
 
 -- Navigate between splits
 vim.keymap.set("n", "<C-J>", "<C-W><C-J>")
@@ -77,9 +80,6 @@ vim.keymap.set("n", "<leader>fo", "<cmd>Telescope oldfiles<cr>")
 vim.keymap.set("n", "<leader>fj", "<cmd>Telescope jumplist<cr>")
 vim.keymap.set("n", "<leader>fs", "<cmd>lua SwitchToRelatedFile()<CR>", { noremap = true, silent = true })
 
--- Vim terminal
-vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { noremap = true, silent = true })
-
 -- Harpoon
 -- local harpoon = require("harpoon")
 -- harpoon:setup()
@@ -91,37 +91,22 @@ vim.keymap.set("n", "<leader>lr", "<cmd>LspRestart<cr>")
 vim.keymap.set("n", "<C-S-k>", "<cmd>lua require('dapui').eval()<CR>", { silent = true, noremap = true })
 
 vim.api.nvim_create_autocmd("User", {
-    pattern = { "XcodebuildBuildFinished", "XcodebuildTestsFinished" },
-    callback = function(event)
-        if event.data.cancelled then
-            return
-        end
+	pattern = { "XcodebuildBuildFinished", "XcodebuildTestsFinished" },
+	callback = function(event)
+		if event.data.cancelled then
+			return
+		end
 
-        if event.data.success then
-            require("trouble").close()
-        elseif not event.data.failedCount or event.data.failedCount > 0 then
-            if next(vim.fn.getqflist()) then
-                require("trouble").open("quickfix")
-            else
-                require("trouble").close()
-            end
+		if event.data.success then
+			require("trouble").close()
+		elseif not event.data.failedCount or event.data.failedCount > 0 then
+			if next(vim.fn.getqflist()) then
+				require("trouble").open("quickfix")
+			else
+				require("trouble").close()
+			end
 
-            require("trouble").refresh()
-        end
-    end,
+			require("trouble").refresh()
+		end
+	end,
 })
-
-vim.api.nvim_create_autocmd("TermOpen", {
-    group = vim.api.nvim_create_augroup("custom-term-open", { clear = true }),
-    callback = function()
-        vim.opt.number = false
-        vim.opt.relativenumber = false
-    end,
-})
-
-vim.keymap.set("n", "<space>to", function()
-    vim.cmd.vnew()
-    vim.cmd.term()
-    vim.cmd.wincmd("J")
-    vim.api.nvim_win_set_height(0, 20)
-end)
