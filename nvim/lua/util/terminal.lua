@@ -48,7 +48,8 @@ local toggle_terminal = function()
 end
 
 vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { noremap = true, silent = true })
-vim.keymap.set({ "n", "t" }, "<space>tt", toggle_terminal)
+vim.keymap.set({ "n" }, "<space>tt", toggle_terminal)
+vim.keymap.set({ "t" }, "<Esc><Esc>", toggle_terminal)
 vim.keymap.set("n", "<space>to", function()
 	vim.cmd.vnew()
 	vim.cmd.term()
