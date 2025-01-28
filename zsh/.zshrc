@@ -123,7 +123,8 @@ alias :q='exit'
 
 alias notes="glow ~/notes"
 alias gitdiffnameonly="git diff --name-status develop"
-alias gitl="git log"
+alias gitlv="git log"
+alias gitl="git log --pretty=format:\"%Cred%H - %Cgreen%ad%n%an - %s%n\""
 alias gits="git status"
 alias githash="git rev-parse HEAD | tr -d '\n' | pbcopy"
 alias gitbranch="git branch --show-current -vvv"

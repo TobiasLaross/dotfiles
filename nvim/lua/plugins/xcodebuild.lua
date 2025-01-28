@@ -44,7 +44,7 @@ return {
                 auto_open_on_success_tests = false, -- open logs when tests succeeded
                 auto_open_on_failed_tests = false, -- open logs when tests failed
                 auto_open_on_success_build = false, -- open logs when build succeeded
-                auto_open_on_failed_build = false, -- open logs when build failed
+                auto_open_on_failed_build = true, -- open logs when build failed
                 auto_close_on_app_launch = false, -- close logs when app is launched
                 auto_close_on_success_build = false, -- close logs when build succeeded (only if auto_open_on_success_build=false)
                 auto_focus = true,
@@ -71,9 +71,14 @@ return {
 
         vim.keymap.set("n", "<leader>xl", "<cmd>XcodebuildToggleLogs<cr>", { desc = "Toggle Xcodebuild Logs" })
         vim.keymap.set("n", "<leader>xb", "<cmd>XcodebuildBuild<cr>", { desc = "Build Project" })
-        vim.keymap.set("n", "<leader>xx", "<cmd>XcodebuildBuildRun<cr>", { desc = "Build & Run Project" })
+        vim.keymap.set(
+            "n",
+            "<leader>xx",
+            "<cmd>XcodebuildBuildDebug<cr>",
+            { desc = "Build & Run Project with debugger" }
+        )
+        vim.keymap.set("n", "<leader>xr", "<cmd>XcodebuildBuildRun<cr>", { desc = "Build & Run Project" })
         vim.keymap.set("n", "<leader>xo", "<cmd>XcodebuildOpenInXcode<cr>", { desc = "Open Project in Xcode" })
-        vim.keymap.set("n", "<leader>xr", "<cmd>XcodebuildRun<cr>", { desc = "Build & Run Project" })
         vim.keymap.set("n", "<leader>xt", "<cmd>XcodebuildTest<cr>", { desc = "Run Tests" })
         vim.keymap.set("n", "<leader>xT", "<cmd>XcodebuildTestClass<cr>", { desc = "Run This Test Class" })
         vim.keymap.set("n", "<leader>X", "<cmd>XcodebuildPicker<cr>", { desc = "Show All Xcodebuild Actions" })
@@ -84,8 +89,9 @@ return {
             { desc = "Show Project Manager Actions" }
         )
         vim.keymap.set("n", "<leader>xa", "<cmd>XcodebuildCodeActions<cr>", { desc = "Show Code Actions" })
+        vim.keymap.set("n", "<leader>xd", "<cmd>XcodebuildAttachDebugger<cr>", { desc = "Attach debugger" })
         vim.keymap.set("n", "<leader>xf", "<cmd>XcodebuildQuickfixLine<cr>", { desc = "Quickfix Line" })
-        vim.keymap.set("n", "<leader>xd", "<cmd>XcodebuildSelectDevice<cr>", { desc = "Select Device" })
+        vim.keymap.set("n", "<leader>xD", "<cmd>XcodebuildSelectDevice<cr>", { desc = "Select Device" })
         vim.keymap.set("n", "<leader>xp", "<cmd>XcodebuildSelectTestPlan<cr>", { desc = "Select Test Plan" })
         vim.keymap.set("n", "<leader>xc", "<cmd>XcodebuildCancel<cr>", { desc = "Cancel Build" })
         vim.keymap.set("n", "<leader>xC", "<cmd>XcodebuildToggleCodeCoverage<cr>", { desc = "Toggle Code Coverage" })
