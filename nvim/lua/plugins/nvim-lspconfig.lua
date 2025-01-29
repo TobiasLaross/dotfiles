@@ -91,7 +91,6 @@ local config = function()
         ["efm"] = function()
             lspconfig.efm.setup({
                 filetypes = {
-                    "lua",
                     "python",
                     "json",
                     "javascript",
@@ -110,7 +109,6 @@ local config = function()
                 },
                 settings = {
                     languages = {
-                        lua = { require("efmls-configs.linters.luacheck"), require("efmls-configs.formatters.stylua") },
                         python = { require("efmls-configs.linters.flake8"), require("efmls-configs.formatters.black") },
                         typescript = {
                             require("efmls-configs.linters.eslint_d"),
