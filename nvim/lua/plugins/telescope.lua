@@ -79,7 +79,7 @@ return {
 						"--hidden",
 						"--color=never",
 						"--no-heading",
-						"--with-filename",
+						-- "--with-filename",
 						"--line-number",
 						"--column",
 						"--smart-case",
@@ -159,6 +159,8 @@ return {
 							"!**/th.lproj/Localizable.strings",
 							"--g",
 							"!**/id.lproj/Localizable.strings",
+							"--g",
+							"!**/project.pbxproj",
 						}
 					end,
 				},
