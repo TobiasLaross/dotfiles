@@ -8,13 +8,6 @@ alt - l : yabai -m window --focus east
 alt - s: yabai -m display --focus west
 alt - g: yabai -m display --focus east
 
-# -- Switch between spaces even if full screen
-ctrl - 1 : index=1; eval "$(yabai -m query --spaces | jq --argjson index "${index}" -r '(.[] | select(.index == $index).windows[0]) as $wid | if $wid then "yabai -m window --focus \"" + ($wid | tostring) + "\"" else "skhd --key \"ctrl - " + (map(select(."is-native-fullscreen" == false)) | index(map(select(.index == $index))) + 1 % 10 | tostring) + "\"" end')"
-ctrl - 2 : index=2; eval "$(yabai -m query --spaces | jq --argjson index "${index}" -r '(.[] | select(.index == $index).windows[0]) as $wid | if $wid then "yabai -m window --focus \"" + ($wid | tostring) + "\"" else "skhd --key \"ctrl - " + (map(select(."is-native-fullscreen" == false)) | index(map(select(.index == $index))) + 1 % 10 | tostring) + "\"" end')"
-ctrl - 3 : index=3; eval "$(yabai -m query --spaces | jq --argjson index "${index}" -r '(.[] | select(.index == $index).windows[0]) as $wid | if $wid then "yabai -m window --focus \"" + ($wid | tostring) + "\"" else "skhd --key \"ctrl - " + (map(select(."is-native-fullscreen" == false)) | index(map(select(.index == $index))) + 1 % 10 | tostring) + "\"" end')"
-ctrl - 4 : index=4; eval "$(yabai -m query --spaces | jq --argjson index "${index}" -r '(.[] | select(.index == $index).windows[0]) as $wid | if $wid then "yabai -m window --focus \"" + ($wid | tostring) + "\"" else "skhd --key \"ctrl - " + (map(select(."is-native-fullscreen" == false)) | index(map(select(.index == $index))) + 1 % 10 | tostring) + "\"" end')"
-ctrl - 5 : index=5; eval "$(yabai -m query --spaces | jq --argjson index "${index}" -r '(.[] | select(.index == $index).windows[0]) as $wid | if $wid then "yabai -m window --focus \"" + ($wid | tostring) + "\"" else "skhd --key \"ctrl - " + (map(select(."is-native-fullscreen" == false)) | index(map(select(.index == $index))) + 1 % 10 | tostring) + "\"" end')"
-
 # Moving windows
 shift + alt - h : yabai -m window --warp west
 shift + alt - j : yabai -m window --warp south
@@ -44,35 +37,15 @@ ctrl + alt - j : yabai -m window --resize top:0:100
 # balance out tree of windows (resize to occupy same area)
 shift + alt - e : yabai -m space --balance
 
-#ctrl + alt - h : \
-#    yabai -m window --resize left:-100:0 ; \
-#    yabai -m window --resize right:-100:0
-#
-#ctrl + alt - j : \
-#    yabai -m window --resize bottom:0:100 ; \
-#    yabai -m window --resize top:0:100
-
-#ctrl + alt - k : \
-#    yabai -m window --resize top:0:-100 ; \
-#    yabai -m window --resize bottom:0:-100
-
-#ctrl + alt - l : \
-#    yabai -m window --resize right:100:0 ; \
-#    yabai -m window --resize left:100:0
-
 # Float and center window, make it taller than it is wide, position more to the right and up
 shift + alt - c : yabai -m window --toggle float; \
                   yabai -m window --grid 10:20:8:1:6:8;
-# HxW   xxy wxh
 
 # Set insertion point for focused container
 shift + ctrl + alt - h : yabai -m window --insert west
 shift + ctrl + alt - j : yabai -m window --insert south
 shift + ctrl + alt - k : yabai -m window --insert north
 shift + ctrl + alt - l : yabai -m window --insert east
-
-# Float / Unfloat window
-shift + alt - space : yabai -m window --toggle float
 
 # Make fullscreen
 alt - f         : yabai -m window --toggle zoom-fullscreen
