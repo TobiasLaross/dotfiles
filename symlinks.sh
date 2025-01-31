@@ -1,8 +1,9 @@
 #!/bin/zsh
 
 ln -sf $(pwd)/nvim/ ~/.config/
-ln -sf $(pwd)/yabai/ ~/.config/
-ln -sf $(pwd)/skhd/ ~/.config/
+ln -sf $(pwd)/aerospace/ ~/.config/
+# ln -sf $(pwd)/yabai/ ~/.config/
+# ln -sf $(pwd)/skhd/ ~/.config/
 ln -sf $(pwd)/p10k/p10k.zsh ~/.p10k.zsh
 ln -sf $(pwd)/zsh/.zshrc ~/.zshrc
 mkdir -p ~/.config/tmux
