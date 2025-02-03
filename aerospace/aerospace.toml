@@ -142,6 +142,8 @@ automatically-unhide-macos-hidden-apps = true
     # alt-keypad9 = 'workspace 9'
     alt-m = 'workspace prev --wrap-around'
     alt-comma = 'workspace next --wrap-around'
+    alt-c = 'layout tiling floating'
+    alt-f = 'fullscreen'
     
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#move-node-to-workspace
