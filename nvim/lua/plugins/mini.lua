@@ -3,7 +3,6 @@ return {
     event = "VeryLazy",
     version = false,
     config = function()
-        -- to toggle comments just hit `gc`
         require("mini.comment").setup({
             options = {
                 custom_commentstring = function()
@@ -26,7 +25,6 @@ return {
             },
         })
 
-        -- this is very useful, by hitting `sj` you can split arguments into new lines (ctrl+m in Xcode)
         require("mini.splitjoin").setup({
             mappings = {
                 toggle = "sj",
@@ -48,5 +46,6 @@ return {
                 line_up = "K",
             },
         })
+        require('mini.trailspace').setup()
     end,
 }

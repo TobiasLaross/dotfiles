@@ -112,7 +112,6 @@ local config = function()
                         python = { require("efmls-configs.linters.flake8"), require("efmls-configs.formatters.black") },
                         typescript = {
                             require("efmls-configs.linters.eslint_d"),
-                            -- require("efmls-configs.formatters.prettier_d"),
                         },
                         json = { require("efmls-configs.formatters.fixjson") },
                         javascript = {
