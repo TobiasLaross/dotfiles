@@ -46,6 +46,5 @@ return {
                 line_up = "K",
             },
         })
-        require('mini.trailspace').setup()
     end,
 }

@@ -18,11 +18,12 @@ after-login-command = []
 # You can use it to add commands that run after AeroSpace startup.
 # 'after-startup-command' is run after 'after-login-command'
 # Available commands : https://nikitabobko.github.io/AeroSpace/commands
-after-startup-command = ['exec-and-forget ./startup.sh']
+after-startup-command = [
+    'exec-and-forget /Users/tobias/dotfiles/aerospace/startup.sh'
+]
 
 # Start AeroSpace at login
 start-at-login = true
-
 
 # Normalizations. See: https://nikitabobko.github.io/AeroSpace/guide#normalization
 enable-normalization-flatten-containers = true
@@ -149,12 +150,12 @@ automatically-unhide-macos-hidden-apps = true
     alt-keypad4 = 'workspace 4'
     alt-keypad5 = 'workspace 5'
     alt-keypad6 = 'workspace 6'
-    alt-1 = 'workspace 1'
-    alt-2 = 'workspace 2'
-    alt-3 = 'workspace 3'
-    alt-4 = 'workspace 4'
-    alt-5 = 'workspace 5'
-    alt-6 = 'workspace 6'
+    ctrl-1 = 'workspace 1'
+    ctrl-2 = 'workspace 2'
+    ctrl-3 = 'workspace 3'
+    ctrl-4 = 'workspace 4'
+    ctrl-5 = 'workspace 5'
+    ctrl-6 = 'workspace 6'
     # alt-keypad7 = 'workspace 7'
     # alt-keypad8 = 'workspace 8'
     # alt-keypad9 = 'workspace 9'
