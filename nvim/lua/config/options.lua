@@ -63,8 +63,12 @@ vim.keymap.set("n", "<leader>e", "<cmd>NvimTreeToggle<cr>", { desc = "Toggle nvi
 vim.keymap.set("n", "<leader>ntl", "<cmd>NvimTreeResize +5<cr>", { desc = "Increase size of nvim tree" })
 vim.keymap.set("n", "<leader>nth", "<cmd>NvimTreeResize -5<cr>", { desc = "Decrease size of nvim tree" })
 
--- ZenMode
-vim.keymap.set("n", "<leader>z", "<cmd>ZenMode<cr>", { noremap = true, silent = true })
+-- Zen
+vim.keymap.set("n", "<leader>z", function()
+    vim.o.numberwidth = vim.o.numberwidth == 4 and 20 or 4
+    vim.o.foldcolumn = vim.o.numberwidth == 4 and "0" or "9"
+    vim.o.signcolumn = vim.o.numberwidth == 4 and "no" or "yes:9"
+end, { noremap = true, silent = true })
 
 -- Oil
 vim.keymap.set(

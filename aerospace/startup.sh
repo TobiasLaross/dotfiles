@@ -16,8 +16,8 @@ move_to_workspace() {
     fi
 }
 
-move_to_workspace "Preview" 1 "float"
-move_to_workspace "Finder" 1 "float"
+# move_to_workspace "Preview" 1 "float"
+# move_to_workspace "Finder" 1 "float"
 move_to_workspace "Google Chrome" 1 "focus"
 move_to_workspace "iTerm2" 2
 move_to_workspace "Slack" 3
