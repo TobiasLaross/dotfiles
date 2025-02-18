@@ -102,6 +102,11 @@ export LANG=en_US.UTF-8
 export EDITOR='nvim'
 # fi
 
+# Sessionizer
+export PERSONAL="$HOME/Developer/personal"
+export WORK="$HOME/Developer/work"
+export DOTFILES="$HOME/dotfiles"
+
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
 
@@ -115,6 +120,7 @@ export EDITOR='nvim'
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 #
 alias vim="nvim"
+alias sess="$DOTFILES/scripts/sessionizer.sh"
 alias ag='ag 2>/dev/null'
 alias pip='pip3'
 alias brewski="brew doctor; brew update && brew upgrade && brew cleanup -s"
@@ -198,7 +204,7 @@ function gits2 () {
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-
+[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm"
 # Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
 export PATH="$PATH:$HOME/.rvm/bin"
 export PATH="$PATH:/Users/tobias/Library/Python/3.9/bin"
@@ -208,10 +214,10 @@ export PATH="$PATH:/Users/tobias/Library/Python/3.9/bin"
 if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
 
 # The next line updates PATH for the Google Cloud SDK.
-if [ -f '/Users/tobias/Developer/Lila/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/tobias/Developer/Lila/google-cloud-sdk/path.zsh.inc'; fi
+if [ -f '/Users/tobias/Developer/personal/Lila/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/tobias/Developer/personal/Lila/google-cloud-sdk/path.zsh.inc'; fi
 
 # The next line enables shell command completion for gcloud.
-if [ -f '/Users/tobias/Developer/Lila/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/tobias/Developer/Lila/google-cloud-sdk/completion.zsh.inc'; fi
+if [ -f '/Users/tobias/Developer/personal/Lila/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/tobias/Developer/personal/Lila/google-cloud-sdk/completion.zsh.inc'; fi
 
 # Created by `pipx` on 2024-11-07 12:28:47
 export PATH="$PATH:/Users/tobias/.local/bin"
