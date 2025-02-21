@@ -127,7 +127,7 @@ alias brewski="brew doctor; brew update && brew upgrade && brew cleanup -s"
 alias reload='source ~/.zshrc'
 alias :q='exit'
 
-alias ll="ls -latrh"
+alias ll="ls -lah"
 alias notes="glow ~/notes"
 alias gitdiffnameonly="git diff --name-status develop"
 alias gitlv="git log"
@@ -207,7 +207,7 @@ function gits2 () {
 [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm"
 # Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
 export PATH="$PATH:$HOME/.rvm/bin"
-export PATH="$PATH:/Users/tobias/Library/Python/3.9/bin"
+export PATH="$PATH:/Users/tobias/Library/Python/3.13/bin"
 
 # To customize prompt, run `p10k configure` or edit ~/dotfiles/p10k/p10k.zsh.
 [[ ! -f ~/dotfiles/p10k/p10k.zsh ]] || source ~/dotfiles/p10k/p10k.zsh
