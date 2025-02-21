@@ -127,10 +127,10 @@ alias brewski="brew doctor; brew update && brew upgrade && brew cleanup -s"
 alias reload='source ~/.zshrc'
 alias :q='exit'
 
+alias ll="ls -latrh"
 alias notes="glow ~/notes"
 alias gitdiffnameonly="git diff --name-status develop"
 alias gitlv="git log"
-# alias gitl="git log --pretty=format:\"%Cred%H - %C(yellow)%D%n%Cgreen%an - %ad%n%s%n\""
 alias gitl='git log --pretty=format:"%Cred%H - %C(yellow)%D%n%Cgreen%an - %ad%n%s%n"'
 alias gits="git status"
 alias githash="git rev-parse HEAD | tr -d '\n' | pbcopy"
