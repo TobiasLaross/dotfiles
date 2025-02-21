@@ -10,8 +10,11 @@ typeset -A colors=(
 
 # Fetch all available project directories
 get_project_list() {
-    echo $DOTFILES
-    find $WORK $PERSONAL -mindepth 1 -maxdepth 1 -type d | sort
+    local current_dir=$(tmux display-message -p -F "#{pane_current_path}" 2>/dev/null)
+    if [[ "$DOTFILES" != "$current_dir" ]]; then
+        echo $DOTFILES
+    fi
+    find $WORK $PERSONAL -mindepth 1 -maxdepth 1 -type d | grep -v "^$current_dir$" | sort
 }
 
 # Colorize project directories for display in fzf
