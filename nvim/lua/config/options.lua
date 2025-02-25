@@ -93,8 +93,8 @@ vim.keymap.set("n", "<leader>fh", "<cmd>Telescope help_tags<cr>", { desc = "Show
 vim.keymap.set("n", "<leader>fg", "<cmd>Telescope live_grep<cr>", { desc = "Live grep in cwd" })
 vim.keymap.set("n", "<leader>fG", "<cmd>Telescope grep_string<cr>", { desc = "Grep string (word under cursor)" })
 vim.keymap.set("n", "<leader>fp", function()
-    require("telescope.builtin").live_grep({ default_text = "print\\(\"alarm" })
-end, { desc = "Grep for print(\"alarm" })
+    require("telescope.builtin").live_grep({ default_text = "print\\(\"TLA91" })
+end, { desc = "Grep for print(\"TLA91" })
 vim.keymap.set("n", "<leader>fr", "<cmd>Telescope resume<cr>", { desc = "Live grep resume" })
 vim.keymap.set("n", "<leader>fl", "<cmd>Telescope lsp_references<cr>")
 vim.keymap.set("n", "<leader>fd", "<cmd>Telescope diagnostics<cr>")
@@ -103,7 +103,12 @@ vim.keymap.set("n", "<leader>fc", "<cmd>Telescope git_status<cr>")
 vim.keymap.set("n", "<leader>fb", "<cmd>Telescope buffers<cr>")
 vim.keymap.set("n", "<leader>fo", "<cmd>Telescope oldfiles<cr>")
 vim.keymap.set("n", "<leader>fj", "<cmd>Telescope jumplist<cr>")
+
+-- Util
 vim.keymap.set("n", "<leader>fs", "<cmd>lua SwitchToRelatedFile()<CR>", { noremap = true, silent = true })
+vim.keymap.set("n", "<leader>lw", "<cmd>lua LogWord()<CR>", { noremap = true, silent = true })
+
+
 
 -- Harpoon
 -- local harpoon = require("harpoon")

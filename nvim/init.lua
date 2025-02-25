@@ -1,4 +1,5 @@
 require("config")
 require("util.file-finder")
+require("util.word-logger")
 require("util.terminal")
 require("util.functions")
