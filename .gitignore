@@ -2,3 +2,5 @@
 fonts/fonts
 nvim/lazy-lock.json
 nvim/typrstats
+zsh/config/secrets.zsh
+zsh/config/assa.zsh
