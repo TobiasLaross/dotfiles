@@ -1,5 +1,5 @@
 vim.opt.number = true
-vim.opt.relativenumber = true
+vim.opt.relativenumber = false
 
 vim.opt.splitbelow = true
 vim.opt.splitright = true
@@ -93,8 +93,8 @@ vim.keymap.set("n", "<leader>fh", "<cmd>Telescope help_tags<cr>", { desc = "Show
 vim.keymap.set("n", "<leader>fg", "<cmd>Telescope live_grep<cr>", { desc = "Live grep in cwd" })
 vim.keymap.set("n", "<leader>fG", "<cmd>Telescope grep_string<cr>", { desc = "Grep string (word under cursor)" })
 vim.keymap.set("n", "<leader>fp", function()
-    require("telescope.builtin").live_grep({ default_text = "print\\(\"TLA91" })
-end, { desc = "Grep for print(\"TLA91" })
+    require("telescope.builtin").live_grep({ default_text = "TLA91" })
+end, { desc = "Grep for TLA91" })
 vim.keymap.set("n", "<leader>fr", "<cmd>Telescope resume<cr>", { desc = "Live grep resume" })
 vim.keymap.set("n", "<leader>fl", "<cmd>Telescope lsp_references<cr>")
 vim.keymap.set("n", "<leader>fd", "<cmd>Telescope diagnostics<cr>")

@@ -2,7 +2,8 @@ return {
     "tpope/vim-fugitive",
     cmd = { "Git", "Gdiffsplit", "Gread", "Gwrite" }, -- Lazy loading commands
     keys = {
-        { "<leader>gs",  "<cmd>Git develop<CR>",         desc = "Open Git Status" },
+        { "<leader>gs",  "<cmd>Git<CR>",                 desc = "Open Git Status" },
+        { "<leader>gsd", "<cmd>Git develop<CR>",         desc = "Open Git Status develop" },
         { "<leader>gb",  "<cmd>G blame<CR>",             desc = "Open Git Blame" },
         { "<leader>gl",  "<cmd>G log<CR>",               desc = "Open Git log pane" },
         { "<leader>gdl", "<cmd>Gvdiffsplit<CR>",         desc = "Git Diff Split" },
