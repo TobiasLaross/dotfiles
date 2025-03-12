@@ -49,7 +49,7 @@ manage_tmux_session() {
     if ! tmux has-session -t "$session_name" 2>/dev/null; then
         tmux new-session -d -s "$session_name" -n "Code" -c "$project_dir"
         if [[ "$session_name" != "dotfiles" ]]; then
-            tmux new-window -t "$session_name" -n "Terminal" -c "$project_dir"
+            tmux new-window -t "$session_name" -n "Test" -c "$project_dir"
         fi
     fi
     tmux select-window -t "$session_name:1"
