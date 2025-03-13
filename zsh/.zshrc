@@ -85,8 +85,6 @@ plugins=(
     zsh-autosuggestions
     zsh-syntax-highlighting
     zsh-vi-mode
-    zsh-history-substring-search
-    zsh-autocomplete
 )
 
 source $ZSH/oh-my-zsh.sh
