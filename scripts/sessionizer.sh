@@ -8,6 +8,27 @@ typeset -A colors=(
     reset $'\e[0m'
 )
 
+filter_existing_sessions() {
+    local project_dir
+    local session_name
+    local existing_sessions=$(tmux list-sessions -F "#{session_name}" 2>/dev/null)
+
+    while read -r project_dir; do
+        # Convert directory name to session name using the same logic as in main()
+        local directory=$(basename "$project_dir")
+        local session_name="${directory//:/_}"
+        session_name="${session_name// /_}"
+        session_name="${session_name//./_}"
+        session_name=${(L)session_name}    # Convert to lowercase
+        session_name=${(C)session_name}    # Capitalize first letter
+
+        # Check if this session exists
+        if echo "$existing_sessions" | grep -q "^${session_name}$"; then
+            echo "$project_dir"
+        fi
+    done
+}
+
 # Fetch all available project directories
 get_project_list() {
     local current_dir=$(tmux display-message -p -F "#{pane_current_path}" 2>/dev/null)
@@ -35,8 +56,13 @@ colorize_projects() {
 # Use fzf to select a project directory
 select_project() {
     local fzf_height="50%"
-
     local project_list=$(get_project_list)
+
+    # Apply filter if requested
+    if [[ "$1" == "existing" ]]; then
+        project_list=$(echo "$project_list" | filter_existing_sessions)
+    fi
+
     echo "$project_list" | colorize_projects |
         fzf --ansi -m -1 --border=rounded --border-label="Repo" --color="border:#5A5F8C"
 }
@@ -64,8 +90,8 @@ manage_tmux_session() {
 
 # Main function to handle the overall flow
 main() {
-    local project_dir=$(select_project)
-
+    local filter_mode="$1"
+    local project_dir=$(select_project "$filter_mode")
     if [[ -z "$project_dir" ]]; then
         return 0
     fi
@@ -76,7 +102,6 @@ main() {
     session_name="${session_name//./_}"
     session_name=${(L)session_name}    # Convert to lowercase
     session_name=${(C)session_name}    # Capitalize first letter
-    # session_name=$(echo "$session_name" | tr '[:lower:]' '[:upper:]')
 
     manage_tmux_session "$project_dir" "$session_name"
 }
