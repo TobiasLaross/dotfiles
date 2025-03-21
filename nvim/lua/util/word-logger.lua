@@ -8,7 +8,7 @@ function LogWord()
     elseif filetype == "objc" or filetype == "objcpp" then
         log_statement = string.format("NSLog(@\"TLA91: %s = %%@\", %s);", word, word)
     elseif filetype == "typescript" or filetype == "javascript" then
-        log_statement = string.format("console.log(`TLA91: %s = ${%s}`);", word, word)
+        log_statement = string.format("console.log('TLA91: %s = ', %s);", word, word)
     elseif filetype == "go" then
         log_statement = string.format("fmt.Printf(\"TLA91: %s = %%v\\n\", %s)", word, word)
     elseif filetype == "sh" or filetype == "zsh" or filetype == "bash" then
