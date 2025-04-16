@@ -88,6 +88,8 @@ automatically-unhide-macos-hidden-apps = true
     4 = 'main'
     5 = 'main'
     6 = 'main'
+    p = 'main'
+    m = 'main'
 
 # 'main' binding mode declaration
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
@@ -150,17 +152,16 @@ automatically-unhide-macos-hidden-apps = true
     alt-keypad4 = 'workspace 4'
     alt-keypad5 = 'workspace 5'
     alt-keypad6 = 'workspace 6'
+    alt-p = 'workspace p'
+    alt-m = 'workspace m'
     ctrl-1 = 'workspace 1'
     ctrl-2 = 'workspace 2'
     ctrl-3 = 'workspace 3'
     ctrl-4 = 'workspace 4'
     ctrl-5 = 'workspace 5'
     ctrl-6 = 'workspace 6'
-    # alt-keypad7 = 'workspace 7'
-    # alt-keypad8 = 'workspace 8'
-    # alt-keypad9 = 'workspace 9'
-    alt-m = 'workspace prev --wrap-around'
-    alt-comma = 'workspace next --wrap-around'
+    ctrl-p = 'workspace p'
+    ctrl-m = 'workspace m'
     alt-c = 'layout tiling floating'
     alt-f = 'fullscreen'
     
@@ -178,6 +179,8 @@ automatically-unhide-macos-hidden-apps = true
     alt-ctrl-4 = 'move-node-to-workspace 4'
     alt-ctrl-5 = 'move-node-to-workspace 5'
     alt-ctrl-6 = 'move-node-to-workspace 6'
+    alt-ctrl-p = 'move-node-to-workspace p'
+    alt-ctrl-m = 'move-node-to-workspace m'
 
     # Move Chrome to iterm workspace
     alt-ctrl-o = 'exec-and-forget $HOME/.config/aerospace/chrome-workspace.sh'
@@ -187,8 +190,7 @@ automatically-unhide-macos-hidden-apps = true
     # alt-ctrl-9 = 'move-node-to-workspace 9'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#workspace-back-and-forth
-    alt-tab = 'workspace-back-and-forth'
-    alt-n = 'workspace-back-and-forth'
+    alt-o = 'workspace-back-and-forth'
     # See: https://nikitabobko.github.io/AeroSpace/commands#move-workspace-to-monitor
     alt-shift-tab = 'move-workspace-to-monitor --wrap-around next'
 
