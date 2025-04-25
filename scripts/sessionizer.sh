@@ -35,7 +35,7 @@ get_project_list() {
     if [[ "$DOTFILES" != "$current_dir" ]]; then
         echo $DOTFILES
     fi
-    find $WORK $PERSONAL -mindepth 1 -maxdepth 1 -type d | grep -v "^$current_dir$" | sort
+    find $WORK $PERSONAL -mindepth 1 -maxdepth 1 \( -type d -o -type l \) | grep -v "^$current_dir$" | sort
 }
 
 # Colorize project directories for display in fzf
