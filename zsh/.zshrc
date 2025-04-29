@@ -192,7 +192,6 @@ if [ -f '/Users/tobias/Developer/personal/Lila/google-cloud-sdk/path.zsh.inc' ];
 # The next line enables shell command completion for gcloud.
 if [ -f '/Users/tobias/Developer/personal/Lila/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/tobias/Developer/personal/Lila/google-cloud-sdk/completion.zsh.inc'; fi
 
-# Created by `pipx` on 2024-11-07 12:28:47
 export PATH="$PATH:/Users/tobias/.local/bin"
 
 export NVM_DIR="$HOME/.nvm"
