@@ -76,7 +76,6 @@ manage_tmux_session() {
         tmux new-session -d -s "$session_name" -n "Code" -c "$project_dir"
         tmux new-window -t "$session_name" -n "Test" -c "$project_dir"
         if [[ "$session_name" != "Dotfiles" ]]; then
-            tmux new-window -t "$session_name" -n "Server" -c "$project_dir"
             tmux new-window -t "$session_name" -n "Lazygit" -c "$project_dir"
         fi
     fi

@@ -216,5 +216,6 @@ export HOMEBREW_CELLAR="/opt/homebrew/Cellar";
 export HOMEBREW_REPOSITORY="/opt/homebrew";
 fpath[1,0]="/opt/homebrew/share/zsh/site-functions";
 PATH="/opt/homebrew/bin:/opt/homebrew/sbin:/Users/tobias/.nvm/versions/node/v20.19.0/bin:/Users/tobias/.rvm/gems/ruby-3.3.3/bin:/Users/tobias/.rvm/gems/ruby-3.3.3@global/bin:/Users/tobias/.rvm/rubies/ruby-3.3.3/bin:/opt/homebrew/opt/mongodb-community@5.0/bin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/usr/local/munki:/Users/tobias/Library/pnpm:/Users/tobias/.nvm/versions/node/v20.18.3/bin:/Users/tobias/.cargo/bin:/Applications/iTerm.app/Contents/Resources/utilities:/Users/tobias/.rvm/bin:/Users/tobias/.local/bin"; export PATH;
+export PATH="./node_modules/.bin:$PATH"
 [ -z "${MANPATH-}" ] || export MANPATH=":${MANPATH#:}";
 export INFOPATH="/opt/homebrew/share/info:${INFOPATH:-}";
