@@ -5,8 +5,8 @@ return {
     dependencies = {
         "nvim-telescope/telescope.nvim",
         "MunifTanjim/nui.nvim",
-        "nvim-tree/nvim-tree.lua",   -- (optional) to manage project files
-        "stevearc/oil.nvim",         -- (optional) to manage project files
+        "nvim-tree/nvim-tree.lua",         -- (optional) to manage project files
+        "stevearc/oil.nvim",               -- (optional) to manage project files
         "nvim-treesitter/nvim-treesitter", -- (optional) for Quick tests support (required Swift parser)
     },
     config = function()
@@ -41,11 +41,11 @@ return {
                         })
                     end
                 end,
-                auto_open_on_success_tests = false, -- open logs when tests succeeded
-                auto_open_on_failed_tests = false, -- open logs when tests failed
-                auto_open_on_success_build = false, -- open logs when build succeeded
-                auto_open_on_failed_build = true, -- open logs when build failed
-                auto_close_on_app_launch = false, -- close logs when app is launched
+                auto_open_on_success_tests = false,  -- open logs when tests succeeded
+                auto_open_on_failed_tests = false,   -- open logs when tests failed
+                auto_open_on_success_build = false,  -- open logs when build succeeded
+                auto_open_on_failed_build = true,    -- open logs when build failed
+                auto_close_on_app_launch = false,    -- close logs when app is launched
                 auto_close_on_success_build = false, -- close logs when build succeeded (only if auto_open_on_success_build=false)
                 auto_focus = true,
             },
@@ -65,7 +65,7 @@ return {
             },
             commands = {
                 extra_build_args = { "-parallelizeTargets" }, -- extra arguments for `xcodebuild build`
-                extra_test_args = { "-parallelizeTargets" }, -- extra arguments for `xcodebuild test`
+                extra_test_args = { "-parallelizeTargets" },  -- extra arguments for `xcodebuild test`
             },
         })
 
