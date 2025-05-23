@@ -1,5 +1,4 @@
 require("config.options")
-require("config.lsp-autostart")
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 

@@ -47,6 +47,14 @@ M.on_attach = function(client, bufnr)
     vim.lsp.handlers["textDocument/definition"] = M.handlers["textDocument/definition"]
 end
 
+vim.lsp.enable({
+    "clangd",
+    "pyright",
+    "rust-analyzer",
+    "ts_ls",
+    "lua_ls",
+})
+
 M.handlers = {
     ["textDocument/publishDiagnostics"] = vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, { signs = false }),
     ["textDocument/definition"] = function(_, result)

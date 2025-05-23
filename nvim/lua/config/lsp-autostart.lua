@@ -109,19 +109,6 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 
 vim.api.nvim_create_autocmd("FileType", {
-    pattern = { "rust" },
-    callback = function()
-        vim.lsp.start {
-            name = "rust_analyzer",
-            cmd = { "rust-analyzer" },
-            root_dir = root({ "Cargo.toml", ".git" }),
-            on_attach = lsp.on_attach,
-            capabilities = lsp.get_capabilities(),
-        }
-    end,
-})
-
-vim.api.nvim_create_autocmd("FileType", {
     pattern = { "json", "objc", "kotlin", "java", "python" },
     callback = function()
         vim.lsp.start {
