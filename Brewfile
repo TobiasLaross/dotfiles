@@ -36,5 +36,5 @@ brew "lazygit"
 
 cask "nikitabobko/tap/aerospace"
 cask "insomnia"
-cask "iterm2"
+cask "ghostty"
 cask "postman"

@@ -34,9 +34,6 @@ enable-normalization-opposite-orientation-for-nested-containers = true
 # You can set 0 to disable the padding feature
 accordion-padding = 30
 
-# Open app, see: https://nikitabobko.github.io/AeroSpace/commands#exec-and-forget
-# alt-enter = 'exec-and-forget open -n /System/Applications/Utilities/Terminal.app'
-
 # Possible values: tiles|accordion
 default-root-container-layout = 'tiles'
 
@@ -195,7 +192,13 @@ automatically-unhide-macos-hidden-apps = true
     alt-shift-tab = 'move-workspace-to-monitor --wrap-around next'
 
 
+    # Open app, see: https://nikitabobko.github.io/AeroSpace/commands#exec-and-forget
+    # alt-enter = 'exec-and-forget open -n /System/Applications/Utilities/Terminal.app'
+
+    # alt-space = 'exec-and-forget open /Applications/Ghostty.app/Contents/MacOS/ghostty'
     # Goodies: https://nikitabobko.github.io/AeroSpace/goodies
+
+    alt-space = 'exec-and-forget open -a Ghostty'
     alt-r = 'reload-config'
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#mode

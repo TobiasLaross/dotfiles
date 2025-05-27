@@ -17,7 +17,7 @@ move_to_workspace() {
 }
 
 move_to_workspace "Google Chrome" 1 "focus"
-move_to_workspace "iTerm2" 2
+move_to_workspace "Ghostty" 2
 move_to_workspace "Slack" 3
 move_to_workspace "Mail" 3
 move_to_workspace "Postman" p "float"
