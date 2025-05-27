@@ -5,12 +5,14 @@ return {
 
     opts         = {
         ensure_installed = {
-            "rust_analyzer",
-            "pyright",
-            "ts_ls",
-            "lua_ls",
             "bashls",
             "efm",
+            "clangd",
+            "dockerls",
+            "lua_ls",
+            "pyright",
+            "rust_analyzer",
+            "ts_ls",
         },
 
         handlers = {
@@ -23,7 +25,6 @@ return {
                 })
             end,
 
-            -- lua_ls override
             ["lua_ls"] = function()
                 local lspconfig = require("lspconfig")
                 lspconfig.lua_ls.setup({
@@ -44,7 +45,6 @@ return {
                 })
             end,
 
-            -- kotlin
             ["kotlin_language_server"] = function()
                 require("lspconfig").kotlin_language_server.setup({
                     on_attach    = require("util.lsp").on_attach,
@@ -53,7 +53,6 @@ return {
                 })
             end,
 
-            -- pyright
             ["pyright"] = function()
                 require("lspconfig").pyright.setup({
                     on_attach    = require("util.lsp").on_attach,
@@ -73,7 +72,6 @@ return {
                 })
             end,
 
-            -- ts_ls
             ["ts_ls"] = function()
                 require("lspconfig").ts_ls.setup({
                     on_attach    = require("util.lsp").on_attach,
@@ -85,7 +83,6 @@ return {
                 })
             end,
 
-            -- bashls
             ["bashls"] = function()
                 require("lspconfig").bashls.setup({
                     on_attach    = require("util.lsp").on_attach,
@@ -95,13 +92,15 @@ return {
                 })
             end,
 
-            -- efm
             ["efm"] = function()
                 require("lspconfig").efm.setup({
                     on_attach    = require("util.lsp").on_attach,
                     capabilities = require("cmp_nvim_lsp")
                         .default_capabilities(vim.lsp.protocol.make_client_capabilities()),
+
+                    -- restrict efm to just these filetypes
                     filetypes    = { "python", "json", "objc", "kotlin", "java" },
+
                     init_options = {
                         documentFormatting      = true,
                         documentRangeFormatting = true,
@@ -123,7 +122,6 @@ return {
                 })
             end,
 
-            -- rust_analyzer override
             ["rust_analyzer"] = function()
                 require("lspconfig").rust_analyzer.setup({
                     on_attach    = require("util.lsp").on_attach,

@@ -4,7 +4,6 @@ return {
     event = { "BufReadPre", "BufNewFile" },
     dependencies = {
         "williamboman/mason.nvim",
-        "creativenull/efmls-configs-nvim",
         "WhoIsSethDaniel/mason-tool-installer.nvim",
         "hrsh7th/nvim-cmp",
         "hrsh7th/cmp-buffer",

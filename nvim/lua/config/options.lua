@@ -58,8 +58,12 @@ end, { desc = "Save all and quit, killing terminals" })
 vim.keymap.set("n", "<leader>vs", ":vsplit<CR>", { desc = "Split Vertically" })
 vim.keymap.set("n", "<leader>hs", ":split<CR>", { desc = "Split Horizontally" })
 
+-- Snacks
+vim.keymap.set("n", "<leader>e", "<cmd>lua Snacks.explorer()<cr>", { desc = "Toggle snacks explorer" })
+vim.keymap.set("n", "<leader>go", "<cmd>lua Snacks.gitbrowse()<cr>", { desc = "Opens the file in web-browser" })
+
 -- NvimTree
-vim.keymap.set("n", "<leader>e", "<cmd>NvimTreeToggle<cr>", { desc = "Toggle nvim tree" })
+-- vim.keymap.set("n", "<leader>e", "<cmd>NvimTreeToggle<cr>", { desc = "Toggle nvim tree" })
 vim.keymap.set("n", "<leader>ntl", "<cmd>NvimTreeResize +5<cr>", { desc = "Increase size of nvim tree" })
 vim.keymap.set("n", "<leader>nth", "<cmd>NvimTreeResize -5<cr>", { desc = "Decrease size of nvim tree" })
 

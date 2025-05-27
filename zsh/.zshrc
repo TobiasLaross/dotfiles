@@ -45,22 +45,10 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 # Uncomment the following line to disable colors in ls.
 # DISABLE_LS_COLORS="true"
 
-# Uncomment the following line to disable auto-setting terminal title.
-# DISABLE_AUTO_TITLE="true"
-
-# Uncomment the following line to enable command auto-correction.
-# ENABLE_CORRECTION="true"
-
 # Uncomment the following line to display red dots whilst waiting for completion.
 # You can also set it to another string to have that shown instead of the default red dots.
 # e.g. COMPLETION_WAITING_DOTS="%F{yellow}waiting...%f"
-# Caution: this setting can cause issues with multiline prompts in zsh < 5.7.1 (see #5765)
-# COMPLETION_WAITING_DOTS="true"
-
-# Uncomment the following line if you want to disable marking untracked files
-# under VCS as dirty. This makes repository status check for large repositories
-# much, much faster.
-# DISABLE_UNTRACKED_FILES_DIRTY="true"
+COMPLETION_WAITING_DOTS="true"
 
 # Uncomment the following line if you want to change the command execution time
 # stamp shown in the history command output.
@@ -92,22 +80,11 @@ source $ZSH/oh-my-zsh.sh
 if [ -f ~/gcr-docker.env ]; then
   source ~/gcr-docker.env
 fi
-# User configuration
-
-# export MANPATH="/usr/local/man:$MANPATH"
-
-# Needed for artemis/phoenix
-export MATCH_PASSWORD="j/>9qmhix+AKURAFYk%EmGM2gsoD4T6mGwihn(Tm8bJ6K,e9]DKr2a>63BVLc{k^"
 
 # You may need to manually set your language environment
 export LANG=en_US.UTF-8
 
-# Preferred editor for local and remote sessions
-# if [[ -n $SSH_CONNECTION ]]; then
-#   export EDITOR='vim'
-# else
 export EDITOR='nvim'
-# fi
 
 # Sessionizer
 export PERSONAL="$HOME/Developer/personal"
@@ -198,19 +175,6 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
-# pnpm
-export PNPM_HOME="/Users/tobias/Library/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PNPM_HOME:$PATH" ;;
-esac
-# pnpm end
-eval eval
-SMARTTHINGS_AC_ZSH_SETUP_PATH=/Users/tobias/Library/Caches/@smartthings/cli/autocomplete/zsh_setup && test -f $SMARTTHINGS_AC_ZSH_SETUP_PATH && source $SMARTTHINGS_AC_ZSH_SETUP_PATH; # smartthings autocomplete setup# The following lines have been added by Docker Desktop to enable Docker CLI completions.
-fpath=(/Users/tobias/.docker/completions $fpath)
-autoload -Uz compinit
-compinit
-# End of Docker CLI completions
 export HOMEBREW_PREFIX="/opt/homebrew";
 export HOMEBREW_CELLAR="/opt/homebrew/Cellar";
 export HOMEBREW_REPOSITORY="/opt/homebrew";

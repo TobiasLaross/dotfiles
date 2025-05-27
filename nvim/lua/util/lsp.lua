@@ -48,11 +48,13 @@ M.on_attach = function(client, bufnr)
 end
 
 vim.lsp.enable({
+    "bashls",
     "clangd",
-    "pyright",
-    "rust-analyzer",
-    "ts_ls",
+    "dockerls",
     "lua_ls",
+    "pyright",
+    "rust_analyzer",
+    "ts_ls",
 })
 
 M.handlers = {

@@ -107,38 +107,3 @@ vim.api.nvim_create_autocmd("FileType", {
         }
     end,
 })
-
-vim.api.nvim_create_autocmd("FileType", {
-    pattern = { "json", "objc", "kotlin", "java", "python" },
-    callback = function()
-        vim.lsp.start {
-            name = "efm",
-            cmd = { "efm-langserver" },
-            root_dir = root({ ".git" }),
-            init_options = {
-                documentFormatting = true,
-                documentRangeFormatting = true,
-                hover = true,
-                documentSymbol = true,
-                codeAction = true,
-                completion = true,
-            },
-            settings = {
-                languages = {
-                    python = {
-                        require("efmls-configs.linters.flake8"),
-                        require("efmls-configs.formatters.black"),
-                    },
-                    json = {
-                        require("efmls-configs.formatters.fixjson"),
-                    },
-                    objc = {
-                        require("efmls-configs.formatters.uncrustify"),
-                    },
-                },
-            },
-            on_attach = lsp.on_attach,
-            capabilities = lsp.get_capabilities(),
-        }
-    end,
-})
