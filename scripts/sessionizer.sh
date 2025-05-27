@@ -88,7 +88,6 @@ manage_tmux_session() {
     fi
 }
 
-# Main function to handle the overall flow
 main() {
     local filter_mode="$1"
     local project_dir=$(select_project "$filter_mode")

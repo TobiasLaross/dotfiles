@@ -51,14 +51,7 @@ Install XCode using App Store
 git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm
 Open tmux, C-f I (capital i) to install plugins
 
-### Iterm
+### Fonts
 
-0. Unzip the fonts in `/fonts` and install.
-
-1. Open iTerm2.
-2. Go to "iTerm2" in the menu bar > "Preferences".
-3. Click on the "General" tab.
-4. Check the box that says "Load preferences from a custom folder or URL".
-5. Click on the "Browse" button and navigate to the `iterm2` folder in this dotfiles repository.
-7. Close and reopen iTerm2 to apply the new settings.
+Install fonts from `./fonts`.
 
