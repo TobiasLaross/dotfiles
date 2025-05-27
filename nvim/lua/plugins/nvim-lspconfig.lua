@@ -1,4 +1,3 @@
--- Lazy.nvim plugin specification
 return {
     "neovim/nvim-lspconfig",
     event = { "BufReadPre", "BufNewFile" },
