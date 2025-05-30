@@ -19,7 +19,6 @@ after-login-command = []
 # 'after-startup-command' is run after 'after-login-command'
 # Available commands : https://nikitabobko.github.io/AeroSpace/commands
 after-startup-command = [
-    'exec-and-forget ${HOME}/dotfiles/aerospace/startup.sh'
 ]
 
 # Start AeroSpace at login
@@ -87,6 +86,50 @@ automatically-unhide-macos-hidden-apps = true
     6 = 'main'
     p = 'main'
     m = 'main'
+
+
+# Tip: Use `aerospace list-apps` to find app ID's
+
+[[on-window-detected]]
+if.app-id = 'com.microsoft.teams2'
+run = 'move-node-to-workspace 6'
+
+[[on-window-detected]]
+if.app-id = 'com.google.Chrome'
+run = 'move-node-to-workspace 1'
+
+[[on-window-detected]]
+if.app-id = 'com.mitchellh.ghostty'
+run = 'move-node-to-workspace 2'
+
+[[on-window-detected]]
+if.app-id = 'com.tinyspeck.slackmacgap'
+run = 'move-node-to-workspace 3'
+
+[[on-window-detected]]
+if.app-id = 'com.mongodb.compass'
+run = 'move-node-to-workspace m'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.mail'
+run = 'move-node-to-workspace 3'
+
+[[on-window-detected]]
+if.app-id = 'com.postmanlabs.mac'
+run = 'move-node-to-workspace p'
+
+[[on-window-detected]]
+if.app-id = 'com.electron.dockerdesktop'
+run = 'move-node-to-workspace 5'
+
+[[on-window-detected]]
+if.app-id = 'com.figma.Desktop'
+run = 'move-node-to-workspace 5'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.dt.Xcode'
+run = 'move-node-to-workspace 4'
+
 
 # 'main' binding mode declaration
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
@@ -176,7 +219,7 @@ automatically-unhide-macos-hidden-apps = true
     alt-ctrl-4 = 'move-node-to-workspace 4'
     alt-ctrl-5 = 'move-node-to-workspace 5'
     alt-ctrl-6 = 'move-node-to-workspace 6'
-    alt-ctrl-p = 'move-node-to-workspace p'
+    alt-ctrl-p = 'move-node-to-workspace p '
     alt-ctrl-m = 'move-node-to-workspace m'
 
     # Move Chrome to iterm workspace
