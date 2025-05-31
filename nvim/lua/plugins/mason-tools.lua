@@ -1,4 +1,3 @@
--- Installs external tools via mason (non-LSP)
 return {
     "WhoIsSethDaniel/mason-tool-installer.nvim",
     opts = {
@@ -13,6 +12,7 @@ return {
             "fixjson",
             "eslint_d",
             "prettierd",
+            "swiftformat"
         },
     },
     dependencies = {

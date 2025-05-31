@@ -1,39 +1,15 @@
-local cachedConfig = nil
-local searchedForConfig = false
+local cachedSwiftConfig = nil
+local searchedSwift = false
 
-local function find_config()
-    if searchedForConfig then
-        return cachedConfig
-    end
-
-    -- find .swiftformat config file in the working directory
-    -- could be simplified if you keep it always in the root directory
-    local swiftFormatConfigs = vim.fn.systemlist({
-        "find",
-        vim.fn.getcwd(),
-        "-maxdepth",
-        "2", -- if you need you can set higher number
-        "-iname",
-        ".swiftformat",
-        "-not",
-        "-path",
-        "*/.*/*",
-    })
-    searchedForConfig = true
-
-    if vim.v.shell_error ~= 0 then
-        return nil
-    end
-
-    table.sort(swiftFormatConfigs, function(a, b)
-        return a ~= "" and #a < #b
-    end)
-
-    if swiftFormatConfigs[1] then
-        cachedConfig = string.match(swiftFormatConfigs[1], "^%s*(.-)%s*$")
-    end
-
-    return cachedConfig
+local function find_swift_config()
+    if searchedSwift then return cachedSwiftConfig end
+    local results = vim.fn.systemlist({ "find", vim.fn.getcwd(), "-maxdepth", "2", "-iname", ".swiftformat", "-not",
+        "-path", "*/.*/*" })
+    searchedSwift = true
+    if vim.v.shell_error ~= 0 then return nil end
+    table.sort(results, function(a, b) return a ~= "" and #a < #b end)
+    if results[1] then cachedSwiftConfig = vim.trim(results[1]) end
+    return cachedSwiftConfig
 end
 
 return {
@@ -41,12 +17,19 @@ return {
     event = { "BufReadPre", "BufNewFile" },
     config = function()
         local conform = require("conform")
-
         conform.setup({
             formatters_by_ft = {
                 swift = { "swiftformat_ext" },
-                javascript = { 'prettier' },
-                typescript = { 'prettier' },
+                javascript = { "prettier" },
+                typescript = { "prettier" },
+                javascriptreact = { 'prettier' },
+                typescriptreact = { 'prettier' },
+                lua = { 'stylua' },
+                python = { 'isort', 'black' },
+                html = { 'prettier' },
+                json = { 'prettier' },
+                yaml = { 'prettier' },
+                markdown = { 'prettier' },
             },
             format_on_save = function(bufnr)
                 return { timeout_ms = 500, lsp_fallback = true }
@@ -58,7 +41,7 @@ return {
                     args = function()
                         return {
                             "--config",
-                            find_config() or "~/.config/nvim/.swiftformat",
+                            find_swift_config() or "~/.config/nvim/.swiftformat",
                             "--stdinpath",
                             "$FILENAME",
                         }
@@ -66,7 +49,7 @@ return {
                     range_args = function(ctx)
                         return {
                             "--config",
-                            find_config() or "~/.config/nvim/.swiftformat",
+                            find_swift_config() or "~/.config/nvim/.swiftformat",
                             "--linerange",
                             ctx.range.start[1] .. "," .. ctx.range["end"][1],
                         }
