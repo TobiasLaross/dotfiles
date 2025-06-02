@@ -90,6 +90,29 @@ manage_tmux_session() {
 
 main() {
     local filter_mode="$1"
+
+    # Go to notes if arg equals 'notes'
+    if [[ "$filter_mode" == "notes" ]]; then
+        local project_dir=""
+        if [[ -d "$WORK/notes" ]]; then
+            project_dir="$WORK/notes"
+        elif [[ -d "$PERSONAL/notes" ]]; then
+            project_dir="$PERSONAL/notes"
+        else
+            echo "Error: notes directory not found in WORK or PERSONAL"
+            return 1
+        fi
+
+        local current_session=$(tmux display-message -p "#S")
+        if [[ "$current_session" == "Notes" ]]; then
+            tmux switch-client -l
+            return
+        fi
+
+        manage_tmux_session "$project_dir" "Notes"
+        return
+    fi
+
     local project_dir=$(select_project "$filter_mode")
     if [[ -z "$project_dir" ]]; then
         return 0
