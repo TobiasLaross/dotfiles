@@ -222,7 +222,7 @@ run = 'move-node-to-workspace 4'
     alt-ctrl-p = 'move-node-to-workspace p '
     alt-ctrl-m = 'move-node-to-workspace m'
 
-    # Move Chrome to iterm workspace
+    # Move Chrome to workspace 2 (terminal)
     alt-ctrl-o = 'exec-and-forget $HOME/.config/aerospace/chrome-workspace.sh'
 
     # alt-ctrl-7 = 'move-node-to-workspace 7'
