@@ -138,8 +138,8 @@ else
     echo "Please switch to the main branch before running gittag.";
 fi'
 
-alias deployLilaStage='npm install && npx jest && \
-docker build --platform linux/amd64 -t gcr.io/$GCP_PROJECT_ID/lila:latest . --build-arg NODE_ENV=stage && \
+alias deployLilaStage='npm install && tsc && npm run test && \
+docker build --no-cache --platform linux/amd64 -t gcr.io/$GCP_PROJECT_ID/lila:latest . --build-arg NODE_ENV=stage && \
 docker push gcr.io/$GCP_PROJECT_ID/lila:latest && \
 gcloud run deploy lila --image gcr.io/$GCP_PROJECT_ID/lila:latest --platform managed --region $GCP_REGION \
 --update-secrets=MONGODB_URI=projects/$GCP_PROJECT_NUMBER/secrets/mongodb-uri:latest \
@@ -151,7 +151,7 @@ docker push gcr.io/$GCP_PROJECT_ID/lila:latest && \
 gcloud run deploy lila --image gcr.io/$GCP_PROJECT_ID/lila:latest --platform managed --region $GCP_REGION \
 --update-secrets=MONGODB_URI=projects/$GCP_PROJECT_NUMBER/secrets/mongodb-uri:latest \
 --set-env-vars=NODE_ENV=stage,GCLOUD_PROJECT_ID=$GCP_PROJECT_ID,GCLOUD_PROJECT_NUMBER=$GCP_PROJECT_NUMBER'
-alias deployLilaDev='npm install && npx jest && docker compose up --build' # && docker compose logs -f app'
+alias deployLilaDev='npm install && npm run test && docker compose up --build' # && docker compose logs -f app'
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh

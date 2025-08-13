@@ -86,6 +86,7 @@ automatically-unhide-macos-hidden-apps = true
     6 = 'main'
     p = 'main'
     m = 'main'
+    g = 'main'
 
 
 # Tip: Use `aerospace list-apps` to find app ID's
@@ -129,6 +130,10 @@ run = 'move-node-to-workspace 5'
 [[on-window-detected]]
 if.app-id = 'com.apple.dt.Xcode'
 run = 'move-node-to-workspace 4'
+
+[[on-window-detected]]
+if.app-id = 'com.openai.chat'
+run = 'move-node-to-workspace g'
 
 
 # 'main' binding mode declaration
@@ -194,6 +199,7 @@ run = 'move-node-to-workspace 4'
     alt-keypad6 = 'workspace 6'
     alt-p = 'workspace p'
     alt-m = 'workspace m'
+    alt-g = 'workspace g'
     ctrl-1 = 'workspace 1'
     ctrl-2 = 'workspace 2'
     ctrl-3 = 'workspace 3'
@@ -202,6 +208,7 @@ run = 'move-node-to-workspace 4'
     ctrl-6 = 'workspace 6'
     ctrl-p = 'workspace p'
     ctrl-m = 'workspace m'
+    ctrl-g = 'workspace g'
     alt-c = 'layout tiling floating'
     alt-f = 'fullscreen'
     
@@ -221,6 +228,7 @@ run = 'move-node-to-workspace 4'
     alt-ctrl-6 = 'move-node-to-workspace 6'
     alt-ctrl-p = 'move-node-to-workspace p '
     alt-ctrl-m = 'move-node-to-workspace m'
+    alt-ctrl-g = 'move-node-to-workspace g'
 
     # Move Chrome to workspace 2 (terminal)
     alt-ctrl-o = 'exec-and-forget $HOME/.config/aerospace/chrome-workspace.sh'
