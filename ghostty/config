@@ -19,7 +19,7 @@ background-opacity = 0.8
 macos-titlebar-style = hidden
 
 font-family = FiraCode Nerd Font Mono
-font-size = 16
+font-size = 24
 window-save-state = always
 confirm-close-surface = false
 

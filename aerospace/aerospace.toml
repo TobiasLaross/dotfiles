@@ -14,6 +14,7 @@ after-login-command = []
 # 821  | com.apple.dt.Xcode        | Xcode
 # 826  | com.apple.finder          | Finder
 # 2321 | com.googlecode.iterm2     | iTerm2
+# 3606 | net.whatsapp.WhatsApp     | WhatsApp
 
 # You can use it to add commands that run after AeroSpace startup.
 # 'after-startup-command' is run after 'after-login-command'
@@ -87,9 +88,10 @@ automatically-unhide-macos-hidden-apps = true
     p = 'main'
     m = 'main'
     g = 'main'
+    w = 'main'
 
 
-# Tip: Use `aerospace list-apps` to find app ID's
+# Tip: Use 'aerospace list-apps' to find app ID's
 
 [[on-window-detected]]
 if.app-id = 'com.microsoft.teams2'
@@ -110,6 +112,10 @@ run = 'move-node-to-workspace 3'
 [[on-window-detected]]
 if.app-id = 'com.mongodb.compass'
 run = 'move-node-to-workspace m'
+
+[[on-window-detected]]
+if.app-id = 'net.whatsapp.WhatsApp'
+run = 'move-node-to-workspace w'
 
 [[on-window-detected]]
 if.app-id = 'com.apple.mail'
@@ -200,6 +206,7 @@ run = 'move-node-to-workspace g'
     alt-p = 'workspace p'
     alt-m = 'workspace m'
     alt-g = 'workspace g'
+    alt-w = 'workspace w'
     ctrl-1 = 'workspace 1'
     ctrl-2 = 'workspace 2'
     ctrl-3 = 'workspace 3'
@@ -209,6 +216,7 @@ run = 'move-node-to-workspace g'
     ctrl-p = 'workspace p'
     ctrl-m = 'workspace m'
     ctrl-g = 'workspace g'
+    ctrl-w = 'workspace w'
     alt-c = 'layout tiling floating'
     alt-f = 'fullscreen'
     
@@ -229,6 +237,7 @@ run = 'move-node-to-workspace g'
     alt-ctrl-p = 'move-node-to-workspace p '
     alt-ctrl-m = 'move-node-to-workspace m'
     alt-ctrl-g = 'move-node-to-workspace g'
+    alt-ctrl-w = 'move-node-to-workspace w'
 
     # Move Chrome to workspace 2 (terminal)
     alt-ctrl-o = 'exec-and-forget $HOME/.config/aerospace/chrome-workspace.sh'
