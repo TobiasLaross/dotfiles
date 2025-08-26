@@ -68,10 +68,10 @@ return {
 				return "<Ignore>"
 			end, { expr = true })
 
-			map("n", "<leader>gh", gs.preview_hunk)
-			map("n", "<leader>gu", gs.reset_hunk)
-			map("n", "<leader>ga", gs.stage_hunk)
-			map("n", "<leader>gf", gs.stage_buffer)
+			-- map("n", "<leader>gh", gs.preview_hunk)
+			-- map("n", "<leader>gu", gs.reset_hunk)
+			-- map("n", "<leader>ga", gs.stage_hunk)
+			-- map("n", "<leader>gf", gs.stage_buffer)
 		end,
 	},
 }
