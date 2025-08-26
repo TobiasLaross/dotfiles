@@ -22,6 +22,7 @@ font-family = FiraCode Nerd Font Mono
 font-size = 18
 window-save-state = always
 confirm-close-surface = false
+mouse-hide-while-typing = true
 
 # Probably disable copy-on-select
 copy-on-select = clipboard
