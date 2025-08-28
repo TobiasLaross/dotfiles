@@ -32,6 +32,49 @@ vim.g.gitblame_date_format = "%d/%m-%y" --"%r"
 
 -- Workaround for switching between nvim and xcode to reload files
 vim.opt.autoread = true
+vim.opt.swapfile = false
+
+-- Auto save and trigger auto-format in the background
+vim.api.nvim_create_autocmd("InsertLeave", {
+	callback = function(args)
+		local bufnr = args.buf
+		if not vim.api.nvim_buf_is_loaded(bufnr) then
+			return
+		end
+		if not vim.bo[bufnr].modifiable or vim.bo[bufnr].readonly then
+			return
+		end
+		if not vim.bo[bufnr].modified then
+			return
+		end
+
+		vim.defer_fn(function()
+			local ok, conform = pcall(require, "conform")
+			if not ok then
+				return
+			end
+			conform.format({
+				bufnr = bufnr,
+				lsp_fallback = true,
+				async = true,
+				timeout_ms = 500,
+			}, function(err)
+				if err then
+					return
+				end
+				if not vim.api.nvim_buf_is_loaded(bufnr) then
+					return
+				end
+				if vim.api.nvim_get_mode().mode == "i" then
+					return
+				end
+				if vim.bo[bufnr].modifiable and vim.bo[bufnr].modified then
+					vim.cmd("silent update")
+				end
+			end)
+		end, 50)
+	end,
+})
 
 -- refresh files if changed outside
 vim.fn.timer_start(2000, function()
