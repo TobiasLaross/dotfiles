@@ -49,10 +49,15 @@ vim.api.nvim_create_autocmd("InsertLeave", {
 		end
 
 		vim.defer_fn(function()
+			if vim.api.nvim_get_mode().mode ~= "n" then
+				return
+			end
+
 			local ok, conform = pcall(require, "conform")
 			if not ok then
 				return
 			end
+
 			conform.format({
 				bufnr = bufnr,
 				lsp_fallback = true,
@@ -69,10 +74,10 @@ vim.api.nvim_create_autocmd("InsertLeave", {
 					return
 				end
 				if vim.bo[bufnr].modifiable and vim.bo[bufnr].modified then
-					vim.cmd("silent update")
+					vim.cmd("update")
 				end
 			end)
-		end, 50)
+		end, 500)
 	end,
 })
 
