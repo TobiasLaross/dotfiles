@@ -40,6 +40,9 @@ return {
 			enable = false,
 		},
 		on_attach = function(bufnr)
+			if vim.bo[bufnr].filetype == "oil" or vim.bo[bufnr].buftype ~= "" then
+				return
+			end
 			local gs = package.loaded.gitsigns
 			local function map(mode, l, r, opts)
 				opts = opts or {}
@@ -70,8 +73,6 @@ return {
 
 			map("n", "<leader>gh", gs.preview_hunk)
 			map("n", "<leader>gu", gs.reset_hunk)
-			-- map("n", "<leader>ga", gs.stage_hunk)
-			-- map("n", "<leader>gf", gs.stage_buffer)
 		end,
 	},
 }
