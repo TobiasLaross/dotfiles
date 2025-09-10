@@ -36,9 +36,6 @@ return {
 			row = 0,
 			col = 1,
 		},
-		yadm = {
-			enable = false,
-		},
 		on_attach = function(bufnr)
 			if vim.bo[bufnr].filetype == "oil" or vim.bo[bufnr].buftype ~= "" then
 				return
