@@ -62,7 +62,7 @@ vim.api.nvim_create_autocmd("InsertLeave", {
 				bufnr = bufnr,
 				lsp_fallback = true,
 				async = true,
-				timeout_ms = 500,
+				timeout_ms = 2500,
 			}, function(err)
 				if err then
 					return
@@ -77,7 +77,7 @@ vim.api.nvim_create_autocmd("InsertLeave", {
 					vim.cmd("update")
 				end
 			end)
-		end, 500)
+		end, 2500)
 	end,
 })
 
