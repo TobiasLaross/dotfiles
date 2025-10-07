@@ -27,4 +27,4 @@ mouse-hide-while-typing = true
 # Probably disable copy-on-select
 copy-on-select = clipboard
 
-theme = catppuccin-mocha
+theme = Catppuccin Mocha
