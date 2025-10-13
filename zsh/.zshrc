@@ -5,9 +5,8 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
-# If you come from bash you might have to change your $PATH.
-# export PATH=$HOME/bin:/usr/local/bin:$PATH
-
+autoload -Uz compinit
+compinit -C
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
 
@@ -71,8 +70,8 @@ plugins=(
     git
     ssh-agent
     zsh-autosuggestions
-    zsh-syntax-highlighting
     zsh-vi-mode
+    zsh-syntax-highlighting
 )
 
 source $ZSH/oh-my-zsh.sh
@@ -156,8 +155,6 @@ alias deployLilaDev='npm install && npm run test && docker compose up --build' #
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm"
-# Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
-export PATH="$PATH:$HOME/.rvm/bin"
 
 # To customize prompt, run `p10k configure` or edit ~/dotfiles/p10k/p10k.zsh.
 [[ ! -f ~/dotfiles/p10k/p10k.zsh ]] || source ~/dotfiles/p10k/p10k.zsh
@@ -169,7 +166,6 @@ if [ -f '/Users/tobias/Developer/personal/Lila/google-cloud-sdk/path.zsh.inc' ];
 # The next line enables shell command completion for gcloud.
 if [ -f '/Users/tobias/Developer/personal/Lila/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/tobias/Developer/personal/Lila/google-cloud-sdk/completion.zsh.inc'; fi
 
-export PATH="$PATH:/Users/tobias/.local/bin"
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
@@ -179,7 +175,7 @@ export HOMEBREW_PREFIX="/opt/homebrew";
 export HOMEBREW_CELLAR="/opt/homebrew/Cellar";
 export HOMEBREW_REPOSITORY="/opt/homebrew";
 fpath[1,0]="/opt/homebrew/share/zsh/site-functions";
-PATH="/opt/homebrew/bin:/opt/homebrew/sbin:/Users/tobias/.nvm/versions/node/v20.19.0/bin:/Users/tobias/.rvm/gems/ruby-3.3.3/bin:/Users/tobias/.rvm/gems/ruby-3.3.3@global/bin:/Users/tobias/.rvm/rubies/ruby-3.3.3/bin:/opt/homebrew/opt/mongodb-community@5.0/bin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/usr/local/munki:/Users/tobias/Library/pnpm:/Users/tobias/.nvm/versions/node/v20.18.3/bin:/Users/tobias/.cargo/bin:/Applications/iTerm.app/Contents/Resources/utilities:/Users/tobias/.rvm/bin:/Users/tobias/.local/bin"; export PATH;
+export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.rvm/bin:$HOME/.nvm/versions/node/v20.19.0/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 export PATH="./node_modules/.bin:$PATH"
 [ -z "${MANPATH-}" ] || export MANPATH=":${MANPATH#:}";
 export INFOPATH="/opt/homebrew/share/info:${INFOPATH:-}";
