@@ -53,15 +53,11 @@ return {
                 enabled = true,
             },
             integrations = {
-                xcode_build_server = {
-                    enabled = true, -- run "xcode-build-server config" when scheme changes
-                },
-                pymobiledevice = {
-                    enabled = true,
-                },
-                xcodebuild_offline = {
-                    enabled = false, -- improves build time (requires configuration, see `:h xcodebuild.xcodebuild-offline`)
-                },
+                dap = true, -- load breakpoints (default behavior, no codelldb needed on Xcode 16+)
+
+                xcode_build_server = { enabled = true },
+                pymobiledevice = { enabled = true },
+                xcodebuild_offline = { enabled = false },
             },
             commands = {
                 extra_build_args = { "-parallelizeTargets" }, -- extra arguments for `xcodebuild build`
@@ -69,6 +65,11 @@ return {
             },
         })
 
+        vim.keymap.set("n", "<leader>dd", "<cmd>XcodebuildBuildDebug<cr>", { desc = "Build & Debug" })
+        vim.keymap.set("n", "<leader>dr", "<cmd>XcodebuildAttachDebugger<cr>", { desc = "Debug Without Building" })
+        vim.keymap.set("n", "<leader>dt", "<cmd>XcodebuildDebugTests<cr>", { desc = "Debug Tests" })
+        vim.keymap.set("n", "<leader>dT", "<cmd>XcodebuildDebugClassTests<cr>", { desc = "Debug Class Tests" })
+        vim.keymap.set("n", "<leader>dx", "<cmd>XcodebuildTerminateDebugger<cr>", { desc = "Terminate Debugger" })
         vim.keymap.set("n", "<leader>xl", "<cmd>XcodebuildToggleLogs<cr>", { desc = "Toggle Xcodebuild Logs" })
         vim.keymap.set("n", "<leader>xb", "<cmd>XcodebuildBuild<cr>", { desc = "Build Project" })
         vim.keymap.set(
