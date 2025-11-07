@@ -146,6 +146,9 @@ run = 'move-node-to-workspace 4'
 if.app-id = 'com.openai.chat'
 run = 'move-node-to-workspace g'
 
+[[on-window-detected]]
+if.app-id = 'com.apple.finder'
+run = 'layout floating'
 
 # 'main' binding mode declaration
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
