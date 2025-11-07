@@ -1,11 +1,5 @@
-local has_telescope, telescope = pcall(require, "telescope.builtin")
-if not has_telescope then
-	vim.notify("Telescope not found! Please install it to use SwitchToRelatedFile.", vim.log.levels.ERROR)
-	return
-end
-
 local function getTargetFilename()
-	local filepath = vim.fn.expand("%:p") -- Get the full path of the current file
+	local filepath = vim.fn.expand("%:p")
 	local name = vim.fn.fnamemodify(filepath, ":t:r")
 	local ext = vim.fn.fnamemodify(filepath, ":e")
 
@@ -20,14 +14,22 @@ local function getTargetFilename()
 	elseif ext == "h" then
 		return name .. ".m"
 	elseif ext == "ts" or ext == "js" or ext == "tsx" or ext == "jsx" then
-		-- Get the directory path components
-		local dir_path = vim.fn.fnamemodify(filepath, ":.")
+		local localPath = vim.fn.fnamemodify(filepath, ":.")
+		local withoutExt = localPath:gsub("%.%w+$", "")
 
-		-- Check if we're in a test file or a server file
-		if dir_path:match("^test/") then
-			return dir_path:gsub("^test/", "src/"):gsub("%.ts$", ""):gsub("%.js$", "")
-		elseif dir_path:match("^src/") then
-			return dir_path:gsub("^src/", "test/"):gsub("%.ts$", ""):gsub("%.js$", "")
+		local hasSrc = vim.fn.isdirectory("src") == 1
+		local hasServer = vim.fn.isdirectory("server") == 1
+
+		if localPath:match("^test/") then
+			if hasSrc then
+				return withoutExt:gsub("^test/", "src/") .. "." .. ext
+			elseif hasServer then
+				return withoutExt:gsub("^test/", "server/") .. "." .. ext
+			end
+		elseif localPath:match("^src/") then
+			return withoutExt:gsub("^src/", "test/") .. "." .. ext
+		elseif localPath:match("^server/") then
+			return withoutExt:gsub("^server/", "test/") .. "." .. ext
 		end
 	end
 
@@ -41,16 +43,14 @@ function SwitchToRelatedFile()
 		return
 	end
 
-	local ag_command = { "ag", "-wsg", target }
-	local found_files = vim.fn.systemlist(ag_command)
+	local searchCommand = { "ag", "-wsg", target }
+	local results = vim.fn.systemlist(searchCommand)
 
-	if #found_files == 0 then
+	if #results == 0 then
 		print("No file named " .. target .. " found.")
 		return
 	end
 
-	-- Open the first found file
-	local first_match = found_files[1]
-	print("Opening file:", first_match)
-	vim.cmd("edit " .. vim.fn.fnameescape(first_match))
+	local match = results[1]
+	vim.cmd("edit " .. vim.fn.fnameescape(match))
 end
