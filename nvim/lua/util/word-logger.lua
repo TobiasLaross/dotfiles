@@ -1,34 +1,44 @@
+local log_formats = {
+	swift = 'print("%s %s = \\(%s)")',
+	objc = 'NSLog(@"%s %s = %%@", %s);',
+	objcpp = 'NSLog(@"%s %s = %%@", %s);',
+	typescript = "console.log('%s %s = ', %s);",
+	javascript = "console.log('%s %s = ', %s);",
+	go = 'fmt.Printf("%s %s = %%v\\n", %s)',
+	sh = 'echo "%s %s = ${%s}"',
+	zsh = 'echo "%s %s = ${%s}"',
+	bash = 'echo "%s %s = ${%s}"',
+	python = 'print(f"%s %s = {%s}")',
+	java = 'System.out.println("%s %s = " + %s);',
+	rust = 'println!("%s %s = {:?}", %s);',
+}
+
 function LogWord()
 	local word = vim.fn.expand("<cword>")
-	local filetype = vim.bo.filetype
+	if word == "" then
+		return
+	end
 
 	local chars = {}
 	for index = 1, 4 do
 		chars[index] = string.char(math.random(65, 90))
 	end
-	local prefix = table.concat(chars) .. " TLA91:"
-	local stmt
+	local prefix = "TLA91 " .. table.concat(chars) .. ":"
 
-	if filetype == "swift" then
-		stmt = string.format('print("%s %s = \\(%s)")', prefix, word, word)
-	elseif filetype == "objc" or filetype == "objcpp" then
-		stmt = string.format('NSLog(@"%s %s = %%@", %s);', prefix, word, word)
-	elseif filetype == "typescript" or filetype == "javascript" then
-		stmt = string.format("console.log('%s %s = ', %s);", prefix, word, word)
-	elseif filetype == "go" then
-		stmt = string.format('fmt.Printf("%s %s = %%v\\n", %s)', prefix, word, word)
-	elseif filetype == "sh" or filetype == "zsh" or filetype == "bash" then
-		stmt = string.format('echo "%s %s = ${%s}"', prefix, word, word)
-	elseif filetype == "python" then
-		stmt = string.format('print(f"%s %s = {%s}")', prefix, word, word)
-	elseif filetype == "java" then
-		stmt = string.format('System.out.println("%s %s = " + %s);', prefix, word, word)
-	elseif filetype == "rust" then
-		stmt = string.format('println!("%s %s = {:?}", %s);', prefix, word, word)
-	else
-		print("No log statement defined for filetype: " .. filetype)
+	local filetype = vim.bo.filetype
+	local format = log_formats[filetype]
+	if not format then
+		vim.notify("No log format for " .. filetype, vim.log.levels.WARN)
 		return
 	end
 
-	vim.api.nvim_put({ stmt }, "l", true, false)
+	local stmt = string.format(format, prefix, word, word)
+
+	local cursor = vim.api.nvim_win_get_cursor(0)
+	local line_number = cursor[1]
+	local current_line = vim.api.nvim_buf_get_lines(0, line_number - 1, line_number, false)[1] or ""
+	local indentation = current_line:match("^%s*") or ""
+
+	vim.api.nvim_buf_set_lines(0, line_number, line_number, false, { indentation .. stmt })
+	vim.api.nvim_win_set_cursor(0, { line_number + 1, 0 })
 end
