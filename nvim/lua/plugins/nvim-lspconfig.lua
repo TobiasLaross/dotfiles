@@ -44,16 +44,19 @@ return {
 				"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp",
 			},
 		}
-
 		vim.api.nvim_create_autocmd("FileType", {
 			pattern = { "swift", "objc", "c", "cpp", "objective-cpp" },
 			callback = function(event)
 				vim.lsp.start({
 					name = "sourcekit",
-					config = vim.lsp.config.sourcekit,
+					cmd = {
+						"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp",
+					},
+					capabilities = capabilities,
+					on_attach = on_attach,
 					root_dir = vim.fs.root(
 						event.buf,
-						{ "buildServer.json", "*.xcodeproj", "*.xcworkspace", ".git", "Package.swift" }
+						{ ".xcode-build-server", "*.xcodeproj", "*.xcworkspace", ".git", "Package.swift" }
 					),
 				})
 			end,
