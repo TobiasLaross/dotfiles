@@ -31,9 +31,9 @@ return {
 			incremental_selection = {
 				enable = true,
 				keymaps = {
-					init_selection = "<leader>ss",
-					node_incremental = "<leader>si",
-					node_decremental = "<leader>sd",
+					init_selection = "<leader>ns",
+					node_incremental = "<leader>ni",
+					node_decremental = "<leader>nd",
 				},
 			},
 			textobjects = {
