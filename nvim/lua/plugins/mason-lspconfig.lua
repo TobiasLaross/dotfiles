@@ -8,7 +8,6 @@ return {
 			"dockerls",
 			"html",
 			"pyright",
-			"rust_analyzer",
 			"vtsls",
 			"lua_ls",
 		},
