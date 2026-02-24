@@ -41,24 +41,27 @@ return {
 			},
 
 			sources = {
-				default = { "lsp", "snippets", "buffer", "path" },
+				default = { "lsp", "path", "buffer", "snippets" },
 			},
 
 			snippets = {
 				preset = "luasnip",
 			},
 
+			appearance = {
+				use_nvim_cmp_as_default = false,
+			},
+
 			completion = {
+				keyword = { range = "full" },
+				accept = { auto_brackets = { enabled = false } },
 				list = {
 					selection = {
-						preselect = false,
+						preselect = true,
 						auto_insert = false,
 					},
 				},
-			},
-
-			appearance = {
-				use_nvim_cmp_as_default = false,
+				documentation = { auto_show = true, auto_show_delay_ms = 500 },
 			},
 		})
 	end,
