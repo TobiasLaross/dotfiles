@@ -5,18 +5,16 @@ return {
 		"folke/neodev.nvim",
 		"mason-org/mason.nvim",
 		"WhoIsSethDaniel/mason-tool-installer.nvim",
-		"hrsh7th/nvim-cmp",
-		"hrsh7th/cmp-buffer",
-		"hrsh7th/cmp-nvim-lsp",
+		"saghen/blink.cmp",
 	},
 	config = function()
 		require("neodev").setup()
-		local cmpNvimLsp = require("cmp_nvim_lsp")
-		local capabilities = cmpNvimLsp.default_capabilities()
 
+		local capabilities = require("blink.cmp").get_lsp_capabilities()
 		local on_attach = function(_, _) end
 
 		vim.lsp.config.lua_ls = {
+			cmd = { "lua-language-server" },
 			capabilities = capabilities,
 			on_attach = on_attach,
 			settings = {
@@ -32,32 +30,38 @@ return {
 			callback = function(event)
 				vim.lsp.start({
 					name = "lua_ls",
-					config = vim.lsp.config.lua_ls,
+					cmd = vim.lsp.config.lua_ls.cmd,
+					capabilities = vim.lsp.config.lua_ls.capabilities,
+					on_attach = vim.lsp.config.lua_ls.on_attach,
+					settings = vim.lsp.config.lua_ls.settings,
 					root_dir = vim.fs.root(event.buf, { ".git" }),
 				})
 			end,
 		})
+
 		vim.lsp.config.sourcekit = {
-			on_attach = on_attach,
-			capabilities = capabilities,
 			cmd = {
 				"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp",
 			},
+			capabilities = capabilities,
+			on_attach = on_attach,
 		}
+
 		vim.api.nvim_create_autocmd("FileType", {
 			pattern = { "swift", "objc", "c", "cpp", "objective-cpp" },
 			callback = function(event)
 				vim.lsp.start({
 					name = "sourcekit",
-					cmd = {
-						"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp",
-					},
-					capabilities = capabilities,
-					on_attach = on_attach,
-					root_dir = vim.fs.root(
-						event.buf,
-						{ ".xcode-build-server", "*.xcodeproj", "*.xcworkspace", ".git", "Package.swift" }
-					),
+					cmd = vim.lsp.config.sourcekit.cmd,
+					capabilities = vim.lsp.config.sourcekit.capabilities,
+					on_attach = vim.lsp.config.sourcekit.on_attach,
+					root_dir = vim.fs.root(event.buf, {
+						".xcode-build-server",
+						"*.xcodeproj",
+						"*.xcworkspace",
+						".git",
+						"Package.swift",
+					}),
 				})
 			end,
 		})

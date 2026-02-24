@@ -192,6 +192,11 @@ path=(
   $path
 )
 
+# rbenv
+export RBENV_ROOT="$HOME/.rbenv"
+path=("$RBENV_ROOT/bin" $path)
+eval "$(rbenv init -)"
+
 [ -z "${MANPATH-}" ] || export MANPATH=":${MANPATH#:}";
 export INFOPATH="/opt/homebrew/share/info:${INFOPATH:-}";
 
