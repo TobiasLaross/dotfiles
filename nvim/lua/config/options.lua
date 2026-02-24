@@ -37,46 +37,67 @@ vim.opt.swapfile = false
 -- Auto save and trigger auto-format in the background
 vim.api.nvim_create_autocmd("InsertLeave", {
 	callback = function(args)
-		local bufnr = args.buf
-		if not vim.api.nvim_buf_is_loaded(bufnr) then
+		local bufferNumber = args.buf
+		if not vim.api.nvim_buf_is_valid(bufferNumber) or not vim.api.nvim_buf_is_loaded(bufferNumber) then
 			return
 		end
-		if not vim.bo[bufnr].modifiable or vim.bo[bufnr].readonly then
+		if vim.bo[bufferNumber].buftype ~= "" then
 			return
 		end
-		if not vim.bo[bufnr].modified then
+		local fileType = vim.bo[bufferNumber].filetype
+		if type(fileType) ~= "string" or fileType == "" then
+			return
+		end
+		if not vim.bo[bufferNumber].modifiable or vim.bo[bufferNumber].readonly then
+			return
+		end
+		if not vim.bo[bufferNumber].modified then
 			return
 		end
 
 		vim.defer_fn(function()
+			if not vim.api.nvim_buf_is_valid(bufferNumber) or not vim.api.nvim_buf_is_loaded(bufferNumber) then
+				return
+			end
 			if vim.api.nvim_get_mode().mode ~= "n" then
 				return
 			end
-
-			local ok, conform = pcall(require, "conform")
-			if not ok then
+			if vim.bo[bufferNumber].buftype ~= "" then
+				return
+			end
+			local deferredFileType = vim.bo[bufferNumber].filetype
+			if type(deferredFileType) ~= "string" or deferredFileType == "" then
 				return
 			end
 
-			conform.format({
-				bufnr = bufnr,
+			local okConform, conform = pcall(require, "conform")
+			if not okConform or type(conform.format) ~= "function" then
+				return
+			end
+
+			local okFormat = pcall(conform.format, {
+				bufnr = bufferNumber,
 				lsp_fallback = true,
 				async = true,
 				timeout_ms = 2500,
-			}, function(err)
-				if err then
+			}, function(formatError)
+				if formatError then
 					return
 				end
-				if not vim.api.nvim_buf_is_loaded(bufnr) then
+				if not vim.api.nvim_buf_is_valid(bufferNumber) or not vim.api.nvim_buf_is_loaded(bufferNumber) then
 					return
 				end
 				if vim.api.nvim_get_mode().mode == "i" then
 					return
 				end
-				if vim.bo[bufnr].modifiable and vim.bo[bufnr].modified then
+				if vim.bo[bufferNumber].modifiable and vim.bo[bufferNumber].modified then
 					vim.cmd("update")
 				end
 			end)
+
+			if not okFormat then
+				return
+			end
 		end, 2500)
 	end,
 })

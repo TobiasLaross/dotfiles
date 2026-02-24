@@ -48,7 +48,7 @@ return {
 				yaml = { "prettier" },
 				markdown = { "prettier" },
 			},
-			format_on_save = function(bufnr)
+			format_on_save = function(_)
 				return { timeout_ms = 1000, lsp_fallback = true }
 			end,
 			log_level = vim.log.levels.ERROR,

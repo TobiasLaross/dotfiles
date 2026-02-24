@@ -4,6 +4,8 @@ return {
 	dependencies = {
 		"L3MON4D3/LuaSnip",
 		"rafamadriz/friendly-snippets",
+		"onsails/lspkind-nvim",
+		"echasnovski/mini.icons",
 	},
 	version = "*",
 	config = function()
@@ -61,7 +63,34 @@ return {
 						auto_insert = false,
 					},
 				},
-				documentation = { auto_show = true, auto_show_delay_ms = 500 },
+				menu = {
+					border = "rounded",
+					draw = {
+						gap = 2,
+						components = {
+							kind_icon = {
+								ellipsis = false,
+								highlight = function(ctx)
+									local _, hl, _ = require("mini.icons").get("lsp", ctx.kind)
+									return hl
+								end,
+								text = function(ctx)
+									local icon = require("lspkind").symbolic(ctx.kind, { mode = "symbol" })
+									return icon .. ctx.icon_gap
+								end,
+							},
+						},
+					},
+					winhighlight = "Normal:Normal,FloatBorder:FloatBorder,CursorLine:BlinkCmpMenuSelection,Search:None",
+				},
+				documentation = {
+					auto_show = true,
+					auto_show_delay_ms = 200,
+					window = {
+						border = "rounded",
+						winhighlight = "Normal:Normal,FloatBorder:FloatBorder,CursorLine:BlinkCmpDocCursorLine,Search:None",
+					},
+				},
 			},
 		})
 	end,
