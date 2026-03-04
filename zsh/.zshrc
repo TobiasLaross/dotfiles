@@ -153,12 +153,8 @@ gcloud run deploy lila --image gcr.io/$GCP_PROJECT_ID/lila:latest --platform man
 alias deployLilaDev='npm install && npm run test && docker compose up --build' # && docker compose logs -f app'
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-
 # To customize prompt, run `p10k configure` or edit ~/dotfiles/p10k/p10k.zsh.
 [[ ! -f ~/dotfiles/p10k/p10k.zsh ]] || source ~/dotfiles/p10k/p10k.zsh
-if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
-
 # The next line updates PATH for the Google Cloud SDK.
 if [ -f '/Users/tobias/Developer/personal/Lila/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/tobias/Developer/personal/Lila/google-cloud-sdk/path.zsh.inc'; fi
 
@@ -167,8 +163,11 @@ if [ -f '/Users/tobias/Developer/personal/Lila/google-cloud-sdk/completion.zsh.i
 
 
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+# Lazy-load nvm — defers sourcing until first use of nvm/node/npm/npx
+nvm() { unfunction nvm node npm npx; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"; nvm "$@"; }
+node() { unfunction nvm node npm npx; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; node "$@"; }
+npm() { unfunction nvm node npm npx; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; npm "$@"; }
+npx() { unfunction nvm node npm npx; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; npx "$@"; }
 
 export HOMEBREW_PREFIX="/opt/homebrew";
 export HOMEBREW_CELLAR="/opt/homebrew/Cellar";
