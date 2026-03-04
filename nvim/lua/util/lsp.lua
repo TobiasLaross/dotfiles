@@ -5,7 +5,10 @@ vim.api.nvim_create_autocmd('LspAttach', {
         end
 
         vim.keymap.set("n", 'gd', require('telescope.builtin').lsp_definitions, opts('[G]oto [D]efinition'))
-        vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts("Go to declaration"))
+        local client = vim.lsp.get_client_by_id(event.data.client_id)
+        if not client or client.name ~= "vtsls" then
+            vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts("Go to declaration"))
+        end
         vim.keymap.set("n", "gt", "<cmd>Lspsaga goto_type_definition<CR>", opts("Go to type definition"))
         vim.keymap.set("n", "gk", "<cmd>Lspsaga hover_doc<CR>", opts("Show hover documentation"))
         vim.keymap.set("n", "gn", "<cmd>Lspsaga diagnostic_jump_next<CR>", opts("Jump to next diagnostic"))
