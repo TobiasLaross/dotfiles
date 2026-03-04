@@ -55,16 +55,33 @@ colorize_projects() {
 
 # Use fzf to select a project directory
 select_project() {
-    local fzf_height="50%"
     local project_list=$(get_project_list)
+    local border_label="Repo"
+    local header="All Repos"
+    local all_projects_colored=$(echo "$project_list" | colorize_projects)
 
-    # Apply filter if requested
     if [[ "$1" == "existing" ]]; then
-        project_list=$(echo "$project_list" | filter_existing_sessions)
+        local filtered=$(echo "$project_list" | filter_existing_sessions)
+        if [[ -n "$filtered" ]]; then
+            project_list="$filtered"
+            border_label="Open Sessions"
+            header="Open Sessions  (Ctrl-A: show all)"
+        else
+            # No open sessions matched — fall back to full list seamlessly
+            border_label="All Repos"
+            header="All Repos  (no open sessions)"
+        fi
     fi
 
     echo "$project_list" | colorize_projects |
-        fzf --ansi -m -1 --border=rounded --border-label="Repo" --color="border:#5A5F8C"
+        fzf --ansi -1 \
+            --border=rounded \
+            --border-label="$border_label" \
+            --color="border:#5A5F8C" \
+            --header="$header" \
+            --preview='git -C {} log --oneline --color=always -10 2>/dev/null || echo "Not a git repo"' \
+            --preview-window=right:40%:wrap \
+            --bind "ctrl-a:reload(echo \"$all_projects_colored\")+change-header(All Repos)+change-border-label(Repo)"
 }
 
 # Create a new tmux session or attach to an existing one
