@@ -1,11 +1,11 @@
 return {
 	"nvim-treesitter/nvim-treesitter",
 	branch = "master",
-	lazy = false,
+	event = "BufReadPost",
 	build = ":TSUpdate",
 	dependencies = {
 		"nvim-treesitter/nvim-treesitter-textobjects",
-		{ "OXY2DEV/markview.nvim", lazy = false },
+		{ "OXY2DEV/markview.nvim", ft = "markdown" },
 		"nvim-tree/nvim-web-devicons",
 	},
 	config = function()

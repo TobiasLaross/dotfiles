@@ -3,7 +3,7 @@ return {
     dependencies = {
         "nvim-treesitter/nvim-treesitter",
     },
-    lazy = false,
+    event = "LspAttach",
     opts = {
         -- keybinds for navigation in lspsaga window
         move_in_saga = { prev = "<C-k>", next = "<C-j>" },

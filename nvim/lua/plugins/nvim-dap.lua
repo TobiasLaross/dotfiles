@@ -1,5 +1,6 @@
 return {
     "mfussenegger/nvim-dap",
+    event = "VeryLazy",
     dependencies = {
         "wojciech-kulik/xcodebuild.nvim",
         "theHamsta/nvim-dap-virtual-text",

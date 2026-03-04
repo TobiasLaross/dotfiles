@@ -19,7 +19,7 @@ local plugins = "plugins"
 
 local opts = {
 	defaults = {
-		lazy = false,
+		lazy = true,
 	},
 	--    checker = { enabled = true },
 	dev = {

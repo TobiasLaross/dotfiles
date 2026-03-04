@@ -1,5 +1,6 @@
 return {
 	"mason-org/mason-lspconfig.nvim",
+	event = { "BufReadPre", "BufNewFile" },
 	opts = {
 		ensure_installed = {
 			"bashls",

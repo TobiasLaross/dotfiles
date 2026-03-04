@@ -1,4 +1,4 @@
 return {
 	"sindrets/diffview.nvim",
-	event = "InsertEnter",
+	cmd = { "DiffviewOpen", "DiffviewClose", "DiffviewToggleFiles", "DiffviewFileHistory" },
 }

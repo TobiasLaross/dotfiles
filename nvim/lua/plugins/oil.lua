@@ -1,6 +1,7 @@
 return {
 	{
 		"stevearc/oil.nvim",
+		cmd = "Oil",
 		opts = function()
 			local max_width = math.floor(vim.o.columns * 0.4)
 			local max_height = math.floor(vim.o.lines * 0.6)
