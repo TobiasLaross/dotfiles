@@ -62,6 +62,20 @@ Oh My Zsh with plugins: `fzf`, `git`, `ssh-agent`, `zsh-autosuggestions`, `zsh-v
 
 Additional functions in `zsh/config/functions.zsh`. The `sess` alias runs `scripts/sessionizer.sh` (tmux session switcher).
 
+## Commit messages
+
+Use short, single-line messages starting with a capitalised past-tense verb. No period at the end.
+
+```
+Added <thing>
+Updated <thing>
+Fixed <thing>
+Improved <thing>
+Removed <thing>
+```
+
+Examples from this repo: `Fixed swift lsp`, `Improved nvim startup time`, `Updated blink`.
+
 ## Code quality files
 
 - `.luacheckrc` / `.luarc.json` — Lua linting for Neovim config
