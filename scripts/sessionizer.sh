@@ -106,6 +106,18 @@ manage_tmux_session() {
 main() {
     local filter_mode="$1"
 
+    # Go to dotfiles if arg equals 'dotfiles'
+    if [[ "$filter_mode" == "dotfiles" ]]; then
+        local current_session=$(tmux display-message -p "#S")
+        if [[ "$current_session" == "Dotfiles" ]]; then
+            tmux switch-client -l
+            return
+        fi
+
+        manage_tmux_session "$DOTFILES" "Dotfiles"
+        return
+    fi
+
     # Go to notes if arg equals 'notes'
     if [[ "$filter_mode" == "notes" ]]; then
         local project_dir=""
