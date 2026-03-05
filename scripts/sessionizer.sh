@@ -79,8 +79,6 @@ select_project() {
             --border-label="$border_label" \
             --color="border:#5A5F8C" \
             --header="$header" \
-            --preview='git -C {} log --oneline --color=always -10 2>/dev/null || echo "Not a git repo"' \
-            --preview-window=right:40%:wrap \
             --bind "ctrl-a:reload(echo \"$all_projects_colored\")+change-header(All Repos)+change-border-label(Repo)"
 }
 
