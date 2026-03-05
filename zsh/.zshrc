@@ -85,10 +85,6 @@ export LANG=en_US.UTF-8
 
 export EDITOR='nvim'
 
-# Sessionizer
-export PERSONAL="$HOME/Developer/personal"
-export WORK="$HOME/Developer/work"
-export DOTFILES="$HOME/dotfiles"
 
 # enable vi mode
 bindkey -v
