@@ -5,8 +5,6 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
-autoload -Uz compinit
-compinit -C
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
 
@@ -66,15 +64,17 @@ COMPLETION_WAITING_DOTS="true"
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
-    fzf
     git
-    ssh-agent
     zsh-autosuggestions
     zsh-vi-mode
     zsh-syntax-highlighting
 )
 
 source $ZSH/oh-my-zsh.sh
+
+# fzf shell integration (faster than OMZ fzf plugin)
+[[ -f /opt/homebrew/opt/fzf/shell/completion.zsh ]] && source /opt/homebrew/opt/fzf/shell/completion.zsh
+[[ -f /opt/homebrew/opt/fzf/shell/key-bindings.zsh ]] && source /opt/homebrew/opt/fzf/shell/key-bindings.zsh
 
 if [ -f ~/gcr-docker.env ]; then
   source ~/gcr-docker.env
@@ -151,11 +151,20 @@ alias deployLilaDev='npm install && npm run test && docker compose up --build' #
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 # To customize prompt, run `p10k configure` or edit ~/dotfiles/p10k/p10k.zsh.
 [[ ! -f ~/dotfiles/p10k/p10k.zsh ]] || source ~/dotfiles/p10k/p10k.zsh
-# The next line updates PATH for the Google Cloud SDK.
-if [ -f '/Users/tobias/Developer/personal/Lila/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/tobias/Developer/personal/Lila/google-cloud-sdk/path.zsh.inc'; fi
 
-# The next line enables shell command completion for gcloud.
-if [ -f '/Users/tobias/Developer/personal/Lila/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/tobias/Developer/personal/Lila/google-cloud-sdk/completion.zsh.inc'; fi
+# Lazy-load gcloud SDK — only initialise on first use
+_gcloud_sdk_root='/Users/tobias/Developer/personal/Lila/google-cloud-sdk'
+_gcloud_lazy_init() {
+  unfunction gcloud bq gsutil 2>/dev/null
+  [[ -f "$_gcloud_sdk_root/path.zsh.inc" ]] && source "$_gcloud_sdk_root/path.zsh.inc"
+  [[ -f "$_gcloud_sdk_root/completion.zsh.inc" ]] && source "$_gcloud_sdk_root/completion.zsh.inc"
+  unset _gcloud_sdk_root
+}
+if [[ -d "$_gcloud_sdk_root" ]]; then
+  gcloud()  { _gcloud_lazy_init; gcloud  "$@"; }
+  bq()      { _gcloud_lazy_init; bq      "$@"; }
+  gsutil()  { _gcloud_lazy_init; gsutil  "$@"; }
+fi
 
 
 export NVM_DIR="$HOME/.nvm"
@@ -187,10 +196,10 @@ path=(
   $path
 )
 
-# rbenv
+# rbenv — add shims directly to avoid slow `rbenv init -` on every shell open
 export RBENV_ROOT="$HOME/.rbenv"
-path=("$RBENV_ROOT/bin" $path)
-eval "$(rbenv init -)"
+path=("$RBENV_ROOT/bin" "$RBENV_ROOT/shims" $path)
+export RBENV_SHELL=zsh
 
 [ -z "${MANPATH-}" ] || export MANPATH=":${MANPATH#:}";
 export INFOPATH="/opt/homebrew/share/info:${INFOPATH:-}";
