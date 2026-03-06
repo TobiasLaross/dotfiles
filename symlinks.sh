@@ -11,4 +11,9 @@ ln -sf $(pwd)/tmux/conf ~/.config/tmux/
 ln -sf $(pwd)/OneDark.xccolortheme $(pwd)/../Library/Developer/Xcode/UserData/FontAndColorThemes
 ln -sf $(pwd)/ghostty/config /Users/tobias/Library/Application\ Support/com.mitchellh.ghostty/config
 
+mkdir -p ~/.claude/skills
+for skill in $(pwd)/claude/skills/*/; do
+    ln -sf $skill ~/.claude/skills/
+done
+
 . ~/.zshrc
