@@ -1,4 +1,5 @@
 #!/bin/zsh
+zmodload zsh/files
 
 # Define color codes for different project types
 typeset -A colors=(
@@ -8,78 +9,101 @@ typeset -A colors=(
     reset $'\e[0m'
 )
 
-filter_existing_sessions() {
-    local project_dir
-    local session_name
-    local existing_sessions=$(tmux list-sessions -F "#{session_name}" 2>/dev/null)
-
-    while read -r project_dir; do
-        # Convert directory name to session name using the same logic as in main()
-        local directory=$(basename "$project_dir")
-        local session_name="${directory//:/_}"
-        session_name="${session_name// /_}"
-        session_name="${session_name//./_}"
-        session_name=${(L)session_name}    # Convert to lowercase
-        session_name=${(C)session_name}    # Capitalize first letter
-
-        # Check if this session exists
-        if echo "$existing_sessions" | grep -q "^${session_name}$"; then
-            echo "$project_dir"
-        fi
-    done
-}
-
 # Fetch all available project directories
 get_project_list() {
-    local current_dir=$(tmux display-message -p -F "#{pane_current_path}" 2>/dev/null)
+    local current_dir=$PWD
     if [[ "$DOTFILES" != "$current_dir" ]]; then
         echo $DOTFILES
     fi
     find $WORK $PERSONAL -mindepth 1 -maxdepth 1 \( -type d -o -type l \) | grep -v "^$current_dir$" | sort
 }
 
-# Colorize project directories for display in fzf
+# Reads project paths from stdin, prints those with an open tmux session.
+# Args: sessions_file
+filter_existing_sessions() {
+    local sessions_file="$1"
+
+    # Load sessions into an associative array for O(1) lookup (avoids forking
+    # a grep process per directory which causes multi-second delays)
+    local -A session_set
+    local sess
+    while IFS= read -r sess; do
+        session_set[$sess]=1
+    done < "$sessions_file"
+
+    local project_dir session_name directory
+    while IFS= read -r project_dir; do
+        directory="${project_dir:t}"
+        session_name="${directory//:/_}"
+        session_name="${session_name// /_}"
+        session_name="${session_name//./_}"
+        session_name=${(L)session_name}
+        session_name=${(C)session_name}
+
+        (( ${+session_set[$session_name]} )) && print -r -- "$project_dir"
+    done
+}
+
+# Reads project paths from stdin, prints ANSI-colored lines for fzf.
 colorize_projects() {
-    awk -v work=$WORK -v personal=$PERSONAL -v dotfiles=$DOTFILES \
-        -v workColor="${colors[work]}" -v personalColor="${colors[personal]}" \
-        -v dotfilesColor="${colors[dotfiles]}" -v reset="${colors[reset]}" '
-    {
-        if ($0 == dotfiles)
-            printf "%s%s%s\n", dotfilesColor, $0, reset
-        else if (index($0, work) == 1)
-            printf "%s%s%s\n", workColor, $0, reset
-        else if (index($0, personal) == 1)
-            printf "%s%s%s\n", personalColor, $0, reset
-    }'
+    local line
+    while IFS= read -r line; do
+        if [[ "$line" == "$DOTFILES" ]]; then
+            print -r -- "${colors[dotfiles]}${line}${colors[reset]}"
+        elif [[ "$line" == ${WORK}/* ]]; then
+            print -r -- "${colors[work]}${line}${colors[reset]}"
+        elif [[ "$line" == ${PERSONAL}/* ]]; then
+            print -r -- "${colors[personal]}${line}${colors[reset]}"
+        fi
+    done
 }
 
 # Use fzf to select a project directory
 select_project() {
-    local project_list=$(get_project_list)
-    local border_label="Repo"
-    local header="All Repos"
-    local all_projects_colored=$(echo "$project_list" | colorize_projects)
-
     if [[ "$1" == "existing" ]]; then
-        local filtered=$(echo "$project_list" | filter_existing_sessions)
+        # Kick off tmux list-sessions in the background while find runs
+        local sessions_file="/tmp/sessionizer_sessions_$$"
+        tmux list-sessions -F "#{session_name}" 2>/dev/null > "$sessions_file" &
+        local tmux_pid=$!
+
+        local project_list
+        project_list=$(get_project_list)
+        wait $tmux_pid
+
+        local all_projects_colored
+        all_projects_colored=$(print -r -- "$project_list" | colorize_projects)
+
+        local filtered
+        filtered=$(print -r -- "$project_list" | filter_existing_sessions "$sessions_file")
+        zf_rm -f "$sessions_file"
+
+        local border_label header display_colored
         if [[ -n "$filtered" ]]; then
-            project_list="$filtered"
+            display_colored=$(print -r -- "$filtered" | colorize_projects)
             border_label="Open Sessions"
             header="Open Sessions  (Ctrl-A: show all)"
         else
-            # No open sessions matched — fall back to full list seamlessly
+            # No open sessions matched — reuse already-colorized full list
+            display_colored="$all_projects_colored"
             border_label="All Repos"
             header="All Repos  (no open sessions)"
         fi
-    fi
 
-    echo "$project_list" | colorize_projects |
-        fzf --ansi -1 \
-            --border=rounded \
-            --border-label="$border_label" \
-            --color="border:#5A5F8C" \
-            --header="$header" \
-            --bind "ctrl-a:reload(echo \"$all_projects_colored\")+change-header(All Repos)+change-border-label(Repo)"
+        print -r -- "$display_colored" |
+            fzf --ansi -1 \
+                --border=rounded \
+                --border-label="$border_label" \
+                --color="border:#5A5F8C" \
+                --header="$header" \
+                --bind "ctrl-a:reload(echo \"$all_projects_colored\")+change-header(All Repos)+change-border-label(Repo)"
+    else
+        get_project_list | colorize_projects |
+            fzf --ansi -1 \
+                --border=rounded \
+                --border-label="Repo" \
+                --color="border:#5A5F8C" \
+                --header="All Repos"
+    fi
 }
 
 # Create a new tmux session or attach to an existing one
@@ -145,7 +169,7 @@ main() {
         return 0
     fi
 
-    local directory=$(basename "$project_dir")
+    local directory="${project_dir:t}"
     local session_name="${directory//:/_}"
     session_name="${session_name// /_}"
     session_name="${session_name//./_}"
