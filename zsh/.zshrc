@@ -5,95 +5,83 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
-# Path to your oh-my-zsh installation.
-export ZSH="$HOME/.oh-my-zsh"
+# --- Environment ---
+export LANG=en_US.UTF-8
+export EDITOR='nvim'
+export DOTFILES="$HOME/dotfiles"
 
-# Set name of the theme to load --- if set to "random", it will
-# load a random theme each time oh-my-zsh is loaded, in which case,
-# to know which specific one was loaded, run: echo $RANDOM_THEME
-# See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
-# ZSH_THEME="robbyrussell"
-ZSH_THEME="powerlevel10k/powerlevel10k"
+# --- Homebrew ---
+export HOMEBREW_PREFIX="/opt/homebrew"
+export HOMEBREW_CELLAR="/opt/homebrew/Cellar"
+export HOMEBREW_REPOSITORY="/opt/homebrew"
 
-# Set list of themes to pick from when loading at random
-# Setting this variable when ZSH_THEME=random will cause zsh to load
-# a theme from this variable instead of looking in $ZSH/themes/
-# If set to an empty array, this variable will have no effect.
-# ZSH_THEME_RANDOM_CANDIDATES=( "robbyrussell" "agnoster" )
+# --- Path ---
+export RBENV_ROOT="$HOME/.rbenv"
 
-# Uncomment the following line to use case-sensitive completion.
-# CASE_SENSITIVE="true"
-
-# Uncomment the following line to use hyphen-insensitive completion.
-# Case-sensitive completion must be off. _ and - will be interchangeable.
-# HYPHEN_INSENSITIVE="true"
-
-# Uncomment one of the following lines to change the auto-update behavior
-# zstyle ':omz:update' mode disabled  # disable automatic updates
-# zstyle ':omz:update' mode auto      # update automatically without asking
-# zstyle ':omz:update' mode reminder  # just remind me to update when it's time
-
-# Uncomment the following line to change how often to auto-update (in days).
-# zstyle ':omz:update' frequency 13
-
-# Uncomment the following line if pasting URLs and other text is messed up.
-# DISABLE_MAGIC_FUNCTIONS="true"
-
-# Uncomment the following line to disable colors in ls.
-# DISABLE_LS_COLORS="true"
-
-# Uncomment the following line to display red dots whilst waiting for completion.
-# You can also set it to another string to have that shown instead of the default red dots.
-# e.g. COMPLETION_WAITING_DOTS="%F{yellow}waiting...%f"
-COMPLETION_WAITING_DOTS="true"
-
-# Uncomment the following line if you want to change the command execution time
-# stamp shown in the history command output.
-# You can set one of the optional three formats:
-# "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
-# or set a custom format using the strftime function format specifications,
-# see 'man strftime' for details.
-# HIST_STAMPS="mm/dd/yyyy"
-
-# Would you like to use another custom folder than $ZSH/custom?
-# ZSH_CUSTOM=/path/to/new-custom-folder
-
-# Which plugins would you like to load?
-# Standard plugins can be found in $ZSH/plugins/
-# Custom plugins may be added to $ZSH_CUSTOM/plugins/
-# Example format: plugins=(rails git textmate ruby lighthouse)
-# Add wisely, as too many plugins slow down shell startup.
-plugins=(
-    git
-    zsh-autosuggestions
-    zsh-vi-mode
-    zsh-syntax-highlighting
+typeset -U path PATH
+path=(
+  "./node_modules/.bin"
+  "$HOME/.local/bin"
+  "$HOME/.cargo/bin"
+  "$HOME/.nvm/versions/node/v20.19.0/bin"
+  "/opt/homebrew/bin"
+  "/opt/homebrew/sbin"
+  "$RBENV_ROOT/bin"
+  "$RBENV_ROOT/shims"
+  "/usr/local/bin"
+  "/usr/bin"
+  "/bin"
+  "/usr/sbin"
+  "/sbin"
+  $path
 )
 
-source $ZSH/oh-my-zsh.sh
+export RBENV_SHELL=zsh
+[ -z "${MANPATH-}" ] || export MANPATH=":${MANPATH#:}"
+export INFOPATH="/opt/homebrew/share/info:${INFOPATH:-}"
 
-# fzf shell integration (faster than OMZ fzf plugin)
-[[ -f /opt/homebrew/opt/fzf/shell/completion.zsh ]] && source /opt/homebrew/opt/fzf/shell/completion.zsh
-[[ -f /opt/homebrew/opt/fzf/shell/key-bindings.zsh ]] && source /opt/homebrew/opt/fzf/shell/key-bindings.zsh
+# --- History ---
+HISTFILE=~/.zsh_history
+HISTSIZE=10000
+SAVEHIST=10000
+setopt HIST_IGNORE_DUPS HIST_IGNORE_ALL_DUPS SHARE_HISTORY HIST_REDUCE_BLANKS
 
-if [ -f ~/gcr-docker.env ]; then
-  source ~/gcr-docker.env
-fi
+# --- fpath for completions ---
+fpath[1,0]="/opt/homebrew/share/zsh/site-functions"
 
-# You may need to manually set your language environment
-export LANG=en_US.UTF-8
-
-export EDITOR='nvim'
-
-
-# enable vi mode
-bindkey -v
-
+# --- Config files (some add to fpath — must be before compinit) ---
 for conf_file in "$HOME/dotfiles/zsh/config/"*.zsh; do
   source "${conf_file}"
 done
 unset conf_file
 
+# --- Completion ---
+autoload -Uz compinit
+compinit
+
+# --- Plugins ---
+[[ -f /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]] && \
+  source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+[[ -f /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]] && \
+  source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+zvm_config() {
+  ZVM_INSERT_MODE_CURSOR=$ZVM_CURSOR_BEAM
+  ZVM_NORMAL_MODE_CURSOR=$ZVM_CURSOR_BLOCK
+}
+[[ -f /opt/homebrew/opt/zsh-vi-mode/share/zsh-vi-mode/zsh-vi-mode.plugin.zsh ]] && \
+  source /opt/homebrew/opt/zsh-vi-mode/share/zsh-vi-mode/zsh-vi-mode.plugin.zsh
+
+# --- fzf shell integration ---
+[[ -f /opt/homebrew/opt/fzf/shell/completion.zsh ]] && source /opt/homebrew/opt/fzf/shell/completion.zsh
+[[ -f /opt/homebrew/opt/fzf/shell/key-bindings.zsh ]] && source /opt/homebrew/opt/fzf/shell/key-bindings.zsh
+
+# --- p10k theme ---
+source /opt/homebrew/share/powerlevel10k/powerlevel10k.zsh-theme
+
+# --- Optional env ---
+[[ -f ~/gcr-docker.env ]] && source ~/gcr-docker.env
+
+# --- Aliases ---
 alias vim="nvim"
 alias sess="$DOTFILES/scripts/sessionizer.sh"
 alias ag='ag 2>/dev/null'
@@ -113,7 +101,7 @@ alias gitbranch="git branch --show-current -vvv"
 alias gitcheckoutback="git checkout - && gitbranch"
 alias gitcommitamend="git commit --amend --no-edit"
 alias gitaddpv="git add -pv"
-alias gitdifftodoprint="git diff develop | grep -i todo; git diff develop | grep -i print\(" 
+alias gitdifftodoprint="git diff develop | grep -i todo; git diff develop | grep -i print\("
 alias gitrelease='if [[ $(basename $(pwd)) = "IntelliNest" ]]; then
     current_version=$(grep -o "CURRENT_PROJECT_VERSION = [0-9]*;" IntelliNest.xcodeproj/project.pbxproj | head -1 | awk -F " " "{ print \$3 }" | sed "s/;//");
     new_version=$((current_version + 1));
@@ -146,13 +134,9 @@ docker push gcr.io/$GCP_PROJECT_ID/lila:latest && \
 gcloud run deploy lila --image gcr.io/$GCP_PROJECT_ID/lila:latest --platform managed --region $GCP_REGION \
 --update-secrets=MONGODB_URI=projects/$GCP_PROJECT_NUMBER/secrets/mongodb-uri:latest \
 --set-env-vars=NODE_ENV=stage,GCLOUD_PROJECT_ID=$GCP_PROJECT_ID,GCLOUD_PROJECT_NUMBER=$GCP_PROJECT_NUMBER'
-alias deployLilaDev='npm install && npm run test && docker compose up --build' # && docker compose logs -f app'
+alias deployLilaDev='npm install && npm run test && docker compose up --build'
 
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-# To customize prompt, run `p10k configure` or edit ~/dotfiles/p10k/p10k.zsh.
-[[ ! -f ~/dotfiles/p10k/p10k.zsh ]] || source ~/dotfiles/p10k/p10k.zsh
-
-# Lazy-load gcloud SDK — only initialise on first use
+# --- Lazy-load gcloud SDK ---
 _gcloud_sdk_root='/Users/tobias/Developer/personal/Lila/google-cloud-sdk'
 _gcloud_lazy_init() {
   unfunction gcloud bq gsutil 2>/dev/null
@@ -166,42 +150,12 @@ if [[ -d "$_gcloud_sdk_root" ]]; then
   gsutil()  { _gcloud_lazy_init; gsutil  "$@"; }
 fi
 
-
+# --- Lazy-load nvm ---
 export NVM_DIR="$HOME/.nvm"
-# Lazy-load nvm — defers sourcing until first use of nvm/node/npm/npx
 nvm() { unfunction nvm node npm npx; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"; nvm "$@"; }
 node() { unfunction nvm node npm npx; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; node "$@"; }
 npm() { unfunction nvm node npm npx; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; npm "$@"; }
 npx() { unfunction nvm node npm npx; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; npx "$@"; }
 
-export HOMEBREW_PREFIX="/opt/homebrew";
-export HOMEBREW_CELLAR="/opt/homebrew/Cellar";
-export HOMEBREW_REPOSITORY="/opt/homebrew";
-fpath[1,0]="/opt/homebrew/share/zsh/site-functions";
-
-typeset -U path PATH
-
-path=(
-  "./node_modules/.bin"
-  "$HOME/.local/bin"
-  "$HOME/.cargo/bin"
-  "$HOME/.nvm/versions/node/v20.19.0/bin"
-  "/opt/homebrew/bin"
-  "/opt/homebrew/sbin"
-  "/usr/local/bin"
-  "/usr/bin"
-  "/bin"
-  "/usr/sbin"
-  "/sbin"
-  $path
-)
-
-# rbenv — add shims directly to avoid slow `rbenv init -` on every shell open
-export RBENV_ROOT="$HOME/.rbenv"
-path=("$RBENV_ROOT/bin" "$RBENV_ROOT/shims" $path)
-export RBENV_SHELL=zsh
-
-[ -z "${MANPATH-}" ] || export MANPATH=":${MANPATH#:}";
-export INFOPATH="/opt/homebrew/share/info:${INFOPATH:-}";
-
-typeset -U path PATH
+# To customize prompt, run `p10k configure` or edit ~/dotfiles/p10k/p10k.zsh.
+[[ ! -f ~/dotfiles/p10k/p10k.zsh ]] || source ~/dotfiles/p10k/p10k.zsh
