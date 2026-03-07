@@ -2,7 +2,7 @@
 name: review-code
 description: Reviews implemented code from 7 perspectives in parallel — correctness, security, performance & scalability, maintainability & architecture, test quality, acceptance criteria, and design pattern consistency. Use when asked to review code or a completed implementation.
 argument-hint: [file paths or description of what was implemented]
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Read, Grep, Glob, Bash
 ---
 

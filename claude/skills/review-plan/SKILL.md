@@ -2,7 +2,7 @@
 name: review-plan
 description: Reviews an implementation plan from 6 perspectives in parallel — technical feasibility, security, performance & scalability, maintainability & architecture, test coverage, and design pattern consistency. Use when asked to review a plan.
 argument-hint: [implementation plan]
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Read, Grep, Glob, Bash
 ---
 
