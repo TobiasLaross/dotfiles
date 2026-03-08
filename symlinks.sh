@@ -16,4 +16,9 @@ for skill in $(pwd)/claude/skills/*/; do
     ln -sf $skill ~/.claude/skills/
 done
 
+ln -sf $(pwd)/claude/CLAUDE.md ~/.claude/CLAUDE.md
+ln -sf $(pwd)/claude/settings.json ~/.claude/settings.json
+ln -sf $(pwd)/claude/hooks ~/.claude/hooks
+ln -sf $(pwd)/claude/tasks ~/.claude/tasks
+
 . ~/.zshrc
