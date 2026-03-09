@@ -13,12 +13,17 @@ ln -sf $(pwd)/ghostty/config /Users/tobias/Library/Application\ Support/com.mitc
 
 mkdir -p ~/.claude/skills
 for skill in $(pwd)/claude/skills/*/; do
-    ln -sf $skill ~/.claude/skills/
+    ln -sf "$skill" ~/.claude/skills/
 done
+
+mkdir -p ~/.claude/hooks
+for hook in $(pwd)/claude/hooks/*; do
+    ln -sf "$hook" ~/.claude/hooks/
+done
+
+mkdir -p ~/.claude/tasks
 
 ln -sf $(pwd)/claude/CLAUDE.md ~/.claude/CLAUDE.md
 ln -sf $(pwd)/claude/settings.json ~/.claude/settings.json
-ln -sf $(pwd)/claude/hooks ~/.claude/hooks
-ln -sf $(pwd)/claude/tasks ~/.claude/tasks
 
 . ~/.zshrc

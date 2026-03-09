@@ -13,25 +13,29 @@ except:
 
 [[ -z "$transcript" || ! -f "$transcript" ]] && exit 0
 
-last=$(tail -1 "$transcript" 2>/dev/null | python3 -c "
+last=$(tail -20 "$transcript" 2>/dev/null | python3 -c "
 import sys, json
-try:
-    d = json.load(sys.stdin)
-    # Handle both flat and nested message formats
-    msg = d.get('message', d)
-    if msg.get('role') != 'assistant':
-        sys.exit(1)
-    content = msg.get('content', '')
-    if isinstance(content, list):
-        text = ' '.join(
-            c.get('text', '') for c in content
-            if isinstance(c, dict) and c.get('type') == 'text'
-        )
-    else:
-        text = str(content)
-    print(text)
-except:
-    sys.exit(1)
+lines = sys.stdin.read().splitlines()
+text = ''
+for line in reversed(lines):
+    try:
+        d = json.loads(line)
+        msg = d.get('message', d)
+        if msg.get('role') != 'assistant':
+            continue
+        content = msg.get('content', '')
+        if isinstance(content, list):
+            text = ' '.join(
+                c.get('text', '') for c in content
+                if isinstance(c, dict) and c.get('type') == 'text'
+            )
+        else:
+            text = str(content)
+        if text:
+            break
+    except:
+        continue
+print(text)
 " 2>/dev/null)
 
 [[ -z "$last" ]] && exit 0

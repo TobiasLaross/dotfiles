@@ -1,6 +1,9 @@
 ---
 name: explain-code
 description: Explains code with visual diagrams and analogies. Use when explaining how code works, teaching about a codebase, or when the user asks "how does this work?"
+argument-hint: [file path or description of code to explain]
+disable-model-invocation: false
+allowed-tools: Read, Grep, Glob, Bash
 ---
 
 When explaining code, always include:
