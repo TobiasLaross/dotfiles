@@ -2,35 +2,9 @@
 
 ## Feature Tracking
 
-For any significant change, create and maintain a feature file at `~/.claude/features/<kebab-name>/story.md` before starting work. Update checkpoints as each stage completes. Use feature files to resume context across sessions.
+Features are tracked in `~/.claude/features/`. The folder and all files are created by `/feature-plan` — do not create feature folders manually. When the user runs `/feature-plan`, that skill handles naming, folder creation, planning, and review.
 
-Use `/feature-plan <description>` to kick off the feature creation flow — Claude will draft a user story for approval before creating any files.
-
-### Format
-
-```md
-# Story: <Name>
-
-**As a** [user type], **I want** [goal] **so that** [reason]
-
-## Status: todo | in-progress | done
-
-## Checkpoints
-- [ ] Plan drafted
-- [ ] Plan reviewed
-- [ ] Implementation started
-- [ ] Implementation complete
-- [ ] Code reviewed
-- [ ] Committed
-
-## Notes
-```
-
-### When to create a feature
-
-- Any change spanning multiple sessions
-- Refactors or architectural changes
-- New features or tools being added
+If a feature folder already exists, you may read its files to resume context across sessions.
 
 ### Feature lifecycle
 
