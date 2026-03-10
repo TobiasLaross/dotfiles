@@ -1,35 +1,20 @@
 # Global Claude Instructions
 
-## Task Tracking
+## Feature Tracking
 
-For any significant change, create and maintain a task file at `~/.claude/tasks/<kebab-name>.md` before starting work. Update checkpoints as each stage completes. Use task files to resume context across sessions.
+Features are tracked in `~/.claude/features/`. The folder and all files are created by `/feature-plan` — do not create feature folders manually. When the user runs `/feature-plan`, that skill handles naming, folder creation, planning, and review.
 
-### Format
+If a feature folder already exists, you may read its files to resume context across sessions.
 
-```md
-# Task: <Name>
+### Feature lifecycle
 
-## Status: todo | in-progress | done
+- Active features live in `~/.claude/features/<name>/`
+- Completed features move to `~/.claude/features/done/<name>/`
+- All related md files for a feature go in its folder
 
-## Goal
-One-line description.
+### Work repos
 
-## Checkpoints
-- [ ] Plan drafted
-- [ ] Plan reviewed
-- [ ] Implementation started
-- [ ] Implementation complete
-- [ ] Code reviewed
-- [ ] Committed
-
-## Notes
-```
-
-### When to create a task file
-
-- Any change spanning multiple sessions
-- Refactors or architectural changes
-- New features or tools being added
+When working inside a `/work/` directory, related repositories live in `~/Developer/work/`. Scan that directory to identify which repos are relevant to a given task or feature.
 
 ---
 
