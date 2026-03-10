@@ -38,6 +38,10 @@ Use `/story <description>` to kick off the story creation flow — Claude will d
 - Completed stories move to `~/.claude/stories/done/<name>/`
 - All related md files for a story go in its folder
 
+### Work repos
+
+When working inside a `/work/` directory, related repositories live in `~/Developer/work/`. Scan that directory to identify which repos are relevant to a given task or story.
+
 ---
 
 ## Auto-Review Markers
