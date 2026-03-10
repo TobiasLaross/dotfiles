@@ -85,6 +85,21 @@ Write your findings to ~/.claude/features/<short-name>/plan-review.md with:
 - **Gaps** — anything the plan doesn't address that the story requires
 - **Repo feedback** (only if in /work/ context) — corrections or additions to the repos listed
 - **Suggested changes** — specific, actionable edits to plan.md if needed
+
+After writing plan-review.md, spawn a subagent (subagent_type: general-purpose) in the background to apply agreed fixes:
+
+```
+You are revising a feature plan based on a review.
+
+Story:  ~/.claude/features/<short-name>/story.md
+Plan:   ~/.claude/features/<short-name>/plan.md
+Review: ~/.claude/features/<short-name>/plan-review.md
+
+Read all three files. Then:
+
+1. For each item under "Suggested changes" in the review, decide whether it is clearly correct and improves the plan. Apply only the changes you agree with — skip anything speculative, stylistic, or that contradicts the story goal.
+2. Rewrite ~/.claude/features/<short-name>/plan.md with the agreed fixes applied. Keep the same structure; only change what needs changing.
+3. Append a ## Revisions section at the bottom of plan.md listing each change you made and why, and each suggestion you skipped and why.
 ```
 ```
 
