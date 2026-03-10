@@ -1,18 +1,19 @@
 # Global Claude Instructions
 
-## Task Tracking
+## Story Tracking
 
-For any significant change, create and maintain a task file at `~/.claude/tasks/<kebab-name>.md` before starting work. Update checkpoints as each stage completes. Use task files to resume context across sessions.
+For any significant change, create and maintain a story file at `~/.claude/stories/<kebab-name>/story.md` before starting work. Update checkpoints as each stage completes. Use story files to resume context across sessions.
+
+Use `/story <description>` to kick off the story creation flow — Claude will draft a user story for approval before creating any files.
 
 ### Format
 
 ```md
-# Task: <Name>
+# Story: <Name>
+
+**As a** [user type], **I want** [goal] **so that** [reason]
 
 ## Status: todo | in-progress | done
-
-## Goal
-One-line description.
 
 ## Checkpoints
 - [ ] Plan drafted
@@ -25,11 +26,17 @@ One-line description.
 ## Notes
 ```
 
-### When to create a task file
+### When to create a story
 
 - Any change spanning multiple sessions
 - Refactors or architectural changes
 - New features or tools being added
+
+### Story lifecycle
+
+- Active stories live in `~/.claude/stories/<name>/`
+- Completed stories move to `~/.claude/stories/done/<name>/`
+- All related md files for a story go in its folder
 
 ---
 

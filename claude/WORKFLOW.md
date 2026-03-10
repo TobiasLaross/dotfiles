@@ -1,6 +1,6 @@
 # Claude Workflow
 
-This document describes the full Claude Code workflow defined in this dotfiles repo. It covers task tracking, the plan → review → implement → review cycle, hooks, and skills.
+This document describes the full Claude Code workflow defined in this dotfiles repo. It covers story tracking, the plan → review → implement → review cycle, hooks, and skills.
 
 ---
 
@@ -9,7 +9,11 @@ This document describes the full Claude Code workflow defined in this dotfiles r
 The workflow enforces a structured loop:
 
 ```
-Task file created
+/story <description>
+       ↓
+Story drafted + approved
+       ↓
+Story file created in ~/.claude/stories/<name>/
        ↓
 Plan drafted
        ↓
@@ -27,18 +31,26 @@ Stop hook fires → auto-review.sh → triggers /review-code
        ↓
 Fixes applied, changelog produced
        ↓
-Committed
+Committed → story moved to done/
 ```
 
 ---
 
-## Task Tracking
+## Story Tracking
 
-**Location:** `~/.claude/tasks/<kebab-name>.md` (gitignored — local only)
+**Location:** `~/.claude/stories/<kebab-name>/story.md` (gitignored — local only)
 
-A task file is created before starting any significant work and updated as stages complete. It serves as resume context across sessions.
+A story is created before starting any significant work and updated as stages complete. It serves as resume context across sessions.
 
-### When to create a task file
+Use `/story <description>` to start the flow — Claude drafts a user story for approval before writing any files.
+
+### Story lifecycle
+
+- Active stories live in `~/.claude/stories/<name>/`
+- Completed stories move to `~/.claude/stories/done/<name>/`
+- All related md files for a story go in its folder
+
+### When to create a story
 
 - Any change spanning multiple sessions
 - Refactors or architectural changes
@@ -47,12 +59,11 @@ A task file is created before starting any significant work and updated as stage
 ### Format
 
 ```md
-# Task: <Name>
+# Story: <Name>
+
+**As a** [user type], **I want** [goal] **so that** [reason]
 
 ## Status: todo | in-progress | done
-
-## Goal
-One-line description.
 
 ## Checkpoints
 - [ ] Plan drafted
@@ -139,6 +150,23 @@ Two HTML comment markers trigger automatic reviews when appended to a response:
 ## Skills
 
 Skills live in `claude/skills/*/` and are symlinked individually into `~/.claude/skills/`.
+
+### `/story`
+
+**File:** `claude/skills/story/SKILL.md`
+
+Creates a new user story from a feature description.
+
+**Step 1 — Draft**
+From `$ARGUMENTS`, draft a kebab-case folder name and a user story (`As a… I want… so that…`). Present to user for approval.
+
+**Step 2 — Create**
+Once approved, write `~/.claude/stories/<name>/story.md` with the agreed story and today's date.
+
+**Step 3 — Confirm**
+Show the file path and let the user know they can add more md files to the same folder.
+
+---
 
 ### `/review-plan`
 
@@ -241,7 +269,7 @@ Explains how code works using a consistent structure:
 ```sh
 ~/.claude/skills/<skill>/   → dotfiles/claude/skills/<skill>/
 ~/.claude/hooks/            → dotfiles/claude/hooks/*
-~/.claude/tasks/            → created locally (gitignored)
+~/.claude/stories/          → created locally (gitignored)
 ~/.claude/CLAUDE.md         → dotfiles/claude/CLAUDE.md
 ~/.claude/settings.json     → dotfiles/claude/settings.json
 ```
@@ -252,12 +280,14 @@ Explains how code works using a consistent structure:
 
 ```
 claude/
-├── CLAUDE.md              # Global instructions (task tracking + auto-review markers)
+├── CLAUDE.md              # Global instructions (story tracking + auto-review markers)
 ├── WORKFLOW.md            # This file
 ├── settings.json          # Hook registration
 ├── hooks/
 │   └── auto-review.sh     # Stop hook — detects markers, triggers skill prompts
 └── skills/
+    ├── story/
+    │   └── SKILL.md       # /story — draft + approve + create story file
     ├── review-plan/
     │   └── SKILL.md       # 6-agent parallel plan review
     ├── review-code/
