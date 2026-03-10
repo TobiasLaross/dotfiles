@@ -1,10 +1,10 @@
 # Global Claude Instructions
 
-## Story Tracking
+## Feature Tracking
 
-For any significant change, create and maintain a story file at `~/.claude/stories/<kebab-name>/story.md` before starting work. Update checkpoints as each stage completes. Use story files to resume context across sessions.
+For any significant change, create and maintain a feature file at `~/.claude/features/<kebab-name>/story.md` before starting work. Update checkpoints as each stage completes. Use feature files to resume context across sessions.
 
-Use `/feature <description>` to kick off the feature creation flow — Claude will draft a user story for approval before creating any files.
+Use `/feature-plan <description>` to kick off the feature creation flow — Claude will draft a user story for approval before creating any files.
 
 ### Format
 
@@ -26,21 +26,21 @@ Use `/feature <description>` to kick off the feature creation flow — Claude wi
 ## Notes
 ```
 
-### When to create a story
+### When to create a feature
 
 - Any change spanning multiple sessions
 - Refactors or architectural changes
 - New features or tools being added
 
-### Story lifecycle
+### Feature lifecycle
 
-- Active stories live in `~/.claude/stories/<name>/`
-- Completed stories move to `~/.claude/stories/done/<name>/`
-- All related md files for a story go in its folder
+- Active features live in `~/.claude/features/<name>/`
+- Completed features move to `~/.claude/features/done/<name>/`
+- All related md files for a feature go in its folder
 
 ### Work repos
 
-When working inside a `/work/` directory, related repositories live in `~/Developer/work/`. Scan that directory to identify which repos are relevant to a given task or story.
+When working inside a `/work/` directory, related repositories live in `~/Developer/work/`. Scan that directory to identify which repos are relevant to a given task or feature.
 
 ---
 

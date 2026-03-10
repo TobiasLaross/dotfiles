@@ -9,11 +9,11 @@ This document describes the full Claude Code workflow defined in this dotfiles r
 The workflow enforces a structured loop:
 
 ```
-/feature <description>
+/feature-plan<description>
        ↓
 Story drafted + approved
        ↓
-Story file created in ~/.claude/stories/<name>/
+Story file created in ~/.claude/features/<name>/
        ↓
 Plan drafted
        ↓
@@ -38,16 +38,16 @@ Committed → story moved to done/
 
 ## Feature Tracking
 
-**Location:** `~/.claude/stories/<kebab-name>/story.md` (gitignored — local only)
+**Location:** `~/.claude/features/<kebab-name>/story.md` (local only, not in dotfiles)
 
 A story is created before starting any significant work and updated as stages complete. It serves as resume context across sessions.
 
-Use `/feature <description>` to start the flow — Claude drafts a user story for approval before writing any files.
+Use `/feature-plan<description>` to start the flow — Claude drafts a user story for approval before writing any files.
 
 ### Story lifecycle
 
-- Active stories live in `~/.claude/stories/<name>/`
-- Completed stories move to `~/.claude/stories/done/<name>/`
+- Active stories live in `~/.claude/features/<name>/`
+- Completed stories move to `~/.claude/features/done/<name>/`
 - All related md files for a story go in its folder
 
 ### When to create a story
@@ -151,9 +151,9 @@ Two HTML comment markers trigger automatic reviews when appended to a response:
 
 Skills live in `claude/skills/*/` and are symlinked individually into `~/.claude/skills/`.
 
-### `/feature` — Feature
+### `/feature-plan`
 
-**File:** `claude/skills/feature/SKILL.md`
+**File:** `claude/skills/feature-plan/SKILL.md`
 
 Creates a new feature story from a description.
 
@@ -161,7 +161,7 @@ Creates a new feature story from a description.
 From `$ARGUMENTS`, draft a kebab-case folder name and a user story (`As a… I want… so that…`). Present to user for approval.
 
 **Step 2 — Create**
-Once approved, write `~/.claude/stories/<name>/story.md` with the agreed story and today's date.
+Once approved, write `~/.claude/features/<name>/story.md` with the agreed story and today's date.
 
 **Step 3 — Plan**
 Spawns a background planning subagent that reads the story, scans repos in `~/Developer/work/` (if in `/work/` context) by reading their code, and writes `plan.md`.
@@ -272,7 +272,7 @@ Explains how code works using a consistent structure:
 ```sh
 ~/.claude/skills/<skill>/   → dotfiles/claude/skills/<skill>/
 ~/.claude/hooks/            → dotfiles/claude/hooks/*
-~/.claude/stories/          → local only, created on first /feature run
+~/.claude/features/          → local only, created on first /feature-plan run
 ~/.claude/CLAUDE.md         → dotfiles/claude/CLAUDE.md
 ~/.claude/settings.json     → dotfiles/claude/settings.json
 ```
@@ -289,8 +289,8 @@ claude/
 ├── hooks/
 │   └── auto-review.sh     # Stop hook — detects markers, triggers skill prompts
 └── skills/
-    ├── feature/
-    │   └── SKILL.md       # /feature — draft + approve + create story file
+    ├── feature-plan/
+    │   └── SKILL.md       # /feature-plan — draft + approve + plan + review
     ├── review-plan/
     │   └── SKILL.md       # 6-agent parallel plan review
     ├── review-code/
