@@ -20,7 +20,7 @@ Present both to the user and ask for approval. Do not proceed until they confirm
 
 ## Step 2 — Create the story file
 
-Once approved, create:
+Once approved, create the directory and file (the `~/.claude/stories/` directory may not exist yet — create it if needed):
 
 ```
 ~/.claude/stories/<short-name>/story.md

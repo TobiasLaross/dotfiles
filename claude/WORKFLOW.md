@@ -269,7 +269,7 @@ Explains how code works using a consistent structure:
 ```sh
 ~/.claude/skills/<skill>/   → dotfiles/claude/skills/<skill>/
 ~/.claude/hooks/            → dotfiles/claude/hooks/*
-~/.claude/stories/          → created locally (gitignored)
+~/.claude/stories/          → local only, created on first /story run
 ~/.claude/CLAUDE.md         → dotfiles/claude/CLAUDE.md
 ~/.claude/settings.json     → dotfiles/claude/settings.json
 ```

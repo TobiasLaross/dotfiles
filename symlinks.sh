@@ -21,8 +21,6 @@ for hook in $(pwd)/claude/hooks/*; do
     ln -sf "$hook" ~/.claude/hooks/
 done
 
-mkdir -p ~/.claude/stories
-
 ln -sf $(pwd)/claude/CLAUDE.md ~/.claude/CLAUDE.md
 ln -sf $(pwd)/claude/settings.json ~/.claude/settings.json
 
