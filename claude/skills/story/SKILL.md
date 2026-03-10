@@ -63,13 +63,36 @@ Write a plan.md file to ~/.claude/stories/<short-name>/plan.md with:
 - **Repos involved** (only if in a /work/ context) — each repo with a short reason why it's needed
 
 Keep it concise. Do not implement anything.
+
+## After writing plan.md
+
+Spawn a subagent (subagent_type: general-purpose) in the background to review the plan:
+
+```
+You are reviewing a plan against a user story.
+
+Story: ~/.claude/stories/<short-name>/story.md
+Plan:  ~/.claude/stories/<short-name>/plan.md
+
+Read both files. Then:
+
+1. Check whether the plan fully addresses the story goal — are there gaps, missing cases, or unclear phases?
+2. If the current working directory contains /work/, re-examine the repos listed in plan.md. For each listed repo, verify the reasoning is sound by reading relevant code. Also check whether any repo in ~/Developer/work/ was missed.
+
+Write your findings to ~/.claude/stories/<short-name>/plan-review.md with:
+
+- **Verdict** — Approved / Needs changes
+- **Gaps** — anything the plan doesn't address that the story requires
+- **Repo feedback** (only if in /work/ context) — corrections or additions to the repos listed
+- **Suggested changes** — specific, actionable edits to plan.md if needed
+```
 ```
 
-Run the subagent in the background so the user is not blocked.
+Run the planning subagent in the background so the user is not blocked.
 
 ## Step 4 — Confirm
 
-Tell the user the story has been saved and that a plan is being drafted in the background. Show the story file path.
+Tell the user the story has been saved, that a plan is being drafted, and that a review will follow automatically. Show the story file path.
 
 ## Rules
 
