@@ -38,9 +38,38 @@ Contents of `story.md`:
 - Created: <today's date>
 ```
 
-## Step 3 — Confirm
+## Step 3 — Spawn planning subagent
 
-Tell the user the story has been saved and show the file path. Let them know they can add acceptance criteria, tasks, or other md files to the same story folder.
+Immediately after writing `story.md`, spawn a subagent (`subagent_type: general-purpose`) with this prompt:
+
+```
+You are creating a high-level plan for a user story.
+
+Story file: ~/.claude/stories/<short-name>/story.md
+
+Read that file to understand the goal.
+
+## Repo detection
+
+If the current working directory contains /work/, list all directories in ~/Developer/work/. For each repo, read enough code to understand what it does — start with README.md, package.json, go.mod, Podfile, or equivalent manifest files. Based on the story goal and what you find, identify which repos will need changes.
+
+## Plan
+
+Write a plan.md file to ~/.claude/stories/<short-name>/plan.md with:
+
+- **Summary** — what needs to be built
+- **Design decisions** — key architectural choices
+- **Implementation phases** — ordered steps
+- **Repos involved** (only if in a /work/ context) — each repo with a short reason why it's needed
+
+Keep it concise. Do not implement anything.
+```
+
+Run the subagent in the background so the user is not blocked.
+
+## Step 4 — Confirm
+
+Tell the user the story has been saved and that a plan is being drafted in the background. Show the story file path.
 
 ## Rules
 
