@@ -39,9 +39,22 @@ mkdir -p ~/.claude/repo-context
 
 ---
 
-## Step 2 — Process repos in parallel batches
+## Step 2 — Filter and process repos
 
-Split the repo list into chunks of up to **10 repos**. For each chunk, launch all subagents **in parallel** (in a single message with multiple Agent tool calls, all with `run_in_background: true`).
+**Check which repos already have context files:**
+
+```bash
+ls ~/.claude/repo-context/ 2>/dev/null
+```
+
+- If the user supplied an argument: always process the matching repo (refresh it), regardless of whether a context file exists.
+- If no argument was supplied: **skip** any repo whose context file already exists (`~/.claude/repo-context/<repo-name>.md`). Only queue repos with no existing file.
+
+Tell the user upfront: how many repos were found, how many already have context (skipped), and how many will be processed now.
+
+If all repos already have context and no argument was given, report that and stop.
+
+Split the remaining repo list into chunks of up to **10 repos**. For each chunk, launch all subagents **in parallel** (in a single message with multiple Agent tool calls, all with `run_in_background: true`).
 
 Wait for each batch to complete before starting the next batch.
 
@@ -85,8 +98,9 @@ Work through the following, spending more time where there is more signal:
    - Message queues: `kafka`, `rabbitmq`, `nats`, `pubsub`, `SQS`, `SNS`
    - Databases: connection strings, ORM configs, migration files
    For each hit, record what it communicates with (endpoint, topic, service name) if discernible.
-7. **Environment / config** — Scan `.env.example`, `config/`, `*.yml`, `*.yaml`, `*.toml` for service names, base URLs, and feature flags that reveal integrations.
-8. **CI/CD & deployment** — Glance at `.github/workflows/`, `Dockerfile`, `docker-compose.yml`, `k8s/`, `*.tf` to understand how the service is built and deployed.
+7. **Design patterns** — Identify architectural and code-level patterns in use. For each area of the codebase (e.g. data layer, networking, UI, domain logic), note which pattern is used. If multiple conflicting patterns exist (e.g. both callbacks and async/await for networking, or both MVVM and MVC for UI), determine which is newer by checking git log dates (`git log --diff-filter=A --follow --format="%ad %f" -- <file>`) on representative files from each pattern, or by reading CHANGELOG/PR descriptions if available. Record the verdict: which pattern is canonical for new code.
+8. **Environment / config** — Scan `.env.example`, `config/`, `*.yml`, `*.yaml`, `*.toml` for service names, base URLs, and feature flags that reveal integrations.
+9. **CI/CD & deployment** — Glance at `.github/workflows/`, `Dockerfile`, `docker-compose.yml`, `k8s/`, `*.tf` to understand how the service is built and deployed.
 
 ## Phase 3 — Write the context file
 
@@ -129,6 +143,14 @@ Describe how this service communicates with the outside world. For each protocol
 - **Message queue** → [topic/queue names, broker]
 - **Database** → [type, ORM, migration tool]
 Omit sections that do not apply.
+
+## Design patterns
+For each major area of the codebase, state the pattern(s) in use. If there are conflicts (old and new approaches coexisting), name both and state which is canonical for new code — with a brief reason (e.g. "async/await supersedes callbacks, introduced in v2 migrations starting 2024").
+
+Format:
+- **<Area>**: <pattern(s)>. [If conflict: use <canonical pattern> for new code — <reason>.]
+
+Example areas: UI, networking, data persistence, domain/business logic, dependency injection, error handling, concurrency.
 
 ## Environment & config
 Key environment variables or config values that affect behaviour (from .env.example, config files, etc.).
