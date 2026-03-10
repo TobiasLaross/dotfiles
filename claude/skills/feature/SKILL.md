@@ -1,12 +1,12 @@
 ---
-name: story
-description: Create a new user story. Use when the user runs /story followed by a feature description. Drafts a user story for approval, then creates the story folder and md file under ~/.claude/stories/.
+name: feature
+description: Create a new feature. Use when the user runs /feature followed by a feature description. Drafts a user story for approval, then creates the story folder and md file under ~/.claude/stories/.
 argument-hint: <feature description>
 ---
 
-# Story Workflow
+# Feature Workflow
 
-The user has invoked `/story` with a feature description. Follow this workflow exactly.
+The user has invoked `/feature` with a feature description. Follow this workflow exactly.
 
 ## Step 1 — Draft the story
 

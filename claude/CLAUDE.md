@@ -4,7 +4,7 @@
 
 For any significant change, create and maintain a story file at `~/.claude/stories/<kebab-name>/story.md` before starting work. Update checkpoints as each stage completes. Use story files to resume context across sessions.
 
-Use `/story <description>` to kick off the story creation flow — Claude will draft a user story for approval before creating any files.
+Use `/feature <description>` to kick off the feature creation flow — Claude will draft a user story for approval before creating any files.
 
 ### Format
 
