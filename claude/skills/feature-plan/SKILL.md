@@ -51,7 +51,13 @@ Read that file to understand the goal.
 
 ## Repo detection
 
-If the current working directory contains /work/, list all directories in ~/Developer/work/. For each repo, read enough code to understand what it does — start with README.md, package.json, go.mod, Podfile, or equivalent manifest files. Based on the story goal and what you find, identify which repos will need changes.
+If the current working directory contains /work/, list all directories in ~/Developer/work/. Then:
+
+1. Check which repos have a pre-built context file: `ls ~/.claude/repo-context/ 2>/dev/null`
+2. For repos **with** a context file, read `~/.claude/repo-context/<repo-name>.md` — this contains purpose, architecture, dependencies, design patterns, and inter-repo relationships. Do not re-read the source for these repos unless the context file says "Unknown" for something critical to the story.
+3. For repos **without** a context file, read enough code to understand what it does — start with README.md, package.json, go.mod, Podfile, or equivalent manifest files.
+
+Based on the story goal and what you find, identify which repos will need changes. Prefer repos listed under "Internal repo dependencies" in context files of the current repo when tracing the call chain.
 
 ## Plan
 
@@ -77,7 +83,7 @@ Plan:  ~/.claude/features/<short-name>/plan.md
 Read both files. Then:
 
 1. Check whether the plan fully addresses the story goal — are there gaps, missing cases, or unclear phases?
-2. If the current working directory contains /work/, re-examine the repos listed in plan.md. For each listed repo, verify the reasoning is sound by reading relevant code. Also check whether any repo in ~/Developer/work/ was missed.
+2. If the current working directory contains /work/, re-examine the repos listed in plan.md. For each listed repo, first read `~/.claude/repo-context/<repo-name>.md` if it exists — this gives you purpose, architecture, and inter-repo dependencies without reading source. Fall back to reading source only if the context file is missing or doesn't answer your question. Also check whether any repo in ~/Developer/work/ was missed by scanning `~/.claude/repo-context/` for context files not mentioned in the plan.
 
 Write your findings to ~/.claude/features/<short-name>/plan-review.md with:
 
