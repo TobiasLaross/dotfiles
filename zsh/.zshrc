@@ -95,6 +95,11 @@ alias notes="glow ~/notes"
 alias gitdiffnameonly="git diff --name-status develop"
 alias gitlv="git log"
 alias gitl='git log --pretty=format:"%Cred%H - %C(yellow)%D%n%Cgreen%an - %ad%n%s%n"'
+alias gcb='git checkout -b'
+alias gcm='git checkout $(git_main_branch)'
+alias gcd='git checkout $(git_develop_branch)'
+alias gd='git diff'
+alias gds='git diff --staged'
 alias gits="git status"
 alias githash="git rev-parse HEAD | tr -d '\n' | pbcopy"
 alias gitbranch="git branch --show-current -vvv"

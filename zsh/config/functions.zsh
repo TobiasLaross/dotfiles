@@ -1,3 +1,27 @@
+function git_main_branch() {
+  command git rev-parse --git-dir &>/dev/null || return
+  local ref
+  for ref in refs/heads/main refs/heads/master refs/remotes/origin/main refs/remotes/origin/master; do
+    if command git show-ref -q --verify $ref; then
+      echo ${ref:t}
+      return
+    fi
+  done
+  echo main
+}
+
+function git_develop_branch() {
+  command git rev-parse --git-dir &>/dev/null || return
+  local ref
+  for ref in refs/heads/dev refs/heads/develop refs/heads/development refs/remotes/origin/dev refs/remotes/origin/develop; do
+    if command git show-ref -q --verify $ref; then
+      echo ${ref:t}
+      return
+    fi
+  done
+  echo develop
+}
+
 function git-stats() {
     # ANSI color codes
     BOLD="\033[1m"
