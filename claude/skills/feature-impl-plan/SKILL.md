@@ -23,6 +23,8 @@ The user has invoked `/feature-impl-plan`. Follow this workflow exactly.
 
 Store the resolved `<name>` and the contents of both files.
 
+**Ticket detection:** Scan `$ARGUMENTS`, `story.md`, and `plan.md` (in that order, stop at first match) for a ticket number — one or more uppercase letters followed by a hyphen and digits (e.g. `SER-1234`, `PROJ-42`, `ABC-100`). Store it as `<ticket>` if found, otherwise `<ticket>` is empty.
+
 ## Step 2 — Gather context
 
 Before spawning agents, collect:
@@ -31,6 +33,7 @@ Before spawning agents, collect:
 - **Base branch:** Run `git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||'`
 - **Project structure:** Run `git ls-files | head -100`
 - **Repo context (if in /work/):** Check `~/.claude/repo-context/<repo-name>.md` for architecture and design patterns
+- **Repos in scope:** If working in `/work/`, identify all repos under `~/Developer/work/` that are touched by this feature (from the plan). Store as a list — each will get its own branch name if `<ticket>` is set.
 
 ## Step 3 — Spawn 4 analysis agents in parallel
 
@@ -214,6 +217,20 @@ After all 4 agents return, synthesize their outputs into a single implementation
 
 ---
 
+## Branch Names
+[Include this section only if a ticket number was detected. Otherwise omit entirely.]
+
+**Ticket:** `<ticket>` (e.g. `SER-1234`)
+
+| Repo | Branch |
+|------|--------|
+| `repo-name` | `feature/SER-1234_short-description-for-this-repo` |
+| `other-repo` | `feature/SER-1234_short-description-for-other-repo` |
+
+> Branch names follow the pattern `feature/<ticket>_short-description`. The short description is repo-specific — use a concise slug that reflects what changes in that repo (kebab-case, no spaces).
+
+---
+
 ## Tasks
 
 ### T01 — <Title>
@@ -296,3 +313,4 @@ End your response with `<!-- review:plan -->` so the auto-review hook fires.
 - Test plan must cover all three layers (unit, integration, E2E) — do not skip a layer unless the tech stack genuinely has no equivalent
 - Subagent assignments are only recommended when they reduce total wall-clock time — do not recommend them just because a feature is moderately complex
 - All files are written under `~/.claude/features/<name>/`
+- If a ticket number is detected, the `## Branch Names` section is mandatory. Every repo touched by the feature gets its own row. Short descriptions must differ per repo to reflect that repo's specific changes.
