@@ -16,11 +16,6 @@ for skill in $(pwd)/claude/skills/*/; do
     ln -sf "$skill" ~/.claude/skills/
 done
 
-mkdir -p ~/.claude/hooks
-for hook in $(pwd)/claude/hooks/*; do
-    ln -sf "$hook" ~/.claude/hooks/
-done
-
 ln -sf $(pwd)/claude/CLAUDE.md ~/.claude/CLAUDE.md
 ln -sf $(pwd)/claude/settings.json ~/.claude/settings.json
 
