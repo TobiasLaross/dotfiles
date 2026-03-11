@@ -25,6 +25,8 @@ Store the resolved `<name>` and the contents of both files.
 
 **Ticket detection:** Scan `$ARGUMENTS`, `story.md`, and `plan.md` (in that order, stop at first match) for a ticket number — one or more uppercase letters followed by a hyphen and digits (e.g. `SER-1234`, `PROJ-42`, `ABC-100`). Store it as `<ticket>` if found, otherwise `<ticket>` is empty.
 
+**File existence check:** Check whether `~/.claude/features/<name>/impl-plan.md` already exists. Store this as `<is-revision>` (true/false). This controls write behaviour in Step 4 and whether the review marker is emitted in Step 5.
+
 ## Step 2 — Gather context
 
 Before spawning agents, collect:
@@ -35,9 +37,9 @@ Before spawning agents, collect:
 - **Repo context (if in /work/):** Check `~/.claude/repo-context/<repo-name>.md` for architecture and design patterns
 - **Repos in scope:** If working in `/work/`, identify all repos under `~/Developer/work/` that are touched by this feature (from the plan). Store as a list — each will get its own branch name if `<ticket>` is set.
 
-## Step 3 — Spawn 4 analysis agents in parallel
+## Step 3a — Spawn Agents 1 and 2 in parallel
 
-Call the Agent tool exactly 4 times in the same response. Do NOT wait for one to finish before launching the next. Replace all placeholders with actual content from Steps 1–2.
+Call the Agent tool exactly **2** times in the same response. Do NOT wait for one to finish before launching the next. Replace all placeholders with actual content from Steps 1–2.
 
 ---
 
@@ -115,12 +117,16 @@ Be specific. Tie each test back to a concrete behaviour from the story. Include 
 
 ---
 
+## Step 3b — Spawn Agents 3 and 4 in parallel
+
+After both agents from Step 3a have returned, call the Agent tool exactly **2** times in the same response. Inject Agent 1's full task list output into both prompts where indicated. Do NOT wait for one to finish before launching the next.
+
+---
+
 **Agent 3 — Dependency & Parallelism Analysis:**
 
 ```
 You are analysing task dependencies for a feature implementation to determine the optimal parallel execution strategy.
-
-You will receive a task list produced by a decomposition agent. Your job is to reason about the dependency graph and produce execution waves.
 
 Story:
 [STORY_CONTENT]
@@ -129,6 +135,9 @@ High-level plan:
 [PLAN_CONTENT]
 
 Tech stack: [TECH_STACK]
+
+Task list (from decomposition):
+[AGENT_1_OUTPUT]
 
 Instructions:
 1. Read the task list carefully — it includes declared dependencies for each task.
@@ -173,8 +182,11 @@ Tech stack: [TECH_STACK]
 Project structure:
 [PROJECT_STRUCTURE]
 
+Task list (from decomposition):
+[AGENT_1_OUTPUT]
+
 Instructions:
-1. Assess the overall size of the feature:
+1. Count the tasks in the task list and assess the overall size of the feature:
    - **Small** (≤5 tasks, single area, one session): can be handled by a single subagent
    - **Medium** (6–12 tasks, 2–3 areas, fits in one long session): borderline — single subagent with clear task ordering is fine; parallel subagents optional
    - **Large** (13+ tasks, 4+ areas, or spans multiple repos): should be split across dedicated subagents
@@ -200,9 +212,18 @@ Output your size assessment, then the subagent plan (or single-subagent recommen
 
 ## Step 4 — Synthesize and write the implementation plan
 
-After all 4 agents return, synthesize their outputs into a single implementation plan and write it to `~/.claude/features/<name>/impl-plan.md`.
+After all 4 agents have returned, synthesize their outputs into a single implementation plan.
 
-### File format for `impl-plan.md`:
+**Synthesis notes:**
+- If `<ticket>` was detected, include the `## Branch Names` section with a row for every repo in scope. Branch pattern: `feature/<ticket>_short-description` where the short description is a repo-specific kebab-case slug. If no ticket was detected, omit `## Branch Names` entirely.
+- For `## Subagent Assignments`: if Agent 4 assessed the feature as Large or Medium with clear parallel benefit, include the full subagent breakdown with a Coordinator Step. Otherwise write: `Single subagent recommended — follow execution waves above.`
+
+**Write behaviour:**
+
+- If `<is-revision>` is **false** (file does not exist): write the plan as a new file at `~/.claude/features/<name>/impl-plan.md` using the format below.
+- If `<is-revision>` is **true** (file already exists): **append** to the existing file. Append a `---` horizontal rule followed by a revision block using the same format below, prefixed with `# Revision: <today's date>` instead of `# Implementation Plan: <Feature Title>`.
+
+### Format for `impl-plan.md` (fresh) / revision block (append):
 
 ```md
 # Implementation Plan: <Feature Title>
@@ -218,14 +239,13 @@ After all 4 agents return, synthesize their outputs into a single implementation
 ---
 
 ## Branch Names
-[Include this section only if a ticket number was detected. Otherwise omit entirely.]
 
-**Ticket:** `<ticket>` (e.g. `SER-1234`)
+**Ticket:** `<ticket>`
 
 | Repo | Branch |
 |------|--------|
-| `repo-name` | `feature/SER-1234_short-description-for-this-repo` |
-| `other-repo` | `feature/SER-1234_short-description-for-other-repo` |
+| `repo-name` | `feature/<ticket>_short-description-for-this-repo` |
+| `other-repo` | `feature/<ticket>_short-description-for-other-repo` |
 
 > Branch names follow the pattern `feature/<ticket>_short-description`. The short description is repo-specific — use a concise slug that reflects what changes in that repo (kebab-case, no spaces).
 
@@ -264,19 +284,8 @@ After all 4 agents return, synthesize their outputs into a single implementation
 ---
 
 ## Subagent Assignments
-[Include this section only if the feature is Large or Medium with clear parallel benefit. Otherwise replace with: "Single subagent recommended — follow execution waves above."]
 
-### Coordinator Step (before parallel work)
-[Shared contracts that must be agreed first: DB schema, API types, shared interfaces]
-
-### Subagent A — <Name>
-**Tasks:** T01, T02, T05
-**Responsibility:** …
-**Inputs needed:** …
-**Outputs produced:** …
-
-### Subagent B — <Name>
-…
+[Subagent breakdown or single-subagent recommendation — see synthesis notes above]
 
 ---
 
@@ -297,13 +306,16 @@ After all 4 agents return, synthesize their outputs into a single implementation
 [Any ambiguities, unknowns, or decisions that need to be made before implementation starts. Leave blank if none.]
 ```
 
-After writing `impl-plan.md`, tell the user where the plan was saved and give a brief summary:
+## Step 5 — Report to the user
+
+Tell the user where the plan was saved (or appended) and give a brief summary:
 - Number of tasks
 - Number of execution waves and maximum parallelism
 - Whether subagent split is recommended
 - Any open questions that need answers before starting
 
-End your response with `<!-- review:plan -->` so the auto-review hook fires.
+If `<is-revision>` is **false**, end your response with `<!-- review:plan -->` so the auto-review hook fires.
+If `<is-revision>` is **true**, do **not** emit `<!-- review:plan -->` — the user triggered this manually and the plan was already reviewed on first generation.
 
 ## Rules
 
