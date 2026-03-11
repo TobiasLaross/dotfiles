@@ -241,7 +241,7 @@ After both subagents have finished, read `impl-tasks.md` and `impl-tests.md` and
 
 ## Step 4 — Spawn review subagents in parallel
 
-After `impl-plan.md` has been written, spawn **4 subagents in the same response** (`subagent_type: general-purpose`) and **wait for all 4 to finish** before continuing. These review the low-level implementation plan — not the high-level design decisions already covered in `plan.md`.
+After `impl-plan.md` has been written, spawn **5 subagents in the same response** (`subagent_type: general-purpose`) and **wait for all 5 to finish** before continuing. These review the low-level implementation plan — not the high-level design decisions already covered in `plan.md`.
 
 ---
 
@@ -302,7 +302,28 @@ Use severity flags **CRITICAL** / **HIGH** / **LOW** on each finding. Be specifi
 
 ---
 
-**Reviewer 4 — Test coverage and design pattern consistency:**
+**Reviewer 4 — Task separation and parallelism:**
+
+```
+You are reviewing a low-level implementation plan for correctness of task scoping, dependency declarations, and parallel execution grouping.
+
+Plan: ~/.claude/features/<name>/impl-plan.md
+
+Read the file. Assess:
+
+1. **Task atomicity** — is each task small enough to be completed and verified in one focused session? Flag any task that bundles unrelated concerns or that would be hard to code-review as a single unit.
+2. **Dependency correctness** — for each task marked as independent (no dependencies), verify it truly can start without another task's output. Flag any missing dependency that would cause a task to fail or produce incorrect results if started before its prerequisite.
+3. **False dependencies** — flag any dependency declaration that is unnecessary. A task should only depend on another if it literally cannot start without that task's output, not merely because they are in the same area.
+4. **Wave correctness** — do the execution waves follow directly from the dependency graph? Flag any task placed in the wrong wave (too early given its dependencies, or unnecessarily delayed).
+5. **Parallelism safety** — for tasks grouped in the same wave, confirm they do not write to the same files, tables, or shared state in ways that would cause conflicts if run simultaneously.
+6. **Critical path accuracy** — does the stated critical path match the longest dependency chain through the task graph?
+
+Use severity flags **CRITICAL** / **HIGH** / **LOW** on each finding. Cite the specific task IDs involved.
+```
+
+---
+
+**Reviewer 5 — Test coverage and design pattern consistency:**
 
 ```
 You are reviewing a low-level implementation plan for test coverage gaps and design pattern consistency.
@@ -329,7 +350,7 @@ Use severity flags **CRITICAL** / **HIGH** / **LOW** on each finding. Cite task 
 
 ## Step 5 — Spawn fix subagent
 
-After all 4 reviewers have finished, spawn a **foreground** subagent and **wait for it to finish**.
+After all 5 reviewers have finished, spawn a **foreground** subagent and **wait for it to finish**.
 
 ```
 You are revising a low-level implementation plan based on review findings.
@@ -347,6 +368,8 @@ Review findings (injected below — apply these directly, do not re-read a separ
 
 [REVIEWER_4_OUTPUT]
 
+[REVIEWER_5_OUTPUT]
+
 ## Instructions
 
 1. For each finding across all reviewers, decide whether it is valid and improves the plan. Apply changes that are clearly correct. Skip anything speculative, contradictory, or that re-litigates high-level design decisions already settled in the story.
@@ -355,7 +378,7 @@ Review findings (injected below — apply these directly, do not re-read a separ
 
 | Finding | Reviewer | Severity | Decision | Rationale |
 |---------|----------|----------|----------|-----------|
-| [brief description] | R1/R2/R3/R4 | CRITICAL/HIGH/LOW | Applied / Rejected | [why] |
+| [brief description] | R1/R2/R3/R4/R5 | CRITICAL/HIGH/LOW | Applied / Rejected | [why] |
 
 4. If any CRITICAL finding was Rejected, add a prominent warning block immediately after the table:
 
