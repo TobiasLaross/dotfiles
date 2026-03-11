@@ -51,6 +51,8 @@ Read that file to understand the goal.
 
 ## Repo detection
 
+Always start by identifying the current repo from the working directory name.
+
 If the current working directory contains /work/, list all directories in ~/Developer/work/. Then:
 
 1. Check which repos have a pre-built context file: `ls ~/.claude/repo-context/ 2>/dev/null`
@@ -59,6 +61,8 @@ If the current working directory contains /work/, list all directories in ~/Deve
 
 Based on the story goal and what you find, identify which repos will need changes. Prefer repos listed under "Internal repo dependencies" in context files of the current repo when tracing the call chain.
 
+If not in a /work/ context, the affected repo is the current one — still include it in the **Repos involved** section below.
+
 ## Plan
 
 Write a plan.md file to ~/.claude/features/<short-name>/plan.md with:
@@ -66,7 +70,7 @@ Write a plan.md file to ~/.claude/features/<short-name>/plan.md with:
 - **Summary** — what needs to be built
 - **Design decisions** — key architectural choices
 - **Implementation phases** — ordered steps
-- **Repos involved** (only if in a /work/ context) — each repo with a short reason why it's needed
+- **Repos involved** — every repo that will need changes, each with a short reason why. Always includes at least the current repo.
 
 Keep it concise. Do not implement anything.
 ```
@@ -177,6 +181,8 @@ Read all three files. Then:
 ## Step 4 — Confirm
 
 Tell the user the feature plan is finished. Show the feature folder path and give a one-line summary of what was planned.
+
+Then prompt: _"Run `/feature-impl-plan` to break this into tasks and build an implementation plan."_
 
 ## Rules
 
