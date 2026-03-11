@@ -25,70 +25,100 @@ Store the resolved `<name>` and the contents of both files.
 
 **Ticket detection:** Scan `$ARGUMENTS`, `story.md`, and `plan.md` (in that order, stop at first match) for a ticket number — one or more uppercase letters followed by a hyphen and digits (e.g. `SER-1234`, `PROJ-42`, `ABC-100`). Store it as `<ticket>` if found, otherwise `<ticket>` is empty.
 
-**File existence check:** Check whether `~/.claude/features/<name>/impl-plan.md` already exists. Store this as `<is-revision>` (true/false). This controls write behaviour in Step 4 and whether the review marker is emitted in Step 5.
+**File existence check:** Check whether `~/.claude/features/<name>/impl-plan.md` already exists. Store this as `<is-revision>` (true/false).
 
-## Step 2 — Gather context
+## Step 2 — Spawn planning subagents in parallel
 
-Before spawning agents, collect:
+Spawn **2 subagents in the same response** (`subagent_type: general-purpose`) and **wait for both to finish** before continuing. Replace all placeholders with the actual feature name and file contents from Step 1.
 
-- **Tech stack:** Read `package.json`, `pyproject.toml`, `build.gradle`, `*.csproj`, `Cargo.toml`, `go.mod`, or equivalent to identify language, framework, and key dependencies. Fall back to scanning file extensions if no manifest found.
-- **Base branch:** Run `git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||'`
-- **Project structure:** Run `git ls-files | head -100`
-- **Repo context (if in /work/):** Check `~/.claude/repo-context/<repo-name>.md` for architecture and design patterns
-- **Repos in scope:** If working in `/work/`, identify all repos under `~/Developer/work/` that are touched by this feature (from the plan). Store as a list — each will get its own branch name if `<ticket>` is set.
-
-## Step 3a — Spawn Agents 1 and 2 in parallel
-
-Call the Agent tool exactly **2** times in the same response. Do NOT wait for one to finish before launching the next. Replace all placeholders with actual content from Steps 1–2.
+Each subagent gathers its own context from the repository. Do not pre-gather context in the main agent.
 
 ---
 
-**Agent 1 — Task Decomposition:**
+**Subagent A — Implementation Planner:**
 
 ```
-You are breaking a feature into concrete, atomic implementation tasks.
+You are creating a detailed, low-level implementation task breakdown for a feature.
 
-Story:
-[STORY_CONTENT]
+Feature folder: ~/.claude/features/<name>/
 
-High-level plan:
-[PLAN_CONTENT]
+Read the following files to understand the goal and approach:
+- ~/.claude/features/<name>/story.md
+- ~/.claude/features/<name>/plan.md
 
-Tech stack: [TECH_STACK]
-Project structure:
-[PROJECT_STRUCTURE]
+## Context gathering
 
-Your job:
-1. Break the feature into the smallest atomic tasks that can each be independently implemented and verified. A task should be completable in one focused coding session (roughly 30–90 minutes of work). Tasks that are too large should be split further.
-2. For each task, write:
-   - **ID**: T01, T02, T03, … (sequential)
-   - **Title**: short imperative phrase (e.g. "Add user model migration")
-   - **Scope**: 2–4 sentences describing exactly what needs to be done, which files/modules will change, and what the done state looks like
-   - **Depends on**: list of task IDs that must be complete before this one can start (empty if none)
-   - **Area**: the technical area this falls under (e.g. database, API, frontend, auth, config, tests)
+1. Detect the tech stack: read package.json, pyproject.toml, build.gradle, *.csproj, Cargo.toml, go.mod, or equivalent. Fall back to scanning file extensions.
+2. Get the project structure: run `git ls-files | head -100`
+3. If the working directory contains /work/, check ~/.claude/repo-context/<repo-name>.md for each relevant repo and read the architecture and design patterns sections.
 
-Output as a structured list. Be thorough — cover setup, data layer, business logic, API layer, UI (if applicable), integration glue, and cleanup.
+## Task decomposition
+
+Break the feature into the smallest atomic tasks that can each be independently implemented and verified. A task should be completable in one focused coding session (roughly 30–90 minutes of work). Tasks that are too large must be split further.
+
+For each task write:
+- **ID**: T01, T02, T03, … (sequential)
+- **Title**: short imperative phrase (e.g. "Add user model migration")
+- **Scope**: 2–4 sentences describing exactly what needs to be done, which files/modules will change, and what the done state looks like
+- **Depends on**: list of task IDs that must be complete before this one can start (empty if none)
+- **Area**: the technical area (e.g. database, API, frontend, auth, config, tests)
+
+Cover all layers: setup, data layer, business logic, API layer, UI (if applicable), integration glue, and cleanup.
+
+## Dependency and parallelism analysis
+
+1. Build a dependency graph and identify execution waves — groups of tasks with no interdependencies that can run in parallel.
+   - Wave 1: tasks with no dependencies
+   - Wave N: tasks whose dependencies are all in previous waves
+2. Identify the critical path — the longest sequential chain from start to finish.
+3. Flag any dependency corrections you made (where a declared-independent task actually requires another task's output).
+
+## Size and subagent assessment
+
+Assess the overall size:
+- **Small** (≤5 tasks, single area): single subagent, follow execution waves
+- **Medium** (6–12 tasks, 2–3 areas): single subagent is fine; parallel subagents optional
+- **Large** (13+ tasks, 4+ areas, or spans multiple repos): split across dedicated subagents
+
+If Large (or Medium with clear parallel benefit), propose subagent assignments. Group tasks by cohesion. For each subagent:
+- **Name**: short descriptive label
+- **Tasks**: task IDs owned
+- **Responsibility**: 1–2 sentences
+- **Inputs needed from other subagents**
+- **Outputs it produces**
+
+If Small or Medium (single subagent), state this clearly.
+
+## Output
+
+Write the full task breakdown, execution waves, critical path, and subagent assessment to:
+~/.claude/features/<name>/impl-tasks.md
+
+Use clear markdown headers matching the sections above.
 ```
 
 ---
 
-**Agent 2 — Test Plan:**
+**Subagent B — Test Planner:**
 
 ```
-You are writing a detailed test plan for a feature.
+You are writing a detailed, low-level test plan for a feature implementation.
 
-Story:
-[STORY_CONTENT]
+Feature folder: ~/.claude/features/<name>/
 
-High-level plan:
-[PLAN_CONTENT]
+Read the following files to understand the goal and approach:
+- ~/.claude/features/<name>/story.md
+- ~/.claude/features/<name>/plan.md
 
-Tech stack: [TECH_STACK]
-Project structure:
-[PROJECT_STRUCTURE]
+## Context gathering
 
-Your job:
-Produce a comprehensive test plan covering all layers of the feature. Structure your output into three sections:
+1. Detect the tech stack: read package.json, pyproject.toml, build.gradle, *.csproj, Cargo.toml, go.mod, or equivalent. Fall back to scanning file extensions.
+2. Get the project structure: run `git ls-files | head -100`
+3. Look for existing test files to understand the project's testing conventions (location, naming, patterns).
+
+## Test plan
+
+Produce a comprehensive test plan covering all layers. Structure your output in three sections:
 
 ### Unit Tests
 For each unit test:
@@ -112,118 +142,29 @@ For each E2E test:
 - **Expected outcome**: what the user sees or the system produces
 - **Acceptance criterion it covers**: which part of the story this validates
 
-Be specific. Tie each test back to a concrete behaviour from the story. Include edge cases: empty states, validation errors, concurrent access, permission boundaries.
+Be specific. Include edge cases: empty states, validation errors, concurrent access, permission boundaries. Do not skip a layer unless the tech stack genuinely has no equivalent.
+
+## Output
+
+Write the full test plan to:
+~/.claude/features/<name>/impl-tests.md
 ```
 
 ---
 
-## Step 3b — Spawn Agents 3 and 4 in parallel
+## Step 3 — Synthesize into impl-plan.md
 
-After both agents from Step 3a have returned, call the Agent tool exactly **2** times in the same response. Inject Agent 1's full task list output into both prompts where indicated. Do NOT wait for one to finish before launching the next.
-
----
-
-**Agent 3 — Dependency & Parallelism Analysis:**
-
-```
-You are analysing task dependencies for a feature implementation to determine the optimal parallel execution strategy.
-
-Story:
-[STORY_CONTENT]
-
-High-level plan:
-[PLAN_CONTENT]
-
-Tech stack: [TECH_STACK]
-
-Task list (from decomposition):
-[AGENT_1_OUTPUT]
-
-Instructions:
-1. Read the task list carefully — it includes declared dependencies for each task.
-2. Verify the declared dependencies make sense. If a task is declared independent but actually requires another task's output (e.g. a schema migration before inserting data), add the missing dependency and note it.
-3. Build a dependency graph and identify execution waves — groups of tasks with no interdependencies that can run in parallel.
-   - Wave 1: tasks with no dependencies
-   - Wave 2: tasks whose only dependencies are in Wave 1
-   - Wave N: tasks whose dependencies are all in previous waves
-4. For each wave, list the task IDs and titles that belong to it.
-5. Flag any tasks that form a critical path — the longest sequential chain from start to finish.
-
-Output format:
-### Dependency Corrections
-[List any corrections you made to declared dependencies, with reasoning. "None" if none.]
-
-### Execution Waves
-**Wave 1 (parallel):** T01, T03, T05 — [brief reason why these are independent]
-**Wave 2 (parallel):** T02, T04 — [brief reason]
-…
-
-### Critical Path
-[The sequence of tasks that determines the minimum time to complete the feature: T01 → T04 → T07 → T09]
-
-### Parallelism Summary
-[1–2 sentences: how many waves, maximum parallelism at each wave, overall shape of the work]
-```
-
----
-
-**Agent 4 — Complexity & Subagent Assignment:**
-
-```
-You are determining whether a feature is large enough to require multiple subagents working in parallel, and if so, how to assign work.
-
-Story:
-[STORY_CONTENT]
-
-High-level plan:
-[PLAN_CONTENT]
-
-Tech stack: [TECH_STACK]
-Project structure:
-[PROJECT_STRUCTURE]
-
-Task list (from decomposition):
-[AGENT_1_OUTPUT]
-
-Instructions:
-1. Count the tasks in the task list and assess the overall size of the feature:
-   - **Small** (≤5 tasks, single area, one session): can be handled by a single subagent
-   - **Medium** (6–12 tasks, 2–3 areas, fits in one long session): borderline — single subagent with clear task ordering is fine; parallel subagents optional
-   - **Large** (13+ tasks, 4+ areas, or spans multiple repos): should be split across dedicated subagents
-
-2. If the feature is **Large** (or Medium and you judge parallel subagents are clearly beneficial):
-   - Propose subagent assignments. Group tasks by cohesion — a subagent should own a coherent slice of the feature (e.g. "Database + Models subagent", "API layer subagent", "Frontend subagent", "Auth + Permissions subagent").
-   - For each subagent:
-     - **Name**: short descriptive label
-     - **Tasks**: the task IDs this subagent owns
-     - **Responsibility**: 1–2 sentences on what this subagent builds end-to-end
-     - **Inputs needed from other subagents**: what interfaces, types, or contracts it depends on being defined first
-     - **Outputs it produces**: what it exposes for other subagents to consume
-   - Identify a **coordinator order**: which subagents should start first and what shared contracts (types, API schemas, DB schema) must be agreed before parallel work begins.
-
-3. If the feature is **Small** or **Medium (single subagent)**:
-   - State this clearly and explain why parallel subagents would add overhead without benefit.
-   - Recommend the single subagent follow the execution waves from the dependency analysis.
-
-Output your size assessment, then the subagent plan (or single-subagent recommendation).
-```
-
----
-
-## Step 4 — Synthesize and write the implementation plan
-
-After all 4 agents have returned, synthesize their outputs into a single implementation plan.
-
-**Synthesis notes:**
-- If `<ticket>` was detected, include the `## Branch Names` section with a row for every repo in scope. Branch pattern: `feature/<ticket>_short-description` where the short description is a repo-specific kebab-case slug. If no ticket was detected, omit `## Branch Names` entirely.
-- For `## Subagent Assignments`: if Agent 4 assessed the feature as Large or Medium with clear parallel benefit, include the full subagent breakdown with a Coordinator Step. Otherwise write: `Single subagent recommended — follow execution waves above.`
+After both subagents have finished, read `impl-tasks.md` and `impl-tests.md` and synthesize them into a single implementation plan.
 
 **Write behaviour:**
+- If `<is-revision>` is **false**: write a new file at `~/.claude/features/<name>/impl-plan.md`
+- If `<is-revision>` is **true**: **append** to the existing file — add a `---` horizontal rule followed by `# Revision: <today's date>` and the new content
 
-- If `<is-revision>` is **false** (file does not exist): write the plan as a new file at `~/.claude/features/<name>/impl-plan.md` using the format below.
-- If `<is-revision>` is **true** (file already exists): **append** to the existing file. Append a `---` horizontal rule followed by a revision block using the same format below, prefixed with `# Revision: <today's date>` instead of `# Implementation Plan: <Feature Title>`.
+**Synthesis notes:**
+- If `<ticket>` was detected, include the `## Branch Names` section with a row for every repo in scope. Pattern: `feature/<ticket>_short-description` (repo-specific kebab-case slug). If no ticket, omit this section entirely.
+- For `## Subagent Assignments`: include the full breakdown if Subagent A assessed Large or Medium with clear parallel benefit. Otherwise write: `Single subagent recommended — follow execution waves above.`
 
-### Format for `impl-plan.md` (fresh) / revision block (append):
+### Format for impl-plan.md:
 
 ```md
 # Implementation Plan: <Feature Title>
@@ -245,7 +186,6 @@ After all 4 agents have returned, synthesize their outputs into a single impleme
 | Repo | Branch |
 |------|--------|
 | `repo-name` | `feature/<ticket>_short-description-for-this-repo` |
-| `other-repo` | `feature/<ticket>_short-description-for-other-repo` |
 
 > Branch names follow the pattern `feature/<ticket>_short-description`. The short description is repo-specific — use a concise slug that reflects what changes in that repo (kebab-case, no spaces).
 
@@ -256,10 +196,7 @@ After all 4 agents have returned, synthesize their outputs into a single impleme
 ### T01 — <Title>
 **Area:** <area>
 **Depends on:** none (or T0X, T0Y)
-**Scope:** <2–4 sentences from decomposition agent>
-
-### T02 — <Title>
-…
+**Scope:** <2–4 sentences>
 
 [All tasks in order]
 
@@ -271,10 +208,6 @@ After all 4 agents have returned, synthesize their outputs into a single impleme
 | Task | Title | Notes |
 |------|-------|-------|
 | T01  | …     | …     |
-| T03  | …     | …     |
-
-### Wave 2 — Run in parallel (after Wave 1)
-…
 
 [All waves]
 
@@ -285,37 +218,160 @@ After all 4 agents have returned, synthesize their outputs into a single impleme
 
 ## Subagent Assignments
 
-[Subagent breakdown or single-subagent recommendation — see synthesis notes above]
+[Subagent breakdown or single-subagent recommendation]
 
 ---
 
 ## Test Plan
 
 ### Unit Tests
-[From Agent 2 — full list with setup, expected outcome, and why it matters]
+[From impl-tests.md]
 
 ### Integration Tests
-[From Agent 2 — full list with setup, steps, and expected outcome]
+[From impl-tests.md]
 
 ### End-to-End / Acceptance Tests
-[From Agent 2 — full list with scenario, steps, and acceptance criterion covered]
+[From impl-tests.md]
 
 ---
 
 ## Open Questions
-[Any ambiguities, unknowns, or decisions that need to be made before implementation starts. Leave blank if none.]
+[Any ambiguities or decisions that need to be made before implementation starts. Leave blank if none.]
 ```
 
-## Step 5 — Report to the user and trigger review
+## Step 4 — Spawn review subagents in parallel
 
-Tell the user where the plan was saved (or appended) and give a brief summary:
+After `impl-plan.md` has been written, spawn **4 subagents in the same response** (`subagent_type: general-purpose`) and **wait for all 4 to finish** before continuing. These review the low-level implementation plan — not the high-level design decisions already covered in `plan.md`.
+
+---
+
+**Reviewer 1 — Technical feasibility:**
+
+```
+You are reviewing a low-level implementation plan for technical correctness and feasibility.
+
+Plan: ~/.claude/features/<name>/impl-plan.md
+
+Read the file. Focus on:
+- Missing or incorrect dependencies
+- Wrong assumptions about APIs or libraries
+- Implementation gaps — steps that skip over non-trivial work
+- Tasks that are technically unsound or will not work as described
+- Task scopes that are too vague to execute without guessing
+
+Use severity flags **CRITICAL** / **HIGH** / **LOW** on each finding. Be specific and cite the task ID.
+```
+
+---
+
+**Reviewer 2 — Security:**
+
+```
+You are reviewing a low-level implementation plan for security risks.
+
+Plan: ~/.claude/features/<name>/impl-plan.md
+
+Read the file. Focus on:
+- Authentication and authorisation gaps
+- Input validation and injection risks (SQL, XSS, command injection, etc.)
+- Sensitive data exposure or insecure storage
+- Insecure defaults or missing rate limiting
+- Any step that introduces a vulnerability
+
+Use severity flags **CRITICAL** / **HIGH** / **LOW** on each finding. Be specific and cite the task ID.
+```
+
+---
+
+**Reviewer 3 — Performance and maintainability:**
+
+```
+You are reviewing a low-level implementation plan for performance, scalability, and maintainability concerns.
+
+Plan: ~/.claude/features/<name>/impl-plan.md
+
+Read the file. Focus on:
+- Algorithmic inefficiencies or N+1 query patterns
+- Missing indexes, caching, or async handling
+- Violations of separation of concerns or tight coupling
+- Poor testability or missing abstractions
+- Anything that will make this code hard to change or debug later
+
+Use severity flags **CRITICAL** / **HIGH** / **LOW** on each finding. Be specific and cite the task ID.
+```
+
+---
+
+**Reviewer 4 — Test coverage and design pattern consistency:**
+
+```
+You are reviewing a low-level implementation plan for test coverage gaps and design pattern consistency.
+
+Plan: ~/.claude/features/<name>/impl-plan.md
+
+Read the file. You have access to the filesystem.
+
+## Test coverage
+- Does the test plan cover all happy paths?
+- Are edge cases, error states, and boundary conditions covered?
+- Are there layers (unit / integration / E2E) that are missing or thin?
+
+## Design pattern consistency
+1. Detect the repo name from the working directory.
+2. Check whether ~/.claude/repo-context/<repo-name>.md exists. If it does, read the design patterns section — use it as the source of truth for what patterns new code must follow.
+3. Use Glob and Grep to find 2–3 existing features similar to what this plan describes.
+4. Compare the plan against those patterns. Flag deviations where the plan would introduce a different design pattern than the rest of the codebase uses.
+
+Use severity flags **CRITICAL** / **HIGH** / **LOW** on each finding. Cite task IDs and, for pattern findings, reference specific existing files as examples.
+```
+
+---
+
+## Step 5 — Spawn fix subagent
+
+After all 4 reviewers have finished, spawn a **foreground** subagent and **wait for it to finish**.
+
+```
+You are revising a low-level implementation plan based on review findings.
+
+Plan:    ~/.claude/features/<name>/impl-plan.md
+Story:   ~/.claude/features/<name>/story.md
+
+Review findings (injected below — apply these directly, do not re-read a separate file):
+
+[REVIEWER_1_OUTPUT]
+
+[REVIEWER_2_OUTPUT]
+
+[REVIEWER_3_OUTPUT]
+
+[REVIEWER_4_OUTPUT]
+
+## Instructions
+
+1. For each finding across all reviewers, decide whether it is valid and improves the plan. Apply changes that are clearly correct. Skip anything speculative, contradictory, or that re-litigates high-level design decisions already settled in the story.
+2. Rewrite ~/.claude/features/<name>/impl-plan.md with all accepted changes applied. Keep the same structure and format.
+3. Append an ## Implementation Plan Review section at the bottom with a changelog table:
+
+| Finding | Reviewer | Severity | Decision | Rationale |
+|---------|----------|----------|----------|-----------|
+| [brief description] | R1/R2/R3/R4 | CRITICAL/HIGH/LOW | Applied / Rejected | [why] |
+
+4. If any CRITICAL finding was Rejected, add a prominent warning block immediately after the table:
+
+> ⚠️ **CRITICAL finding not applied:** [finding description] — the user must consciously acknowledge this risk before starting implementation.
+```
+
+Replace `[REVIEWER_1_OUTPUT]` through `[REVIEWER_4_OUTPUT]` with the actual text returned by each reviewer in Step 4.
+
+## Step 6 — Report to the user
+
+Tell the user the implementation plan is finished. Give a brief summary:
 - Number of tasks
 - Number of execution waves and maximum parallelism
 - Whether subagent split is recommended
 - Any open questions that need answers before starting
-
-If `<is-revision>` is **false** (fresh generation): immediately invoke `/review-plan` as the next action — do not wait for the user to ask.
-If `<is-revision>` is **true** (re-run / append): do **not** invoke `/review-plan` automatically. The plan was already reviewed on first generation; the user can run `/review-plan` manually if they want a fresh review of the revision.
+- Any CRITICAL findings from the review that were not applied
 
 ## Rules
 
