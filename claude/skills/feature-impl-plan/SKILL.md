@@ -306,7 +306,7 @@ After all 4 agents have returned, synthesize their outputs into a single impleme
 [Any ambiguities, unknowns, or decisions that need to be made before implementation starts. Leave blank if none.]
 ```
 
-## Step 5 — Report to the user
+## Step 5 — Report to the user and trigger review
 
 Tell the user where the plan was saved (or appended) and give a brief summary:
 - Number of tasks
@@ -314,8 +314,8 @@ Tell the user where the plan was saved (or appended) and give a brief summary:
 - Whether subagent split is recommended
 - Any open questions that need answers before starting
 
-If `<is-revision>` is **false**, end your response with `<!-- review:plan -->` so the auto-review hook fires.
-If `<is-revision>` is **true**, do **not** emit `<!-- review:plan -->` — the user triggered this manually and the plan was already reviewed on first generation.
+If `<is-revision>` is **false** (fresh generation): immediately invoke `/review-plan` as the next action — do not wait for the user to ask.
+If `<is-revision>` is **true** (re-run / append): do **not** invoke `/review-plan` automatically. The plan was already reviewed on first generation; the user can run `/review-plan` manually if they want a fresh review of the revision.
 
 ## Rules
 
