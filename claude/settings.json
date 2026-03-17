@@ -1,2 +1,21 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(ls ~/Developer/work/:*)",
+      "Bash(ls ~/Developer/personal/:*)",
+      "Bash(mkdir -p ~/.claude/repo-context)",
+      "Bash(ls ~/.claude/repo-context/:*)",
+      "Bash(git:*)",
+      "Bash(cat:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Write(~/.claude/repo-context/*)"
+    ],
+    "additionalDirectories": [
+      "~/Developer/work",
+      "~/Developer/personal"
+    ]
+  }
 }

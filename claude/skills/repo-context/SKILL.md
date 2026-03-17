@@ -6,7 +6,7 @@ argument-hint: [optional: repo name or path to refresh a single repo]
 
 # Repo Context Workflow
 
-The user has invoked `/repo-context`. Your job is to scan all Git repositories across the two developer directories and produce or refresh a context file for each one.
+The user has invoked `/repo-context`. Your job is to scan all Git repositories across the two developer directories (or specific repo if provided as argument) and produce or refresh a context file for each one.
 
 Context files live at: `~/.claude/repo-context/<repo-name>.md`
 
@@ -52,7 +52,7 @@ ls ~/.claude/repo-context/ 2>/dev/null
 
 Tell the user upfront: how many repos were found, how many already have context (skipped), and how many will be processed now.
 
-If all repos already have context and no argument was given, report that and stop.
+If all repos already have context and no argument was given, refresh all context files.
 
 Split the remaining repo list into chunks of up to **10 repos**. For each chunk, launch all subagents **in parallel** (in a single message with multiple Agent tool calls, all with `run_in_background: true`).
 

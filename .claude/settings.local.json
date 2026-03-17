@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(chmod +x:*)",
-      "Bash(zsh:*)"
+      "Bash(zsh:*)",
+      "Bash(mkdir -p ~/.claude/repo-context)",
+      "Read(//Users/tobias/.claude/**)",
+      "Skill(update-config)"
     ]
   }
 }
