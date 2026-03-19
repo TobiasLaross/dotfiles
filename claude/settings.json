@@ -17,5 +17,6 @@
       "~/Developer/work",
       "~/Developer/personal"
     ]
-  }
+  },
+  "model": "opus"
 }
