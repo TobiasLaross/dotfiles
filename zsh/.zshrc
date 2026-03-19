@@ -90,6 +90,9 @@ alias brewski="brew doctor; brew update && brew upgrade && brew cleanup -s"
 alias reload='source ~/.zshrc'
 alias :q='exit'
 
+alias -- -='cd -'
+alias ..='cd ..'
+
 alias ll="ls -lah"
 alias notes="glow ~/notes"
 alias gitdiffnameonly="git diff --name-status develop"
