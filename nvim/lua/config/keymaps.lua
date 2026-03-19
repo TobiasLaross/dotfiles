@@ -23,9 +23,19 @@ vim.keymap.set("n", "<leader>hs", ":split<CR>", { desc = "Split Horizontally" })
 
 -- Snacks
 vim.keymap.set("n", "<leader>e", "<cmd>lua Snacks.explorer()<cr>", { desc = "Toggle snacks explorer" })
--- vim.keymap.set("n", "<leader>go", "<cmd>lua Snacks.gitbrowse()<cr>", { desc = "Opens the file in web-browser" })
-vim.keymap.set("n", "<leader>go", "<cmd>GitBlameOpenCommitURL<cr>")
-vim.keymap.set("n", "<leader>gf", "<cmd>GitBlameOpenFileURL<cr>")
+vim.keymap.set("n", "<leader>go", function()
+	local file = vim.api.nvim_buf_get_name(0)
+	local line = vim.fn.line(".")
+	local out = vim.fn.system({ "git", "blame", "-L", line .. "," .. line, "--porcelain", file })
+	local hash = out:match("^(%x+)")
+	-- all-zero hash means the line is not yet committed
+	if hash and #hash == 40 and hash ~= string.rep("0", 40) then
+		Snacks.gitbrowse({ what = "commit", commit = hash })
+	else
+		Snacks.gitbrowse({ what = "file" })
+	end
+end, { desc = "Open blame commit in browser" })
+vim.keymap.set("n", "<leader>gf", function() Snacks.gitbrowse({ what = "file" }) end, { desc = "Open file in browser" })
 
 -- NvimTree
 -- vim.keymap.set("n", "<leader>e", "<cmd>NvimTreeToggle<cr>", { desc = "Toggle nvim tree" })
