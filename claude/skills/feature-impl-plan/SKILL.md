@@ -50,7 +50,7 @@ Read the following files to understand the goal and approach:
 
 1. Detect the tech stack: read package.json, pyproject.toml, build.gradle, *.csproj, Cargo.toml, go.mod, or equivalent. Fall back to scanning file extensions.
 2. Get the project structure: run `git ls-files | head -100`
-3. If the working directory contains /work/, check ~/.claude/repo-context/<repo-name>.md for each relevant repo and read the architecture and design patterns sections.
+3. Check ~/.claude/repo-context/<repo-name>.md for each relevant repo and read the architecture and design patterns sections.
 
 ## Task decomposition
 
@@ -194,11 +194,14 @@ After both subagents have finished, read `impl-tasks.md` and `impl-tests.md` and
 ## Tasks
 
 ### T01 — <Title>
+- [ ] Implemented
+- [ ] Reviewed
+
 **Area:** <area>
 **Depends on:** none (or T0X, T0Y)
 **Scope:** <2–4 sentences>
 
-[All tasks in order]
+[All tasks in order — each task must include both checkboxes]
 
 ---
 
@@ -283,7 +286,7 @@ Use severity flags **CRITICAL** / **HIGH** / **LOW** on each finding. Be specifi
 
 ---
 
-**Reviewer 3 — Performance and maintainability:**
+**Reviewer 3 — Performance, maintainability and design pattern consistency:**
 
 ```
 You are reviewing a low-level implementation plan for performance, scalability, and maintainability concerns.
@@ -296,34 +299,17 @@ Read the file. Focus on:
 - Violations of separation of concerns or tight coupling
 - Poor testability or missing abstractions
 - Anything that will make this code hard to change or debug later
+- Detect the repo name from the working directory.
+- Check whether ~/.claude/repo-context/<repo-name>.md exists. If it does, read the design patterns section — use it as the source of truth for what patterns new code must follow unless the current file is using another design pattern already, then that is ground truth.
+- Use Glob and Grep to find 2–3 existing features similar to what this plan describes.
+- Compare the plan against those patterns. Flag deviations where the plan would introduce a different design pattern than the rest of the codebase uses.
 
 Use severity flags **CRITICAL** / **HIGH** / **LOW** on each finding. Be specific and cite the task ID.
 ```
 
 ---
 
-**Reviewer 4 — Task separation and parallelism:**
-
-```
-You are reviewing a low-level implementation plan for correctness of task scoping, dependency declarations, and parallel execution grouping.
-
-Plan: ~/.claude/features/<name>/impl-plan.md
-
-Read the file. Assess:
-
-1. **Task atomicity** — is each task small enough to be completed and verified in one focused session? Flag any task that bundles unrelated concerns or that would be hard to code-review as a single unit.
-2. **Dependency correctness** — for each task marked as independent (no dependencies), verify it truly can start without another task's output. Flag any missing dependency that would cause a task to fail or produce incorrect results if started before its prerequisite.
-3. **False dependencies** — flag any dependency declaration that is unnecessary. A task should only depend on another if it literally cannot start without that task's output, not merely because they are in the same area.
-4. **Wave correctness** — do the execution waves follow directly from the dependency graph? Flag any task placed in the wrong wave (too early given its dependencies, or unnecessarily delayed).
-5. **Parallelism safety** — for tasks grouped in the same wave, confirm they do not write to the same files, tables, or shared state in ways that would cause conflicts if run simultaneously.
-6. **Critical path accuracy** — does the stated critical path match the longest dependency chain through the task graph?
-
-Use severity flags **CRITICAL** / **HIGH** / **LOW** on each finding. Cite the specific task IDs involved.
-```
-
----
-
-**Reviewer 5 — Test coverage and design pattern consistency:**
+**Reviewer 4 — Test coverage:**
 
 ```
 You are reviewing a low-level implementation plan for test coverage gaps and design pattern consistency.
@@ -335,13 +321,6 @@ Read the file. You have access to the filesystem.
 ## Test coverage
 - Does the test plan cover all happy paths?
 - Are edge cases, error states, and boundary conditions covered?
-- Are there layers (unit / integration / E2E) that are missing or thin?
-
-## Design pattern consistency
-1. Detect the repo name from the working directory.
-2. Check whether ~/.claude/repo-context/<repo-name>.md exists. If it does, read the design patterns section — use it as the source of truth for what patterns new code must follow.
-3. Use Glob and Grep to find 2–3 existing features similar to what this plan describes.
-4. Compare the plan against those patterns. Flag deviations where the plan would introduce a different design pattern than the rest of the codebase uses.
 
 Use severity flags **CRITICAL** / **HIGH** / **LOW** on each finding. Cite task IDs and, for pattern findings, reference specific existing files as examples.
 ```
@@ -367,8 +346,6 @@ Review findings (injected below — apply these directly, do not re-read a separ
 [REVIEWER_3_OUTPUT]
 
 [REVIEWER_4_OUTPUT]
-
-[REVIEWER_5_OUTPUT]
 
 ## Instructions
 
@@ -401,7 +378,6 @@ Tell the user the implementation plan is finished. Give a brief summary:
 - Never invent tasks not grounded in the story and plan
 - Task IDs must be stable — T01, T02, … in order of logical appearance
 - Every task must have a clear done state
-- Test plan must cover all three layers (unit, integration, E2E) — do not skip a layer unless the tech stack genuinely has no equivalent
 - Subagent assignments are only recommended when they reduce total wall-clock time — do not recommend them just because a feature is moderately complex
 - All files are written under `~/.claude/features/<name>/`
 - If a ticket number is detected, the `## Branch Names` section is mandatory. Every repo touched by the feature gets its own row. Short descriptions must differ per repo to reflect that repo's specific changes.

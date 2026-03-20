@@ -147,3 +147,63 @@ After applying all changes:
 ---
 
 > **CRITICAL WARNING:** If any CRITICAL finding was **Rejected** in the changelog above, highlight it here explicitly. The user must consciously acknowledge they are accepting a known critical risk before this work is considered done.
+
+## Step 7 — Per-task review
+
+After all fixes are applied and the changelog is presented, spawn one review subagent per implemented task to verify it individually. Read `~/.claude/features/<name>/impl-plan.md` and identify every task with `- [x] Implemented`. Launch all review subagents **in parallel** (`subagent_type: general-purpose`).
+
+Each subagent receives this prompt (replace placeholders with actual values):
+
+```
+You are reviewing a single implementation task to verify it fulfills its requirements.
+
+Feature folder: ~/.claude/features/<name>/
+Task: <task-id> — <task-title>
+Task scope from impl-plan:
+<task-scope>
+
+## Instructions
+
+1. Read ~/.claude/features/<name>/story.md and ~/.claude/features/<name>/impl-plan.md for full context.
+2. Examine the actual code for this task. Use Grep and Glob to find the files mentioned in the task scope. Read them in full.
+3. Verify:
+   - The done state described in the task scope is actually achieved
+   - The implementation matches the intent — no shortcuts, stubs, or incomplete wiring
+   - The code integrates correctly with adjacent tasks
+   - No obvious bugs, missing error handling for the task's scope, or logic gaps
+4. Return one of:
+   - **APPROVED** — the task is complete and correct. No changes needed.
+   - **NEEDS CHANGES** — describe specifically what is wrong or missing, referencing file paths and line numbers.
+```
+
+After all review subagents return:
+- **APPROVED** tasks: mark `- [ ] Reviewed` → `- [x] Reviewed` in `impl-plan.md` using the Edit tool
+- **NEEDS CHANGES** tasks: apply the requested fixes, then re-run the review subagent for that task. Only mark `- [x] Reviewed` after it returns APPROVED. If a fix requires changes beyond the task scope, ask the user before proceeding.
+
+In the **same parallel batch** as the per-task reviewers, also launch a test coverage reviewer:
+
+```
+You are reviewing whether all test cases defined in the implementation plan have actually been implemented.
+
+Feature folder: ~/.claude/features/<name>/
+
+## Instructions
+
+1. Read ~/.claude/features/<name>/impl-plan.md — extract every test case from the **Test Plan** section (unit tests, integration tests, and E2E/acceptance tests).
+2. Also read ~/.claude/features/<name>/impl-tests.md if it exists for the full detailed test plan.
+3. Find all test files in the repo. Use Grep and Glob to locate them (look for common patterns: *.test.*, *.spec.*, *_test.*, test_*.*, etc.).
+4. For each test case in the plan, determine whether a corresponding test exists in the codebase:
+   - **Covered** — a test exists that matches the described scenario
+   - **Missing** — no test found for this planned test case
+   - **Partial** — a test exists but does not fully cover the described scenario (explain what is missing)
+5. Return a checklist:
+   - [ ] or [x] for each planned test case, with the test file and test name if covered
+   - A summary: X of Y test cases covered
+   - For any missing or partial cases, describe exactly what test needs to be written or extended
+```
+
+After the test coverage reviewer returns:
+- If all test cases are covered, report this.
+- If any are missing or partial, write the missing tests or extend partial ones. If unclear where a test should go, ask the user.
+
+Report which tasks passed review and which required additional fixes, plus test coverage results.

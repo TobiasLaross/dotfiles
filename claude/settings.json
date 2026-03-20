@@ -11,7 +11,11 @@
       "Bash(find:*)",
       "Bash(head:*)",
       "Bash(tail:*)",
-      "Write(~/.claude/repo-context/*)"
+      "Write(~/.claude/repo-context/*)",
+      "Read",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
     ],
     "additionalDirectories": [
       "~/Developer/work",
