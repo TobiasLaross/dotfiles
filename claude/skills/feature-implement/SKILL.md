@@ -17,7 +17,7 @@ The user has invoked `/feature-implement`. Follow this workflow exactly.
 
 **If no argument is provided:**
 - Infer from the current session conversation which feature is being discussed
-- If unclear, scan `~/.claude/features/` for feature folders (exclude `done/`), list them, and ask the user to pick one
+- If unclear, scan `~/.claude/features/` for feature folders (exclude `done/`), list them (numbered), and ask the user to pick one (by number or name)
 
 ## Step 2 — Read all feature files
 
@@ -57,7 +57,7 @@ Follow the **Execution Plan** section in `impl-plan.md`. Execute tasks wave by w
 
 After all tasks in a repo are complete:
 1. Run the repo's test suite
-2. If tests fail, diagnose and fix — check the **Test Plan** section in the impl-plan for expected test behavior
+2. If tests fail, diagnose and fix by using subagent(s) — check the **Test Plan** section in the impl-plan for expected test behavior
 3. If a fix requires changes beyond the task scope, ask the user before proceeding
 
 ## Step 6 — Report
@@ -67,6 +67,8 @@ When all tasks are complete (or all unblocked tasks are complete), report:
 - Which tasks are blocked (if any) and what they're waiting on
 - Test results
 - Any deviations from the plan and why
+
+After the report, suggest the user runs `/feature-code-review <name>` (replacing `<name>` with the actual feature folder name resolved in Step 1) to review the implemented code.
 
 ## Rules
 
