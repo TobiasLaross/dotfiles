@@ -62,16 +62,16 @@ Oh My Zsh with plugins: `fzf`, `git`, `ssh-agent`, `zsh-autosuggestions`, `zsh-v
 
 Additional functions in `zsh/config/functions.zsh`. The `sess` alias runs `scripts/sessionizer.sh` (tmux session switcher).
 
-### Claude / Agentic setup (`claude/`)
+### Agentic setup (`agentic/`)
 
 Config for Claude Code and GitHub Copilot Chat. Symlinked by `symlinks.sh`:
 
 | Source | Target | Notes |
 |--------|--------|-------|
-| `claude/CLAUDE.md` | `~/.claude/CLAUDE.md` | Global Claude instructions |
-| `claude/settings.json` | `~/.claude/settings.json` | Permissions, model, plugins |
-| `claude/copilot-instructions.md` | `~/.copilot/copilot-instructions.md` | Copilot global instructions |
-| `claude/skills/*/` | `~/.claude/skills/` and `~/.copilot/skills/` | Shared skills for both agents |
+| `agentic/CLAUDE.md` | `~/.claude/CLAUDE.md` | Global Claude instructions |
+| `agentic/settings.json` | `~/.claude/settings.json` | Permissions, model, plugins |
+| `agentic/copilot-instructions.md` | `~/.copilot/copilot-instructions.md` | Copilot global instructions |
+| `agentic/skills/*/` | `~/.claude/skills/` and `~/.copilot/skills/` | Shared skills for both agents |
 
 Skills and global instructions are **shared** between Claude and Copilot. `symlinks.sh` warns if `CLAUDE.md` and `copilot-instructions.md` diverge in content (ignoring YAML frontmatter).
 
@@ -91,7 +91,7 @@ Skills and global instructions are **shared** between Claude and Copilot. `symli
 | `/explain-code` | Explain code with diagrams and analogies |
 | `/repo-context` | Scan repos in `~/Developer/` and write per-repo context files to `~/.claude/repo-context/` |
 
-**Global instructions** (`claude/CLAUDE.md`) define:
+**Global instructions** (`agentic/CLAUDE.md`) define:
 - Feature tracking lifecycle under `~/.claude/features/` (active → `done/` when complete)
 - Repo context workflow: read `~/.claude/repo-context/<repo>.md` before source code when available
 - Work repos live in `~/Developer/work/`; personal repos in `~/Developer/personal/`
