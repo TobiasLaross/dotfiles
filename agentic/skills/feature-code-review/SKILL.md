@@ -26,9 +26,10 @@ The user has invoked `/feature-code-review`. Follow this workflow exactly.
 Read every `.md` file in `~/.claude/features/<name>/`. At minimum, expect:
 - `story.md` — the user story and context (used as **original requirements** for the review)
 - `plan.md` — the high-level plan
-- `impl-plan.md` — the detailed implementation plan with tasks, execution waves, and test plan
+- `impl-plan.md` — the detailed implementation plan with tasks and execution waves
+- `test-plan.md` — the test plan (unit, integration, E2E)
 
-Store all of this. The story and impl-plan provide the acceptance criteria and requirements context for the review.
+Store all of this. The story, impl-plan, and test-plan provide the acceptance criteria and requirements context for the review.
 
 ## Step 3 — Gather code context
 
@@ -48,6 +49,8 @@ If no changed files can be identified from git or the impl-plan, ask the user to
 ## Step 4 — Launch 7 sub-agents in parallel
 
 Call the Agent tool exactly 7 times in the same response. Do NOT wait for one to finish before launching the next. Replace placeholders with actual content from Steps 2–3. Use the feature's `story.md` as the [REQUIREMENTS] source.
+
+These agents review the **actual implementation** (code quality, runtime behavior, concrete bugs). Design-level concerns (architecture fit, task structure, security design) were already covered during `/feature-impl-plan` — do not duplicate that work here.
 
 Agent 1 — Correctness:
 "Review the following code for correctness. Focus on: logic errors, off-by-one errors, incorrect assumptions, missing null/undefined checks, wrong return values, broken control flow, misuse of APIs or libraries, and anything that will produce wrong results at runtime. Reference file names and line numbers where possible. Use severity flags CRITICAL / HIGH / LOW on each finding.\n\nBase branch: [BASE_BRANCH]\nTech stack: [TECH_STACK]\nFiles reviewed: [FILE_PATHS]\n\n[CODE]"
@@ -123,30 +126,79 @@ Severity flags:
 
 ---
 
-## Step 6 — Apply fixes
+## Step 6 — Build fix tasks and apply fixes
 
-Go through every finding from all 7 agents and for each one:
+Go through every finding from all 7 agents. For each finding, decide:
 
-- **Apply it** — fix the code using the Edit tool, OR write the missing test
-- **Reject it** — leave unchanged, but provide an explicit argument for why
+- **Accept** — will be fixed
+- **Reject** — leave unchanged, with an explicit argument for why
 
-After applying all changes:
+### 6a — Create fix task list
 
-1. **Re-review each CRITICAL fix** — for every CRITICAL finding that was applied, spawn a single follow-up agent to verify the fix is correct and hasn't introduced a new problem.
+For every accepted finding, create a numbered fix task. Write the task list to `~/.claude/features/<name>/review-fixes.md`:
 
-2. **Write missing tests** — for every missing test identified by Agent 5 (edge cases and main flow gaps) that was accepted, write the actual test code now.
+```md
+# Review Fix Tasks
 
-3. Present the changelog:
+> Generated: <today's date>
 
+## Fix Tasks
+
+### F01 — <Short title describing the fix>
+- [ ] Fixed
+- **Source:** <Agent name> (<severity>)
+- **Finding:** <1-2 sentence description>
+- **Files:** <file paths that need changes>
+
+[Repeat for each accepted finding]
+
+## Rejected Findings
+
+| Finding | Agent | Severity | Rationale |
+|---------|-------|----------|-----------|
+| [brief description] | Agent N | CRITICAL/HIGH/LOW | [why rejected] |
+```
+
+> **CRITICAL WARNING:** If any CRITICAL finding was **Rejected**, highlight it prominently. The user must consciously acknowledge they are accepting a known critical risk before this work is considered done.
+
+### 6b — Execute fix tasks
+
+For each fix task, spawn a subagent (`subagent_type: general-purpose`) to apply the fix. Group independent fixes and launch them in parallel where possible.
+
+Each subagent receives:
+```
+You are applying a specific code review fix.
+
+Feature folder: ~/.claude/features/<name>/
+Fix task: <fix-id> — <fix-title>
+Finding: <full finding description>
+Files to change: <file paths>
+
+## Instructions
+
+1. Read the relevant files.
+2. Apply the minimal fix that addresses the finding.
+3. If the fix involves writing a missing test, follow existing test conventions.
+4. Do not change anything beyond what the finding requires.
+5. Verify your fix is logically correct before finishing.
+```
+
+After each fix subagent returns, mark `- [ ] Fixed` → `- [x] Fixed` in `review-fixes.md`.
+
+### 6c — Re-review CRITICAL fixes
+
+For every CRITICAL finding that was fixed, spawn a single follow-up agent to verify the fix is correct and hasn't introduced a new problem. If the verification fails, report it to the user — do not loop indefinitely.
+
+### 6d — Present changelog
+
+```md
 ## Changelog
 
-| Finding | Decision | Rationale |
-|---|---|---|
-| [brief description] | Applied / Rejected | [why] |
-
----
-
-> **CRITICAL WARNING:** If any CRITICAL finding was **Rejected** in the changelog above, highlight it here explicitly. The user must consciously acknowledge they are accepting a known critical risk before this work is considered done.
+| Fix | Finding | Decision | Status |
+|-----|---------|----------|--------|
+| F01 | [brief description] | Applied | Fixed |
+| —   | [brief description] | Rejected | [why] |
+```
 
 ## Step 7 — Per-task review
 
@@ -189,8 +241,8 @@ Feature folder: ~/.claude/features/<name>/
 
 ## Instructions
 
-1. Read ~/.claude/features/<name>/impl-plan.md — extract every test case from the **Test Plan** section (unit tests, integration tests, and E2E/acceptance tests).
-2. Also read ~/.claude/features/<name>/impl-tests.md if it exists for the full detailed test plan.
+1. Read ~/.claude/features/<name>/test-plan.md — extract every test case (unit tests, integration tests, and E2E/acceptance tests).
+2. Also read ~/.claude/features/<name>/impl-plan.md for task context.
 3. Find all test files in the repo. Use Grep and Glob to locate them (look for common patterns: *.test.*, *.spec.*, *_test.*, test_*.*, etc.).
 4. For each test case in the plan, determine whether a corresponding test exists in the codebase:
    - **Covered** — a test exists that matches the described scenario
@@ -207,3 +259,5 @@ After the test coverage reviewer returns:
 - If any are missing or partial, write the missing tests or extend partial ones. If unclear where a test should go, ask the user.
 
 Report which tasks passed review and which required additional fixes, plus test coverage results.
+
+Then prompt: _"Next step: run `/feature-done <name>` to mark this feature as complete and move it to done."_ (replace `<name>` with the actual feature folder name).

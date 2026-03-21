@@ -182,7 +182,7 @@ Read all three files. Then:
 
 Tell the user the feature plan is finished. Show the feature folder path and give a one-line summary of what was planned.
 
-Then prompt: _"Run `/feature-impl-plan` to break this into tasks and build an implementation plan."_
+Then prompt: _"Next step: run `/feature-impl-plan` to break this into tasks and build an implementation plan."_
 
 ## Rules
 

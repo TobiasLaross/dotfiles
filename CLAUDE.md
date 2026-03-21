@@ -85,6 +85,7 @@ Skills and global instructions are **shared** between Claude and Copilot. `symli
 | `/feature-impl-plan` | Break a feature into tasks with dependency analysis and parallel execution waves |
 | `/feature-implement` | Execute tasks from the impl plan in dependency order |
 | `/feature-code-review` | Review implemented feature code from 7 perspectives in parallel |
+| `/feature-done` | Verify all tasks are complete, then move feature to `done/` |
 | `/review-plan` | Review an implementation plan from 6 perspectives in parallel |
 | `/review-code` | Review any code from 7 perspectives in parallel |
 | `/bugfix` | Investigate a bug, write a failing test, implement and review a fix |
