@@ -1,0 +1,52 @@
+---
+name: feature-done
+description: Mark a feature as complete and move it to done. Verifies all tasks are implemented and reviewed before moving. Use when the user runs /feature-done with an optional feature name.
+argument-hint: [feature-name]
+---
+
+# Feature Done Workflow
+
+The user has invoked `/feature-done`. Follow this workflow exactly.
+
+## Step 1 — Resolve the feature
+
+**If `$ARGUMENTS` is provided:**
+- Treat it as the folder name under `~/.claude/features/<name>/`
+- If the folder does not exist, try a fuzzy match against existing folder names in `~/.claude/features/` (exclude `done/`)
+- If no match is found, list available features and ask the user to pick one
+
+**If no argument is provided:**
+- Infer from the current session conversation which feature is being discussed
+- If unclear, scan `~/.claude/features/` for feature folders (exclude `done/`), list them (numbered), and ask the user to pick one (by number or name)
+
+## Step 2 — Verify completeness
+
+Read `~/.claude/features/<name>/impl-plan.md`. Check:
+
+1. **All tasks implemented:** Every task must have `- [x] Implemented`. List any that don't.
+2. **All tasks reviewed:** Every task must have `- [x] Reviewed`. List any that don't.
+
+If any tasks are incomplete, report exactly which tasks are missing implementation or review and ask the user how to proceed:
+- Continue anyway (force move)
+- Go back and finish (abort)
+
+Do not proceed unless the user explicitly confirms.
+
+## Step 3 — Move to done
+
+1. Create `~/.claude/features/done/` if it doesn't exist
+2. Move the entire feature folder: `mv ~/.claude/features/<name> ~/.claude/features/done/<name>`
+3. Verify the move succeeded by checking the destination exists
+
+## Step 4 — Report
+
+Tell the user:
+- Feature `<name>` has been moved to `~/.claude/features/done/<name>/`
+- Summary: X tasks implemented, X tasks reviewed
+- The feature is now archived
+
+## Rules
+
+- Never move a feature without checking task status first
+- Always ask for confirmation if any tasks are incomplete
+- Do not delete any files — only move the folder

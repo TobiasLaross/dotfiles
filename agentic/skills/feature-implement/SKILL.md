@@ -24,7 +24,8 @@ The user has invoked `/feature-implement`. Follow this workflow exactly.
 Read every `.md` file in `~/.claude/features/<name>/`. At minimum, expect:
 - `story.md` — the user story and context
 - `plan.md` — the high-level plan
-- `impl-plan.md` — the detailed implementation plan with tasks, execution waves, and test plan
+- `impl-plan.md` — the detailed implementation plan with tasks and execution waves
+- `test-plan.md` — the test plan (unit, integration, E2E)
 
 If `impl-plan.md` is missing, tell the user and suggest running `/feature-impl-plan` first.
 
@@ -59,7 +60,7 @@ Follow the **Execution Plan** section in `impl-plan.md`. Execute tasks wave by w
 
 After all tasks in a repo are complete:
 1. Run the repo's test suite unless running tests are blocked by another repo
-2. If tests fail, diagnose and fix by using subagent(s) — check the **Test Plan** section in the impl-plan for expected test behavior
+2. If tests fail, diagnose and fix by using subagent(s) — check `~/.claude/features/<name>/test-plan.md` for expected test behavior
 3. If a fix requires changes beyond the task scope, ask the user before proceeding
 
 ## Step 6 — Report
@@ -70,7 +71,7 @@ When all tasks are complete (or all unblocked tasks are complete), report:
 - Test results
 - Any deviations from the plan and why
 
-After the report, suggest the user runs `/feature-code-review <name>` (replacing `<name>` with the actual feature folder name resolved in Step 1) to review the implemented code.
+Then prompt: _"Next step: run `/feature-code-review <name>` to review the implemented code."_ (replace `<name>` with the actual feature folder name resolved in Step 1).
 
 ## Rules
 

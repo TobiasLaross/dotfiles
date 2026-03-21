@@ -147,14 +147,14 @@ Be specific. Include edge cases: empty states, validation errors, concurrent acc
 ## Output
 
 Write the full test plan to:
-~/.claude/features/<name>/impl-tests.md
+~/.claude/features/<name>/test-plan.md
 ```
 
 ---
 
 ## Step 3 — Synthesize into impl-plan.md
 
-After both subagents have finished, read `impl-tasks.md` and `impl-tests.md` and synthesize them into a single implementation plan.
+After both subagents have finished, read `impl-tasks.md` and synthesize the task breakdown into the implementation plan. The test plan remains in its own file (`test-plan.md`).
 
 **Write behaviour:**
 - If `<is-revision>` is **false**: write a new file at `~/.claude/features/<name>/impl-plan.md`
@@ -225,111 +225,108 @@ After both subagents have finished, read `impl-tasks.md` and `impl-tests.md` and
 
 ---
 
-## Test Plan
-
-### Unit Tests
-[From impl-tests.md]
-
-### Integration Tests
-[From impl-tests.md]
-
-### End-to-End / Acceptance Tests
-[From impl-tests.md]
-
----
-
 ## Open Questions
 [Any ambiguities or decisions that need to be made before implementation starts. Leave blank if none.]
 ```
 
 ## Step 4 — Spawn review subagents in parallel
 
-After `impl-plan.md` has been written, spawn **5 subagents in the same response** (`subagent_type: general-purpose`) and **wait for all 5 to finish** before continuing. These review the low-level implementation plan — not the high-level design decisions already covered in `plan.md`.
+After `impl-plan.md` has been written, spawn **4 subagents in the same response** (`subagent_type: general-purpose`) and **wait for all 4 to finish** before continuing. These review the **plan and task design** — not implementation-level code quality (that is covered later by `/feature-code-review`).
 
 ---
 
-**Reviewer 1 — Technical feasibility:**
+**Reviewer 1 — Technical feasibility and task design:**
 
 ```
-You are reviewing a low-level implementation plan for technical correctness and feasibility.
+You are reviewing a low-level implementation plan for technical correctness, feasibility, and task design quality.
 
 Plan: ~/.claude/features/<name>/impl-plan.md
 
 Read the file. Focus on:
-- Missing or incorrect dependencies
-- Wrong assumptions about APIs or libraries
+- Missing or incorrect task dependencies
+- Wrong assumptions about APIs, libraries, or system capabilities
 - Implementation gaps — steps that skip over non-trivial work
 - Tasks that are technically unsound or will not work as described
 - Task scopes that are too vague to execute without guessing
+- Tasks that are too large and should be split further
+- Dependency graph errors — tasks that claim independence but actually depend on each other
+- Missing tasks — work implied by other tasks but not explicitly listed
 
 Use severity flags **CRITICAL** / **HIGH** / **LOW** on each finding. Be specific and cite the task ID.
 ```
 
 ---
 
-**Reviewer 2 — Security:**
+**Reviewer 2 — Security design:**
 
 ```
-You are reviewing a low-level implementation plan for security risks.
+You are reviewing a low-level implementation plan for security risks at the design level.
 
 Plan: ~/.claude/features/<name>/impl-plan.md
 
-Read the file. Focus on:
-- Authentication and authorisation gaps
-- Input validation and injection risks (SQL, XSS, command injection, etc.)
-- Sensitive data exposure or insecure storage
-- Insecure defaults or missing rate limiting
-- Any step that introduces a vulnerability
+Read the file. Focus on design-level security concerns:
+- Authentication and authorisation gaps in the planned architecture
+- Missing security-relevant tasks (e.g. no task for input validation, no task for access control)
+- Data flow risks — sensitive data passing through layers without planned protection
+- Missing threat considerations for the feature's attack surface
+- Insecure design patterns chosen in the task scopes
+
+Do NOT focus on implementation-level security (injection, XSS, etc.) — those are caught during code review.
 
 Use severity flags **CRITICAL** / **HIGH** / **LOW** on each finding. Be specific and cite the task ID.
 ```
 
 ---
 
-**Reviewer 3 — Performance, maintainability and design pattern consistency:**
+**Reviewer 3 — Architectural fit and design patterns:**
 
 ```
-You are reviewing a low-level implementation plan for performance, scalability, and maintainability concerns.
-
-Plan: ~/.claude/features/<name>/impl-plan.md
-
-Read the file. Focus on:
-- Algorithmic inefficiencies or N+1 query patterns
-- Missing indexes, caching, or async handling
-- Violations of separation of concerns or tight coupling
-- Poor testability or missing abstractions
-- Anything that will make this code hard to change or debug later
-- Detect the repo name from the working directory.
-- Check whether ~/.claude/repo-context/<repo-name>.md exists. If it does, read the design patterns section — use it as the source of truth for what patterns new code must follow unless the current file is using another design pattern already, then that is ground truth.
-- Use Glob and Grep to find 2–3 existing features similar to what this plan describes.
-- Compare the plan against those patterns. Flag deviations where the plan would introduce a different design pattern than the rest of the codebase uses.
-
-Use severity flags **CRITICAL** / **HIGH** / **LOW** on each finding. Be specific and cite the task ID.
-```
-
----
-
-**Reviewer 4 — Test coverage:**
-
-```
-You are reviewing a low-level implementation plan for test coverage gaps and design pattern consistency.
+You are reviewing whether a low-level implementation plan fits the existing architecture and follows established design patterns.
 
 Plan: ~/.claude/features/<name>/impl-plan.md
 
 Read the file. You have access to the filesystem.
 
-## Test coverage
-- Does the test plan cover all happy paths?
-- Are edge cases, error states, and boundary conditions covered?
+Focus on plan-level architectural concerns:
+- Does the planned task structure respect the existing architecture (layer boundaries, module responsibilities)?
+- Detect the repo name from the working directory.
+- Check whether ~/.claude/repo-context/<repo-name>.md exists. If it does, read the design patterns section — use it as the source of truth for what patterns new code must follow.
+- Use Glob and Grep to find 2–3 existing features similar to what this plan describes.
+- Compare the planned approach against those patterns. Flag tasks where the plan would introduce a different design pattern than the rest of the codebase uses.
+- Are there planned abstractions or structures that conflict with how the codebase is organized?
 
-Use severity flags **CRITICAL** / **HIGH** / **LOW** on each finding. Cite task IDs and, for pattern findings, reference specific existing files as examples.
+Do NOT focus on implementation-level maintainability (naming, complexity, duplication) — those are caught during code review.
+
+Use severity flags **CRITICAL** / **HIGH** / **LOW** on each finding. Be specific and cite the task ID.
+```
+
+---
+
+**Reviewer 4 — Test plan coverage:**
+
+```
+You are reviewing whether a test plan adequately covers the planned implementation tasks.
+
+Plan: ~/.claude/features/<name>/impl-plan.md
+Test plan: ~/.claude/features/<name>/test-plan.md
+
+Read both files. You have access to the filesystem.
+
+Focus on:
+- Does every task with user-facing or logic-heavy scope have corresponding test coverage?
+- Does the test plan cover all happy paths for the feature?
+- Are edge cases, error states, and boundary conditions covered?
+- Are there tasks that introduce new integrations or data flows with no integration test?
+- Is the E2E/acceptance test coverage sufficient to validate the user story?
+
+Use severity flags **CRITICAL** / **HIGH** / **LOW** on each finding. Cite task IDs.
 ```
 
 ---
 
 ## Step 5 — Spawn fix subagent
 
-After all 5 reviewers have finished, spawn a **foreground** subagent and **wait for it to finish**.
+After all 4 reviewers have finished, spawn a **foreground** subagent and **wait for it to finish**.
 
 ```
 You are revising a low-level implementation plan based on review findings.
@@ -355,7 +352,7 @@ Review findings (injected below — apply these directly, do not re-read a separ
 
 | Finding | Reviewer | Severity | Decision | Rationale |
 |---------|----------|----------|----------|-----------|
-| [brief description] | R1/R2/R3/R4/R5 | CRITICAL/HIGH/LOW | Applied / Rejected | [why] |
+| [brief description] | R1/R2/R3/R4 | CRITICAL/HIGH/LOW | Applied / Rejected | [why] |
 
 4. If any CRITICAL finding was Rejected, add a prominent warning block immediately after the table:
 
@@ -372,6 +369,8 @@ Tell the user the implementation plan is finished. Give a brief summary:
 - Whether subagent split is recommended
 - Any open questions that need answers before starting
 - Any CRITICAL findings from the review that were not applied
+
+Then prompt: _"Next step: run `/feature-implement` to execute the tasks from this plan."_
 
 ## Rules
 
