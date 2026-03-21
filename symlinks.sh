@@ -15,20 +15,20 @@ ln -sf "$ROOT_DIR/ghostty/config" "$HOME/Library/Application Support/com.mitchel
 
 # Claude + Copilot CLI share the same skills and global instructions
 mkdir -p ~/.claude/skills ~/.copilot/skills
-for skill in "$ROOT_DIR"/claude/skills/*/; do
+for skill in "$ROOT_DIR"/agentic/skills/*/; do
     ln -sf "$skill" ~/.claude/skills/
     ln -sf "$skill" ~/.copilot/skills/
 done
 
-ln -sf "$ROOT_DIR/claude/CLAUDE.md" ~/.claude/CLAUDE.md
-ln -sf "$ROOT_DIR/claude/copilot-instructions.md" ~/.copilot/copilot-instructions.md
-ln -sf "$ROOT_DIR/claude/settings.json" ~/.claude/settings.json
+ln -sf "$ROOT_DIR/agentic/CLAUDE.md" ~/.claude/CLAUDE.md
+ln -sf "$ROOT_DIR/agentic/copilot-instructions.md" ~/.copilot/copilot-instructions.md
+ln -sf "$ROOT_DIR/agentic/settings.json" ~/.claude/settings.json
 
 # Warn if Claude and Copilot instructions diverge in content (ignoring YAML frontmatter)
-_claude_body=$(cat "$ROOT_DIR/claude/CLAUDE.md")
-_copilot_body=$(awk 'BEGIN{skip=0; after=0} NR==1 && /^---$/{skip=1; next} skip && /^---$/{skip=0; after=1; next} !skip{if(after && /^$/){after=0; next} after=0; print}' "$ROOT_DIR/claude/copilot-instructions.md")
+_claude_body=$(cat "$ROOT_DIR/agentic/CLAUDE.md")
+_copilot_body=$(awk 'BEGIN{skip=0; after=0} NR==1 && /^---$/{skip=1; next} skip && /^---$/{skip=0; after=1; next} !skip{if(after && /^$/){after=0; next} after=0; print}' "$ROOT_DIR/agentic/copilot-instructions.md")
 if [[ "$_claude_body" != "$_copilot_body" ]]; then
-    echo "\033[33m⚠  claude/CLAUDE.md and claude/copilot-instructions.md have diverged (ignoring frontmatter).\033[0m"
+    echo "\033[33m⚠  agentic/CLAUDE.md and agentic/copilot-instructions.md have diverged (ignoring frontmatter).\033[0m"
     diff --color <(echo "$_claude_body") <(echo "$_copilot_body") | head -20
 fi
 unset _claude_body _copilot_body
