@@ -62,6 +62,40 @@ Oh My Zsh with plugins: `fzf`, `git`, `ssh-agent`, `zsh-autosuggestions`, `zsh-v
 
 Additional functions in `zsh/config/functions.zsh`. The `sess` alias runs `scripts/sessionizer.sh` (tmux session switcher).
 
+### Claude / Agentic setup (`claude/`)
+
+Config for Claude Code and GitHub Copilot Chat. Symlinked by `symlinks.sh`:
+
+| Source | Target | Notes |
+|--------|--------|-------|
+| `claude/CLAUDE.md` | `~/.claude/CLAUDE.md` | Global Claude instructions |
+| `claude/settings.json` | `~/.claude/settings.json` | Permissions, model, plugins |
+| `claude/copilot-instructions.md` | `~/.copilot/copilot-instructions.md` | Copilot global instructions |
+| `claude/skills/*/` | `~/.claude/skills/` and `~/.copilot/skills/` | Shared skills for both agents |
+
+Skills and global instructions are **shared** between Claude and Copilot. `symlinks.sh` warns if `CLAUDE.md` and `copilot-instructions.md` diverge in content (ignoring YAML frontmatter).
+
+**`settings.json`** sets the default model to `opus`, enables the `swift-lsp` plugin, and pre-allows common read-only and git commands so Claude doesn't prompt for them. It also grants access to `~/Developer/work` and `~/Developer/personal`.
+
+**Skills** (invoked as `/skill-name`):
+
+| Skill | Description |
+|-------|-------------|
+| `/feature-plan` | Draft a user story, create `~/.claude/features/<name>/` folder and files |
+| `/feature-impl-plan` | Break a feature into tasks with dependency analysis and parallel execution waves |
+| `/feature-implement` | Execute tasks from the impl plan in dependency order |
+| `/feature-code-review` | Review implemented feature code from 7 perspectives in parallel |
+| `/review-plan` | Review an implementation plan from 6 perspectives in parallel |
+| `/review-code` | Review any code from 7 perspectives in parallel |
+| `/bugfix` | Investigate a bug, write a failing test, implement and review a fix |
+| `/explain-code` | Explain code with diagrams and analogies |
+| `/repo-context` | Scan repos in `~/Developer/` and write per-repo context files to `~/.claude/repo-context/` |
+
+**Global instructions** (`claude/CLAUDE.md`) define:
+- Feature tracking lifecycle under `~/.claude/features/` (active → `done/` when complete)
+- Repo context workflow: read `~/.claude/repo-context/<repo>.md` before source code when available
+- Work repos live in `~/Developer/work/`; personal repos in `~/Developer/personal/`
+
 ## Commit messages
 
 Use short, single-line messages starting with a capitalised past-tense verb. No period at the end.
