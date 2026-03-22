@@ -18,8 +18,9 @@ git -C "$ROOT_DIR" submodule update --init --recursive
 # Claude + Copilot CLI share the same skills and global instructions
 mkdir -p ~/.claude/skills ~/.copilot/skills
 for skill in "$ROOT_DIR"/agentic/skills/*/; do
-    ln -sf "$skill" ~/.claude/skills/
-    ln -sf "$skill" ~/.copilot/skills/
+    resolved=${skill:A}
+    ln -sf "$resolved" ~/.claude/skills/
+    ln -sf "$resolved" ~/.copilot/skills/
 done
 
 ln -sf "$ROOT_DIR/agentic/CLAUDE.md" ~/.claude/CLAUDE.md
