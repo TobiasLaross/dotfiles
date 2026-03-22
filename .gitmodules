@@ -1,0 +1,3 @@
+[submodule "agentic/vendor/swift-concurrency-skill"]
+	path = agentic/vendor/swift-concurrency-skill
+	url = https://github.com/twostraws/Swift-Concurrency-Agent-Skill
