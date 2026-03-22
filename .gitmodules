@@ -1,3 +1,9 @@
 [submodule "agentic/vendor/swift-concurrency-skill"]
 	path = agentic/vendor/swift-concurrency-skill
 	url = https://github.com/twostraws/Swift-Concurrency-Agent-Skill
+[submodule "agentic/vendor/swiftui-skill"]
+	path = agentic/vendor/swiftui-skill
+	url = https://github.com/twostraws/SwiftUI-Agent-Skill
+[submodule "agentic/vendor/swift-testing-skill"]
+	path = agentic/vendor/swift-testing-skill
+	url = https://github.com/twostraws/Swift-Testing-Agent-Skill
