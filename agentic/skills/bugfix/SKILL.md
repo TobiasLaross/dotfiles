@@ -1,7 +1,7 @@
 ---
 name: bugfix
 description: Investigate a bug, write a failing test, then implement and review a fix. Use when the user runs /bugfix with an optional ticket number and description.
-argument-hint: [ticket-number] <bug description>
+argument-hint: "[ticket-number] <bug description>"
 ---
 
 # Bugfix Workflow
