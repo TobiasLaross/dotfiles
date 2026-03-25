@@ -119,18 +119,23 @@ Terminal config: FiraCode Nerd Font Mono 16pt, Catppuccin Mocha theme, 80% backg
 
 ### Agentic setup (`agentic/`)
 
-Config for Claude Code and GitHub Copilot Chat. Symlinked by `symlinks.sh`:
+Config for Claude Code, GitHub Copilot Chat, and opencode. Symlinked by `symlinks.sh`:
 
 | Source | Target | Notes |
 |--------|--------|-------|
 | `agentic/CLAUDE.md` | `~/.claude/CLAUDE.md` | Global Claude instructions |
 | `agentic/settings.json` | `~/.claude/settings.json` | Permissions, model, plugins |
 | `agentic/copilot-instructions.md` | `~/.copilot/copilot-instructions.md` | Copilot global instructions |
-| `agentic/skills/*/` | `~/.claude/skills/` and `~/.copilot/skills/` | Shared skills for both agents |
+| `agentic/opencode.json` | `~/.config/opencode/opencode.json` | opencode config |
+| `agentic/skills/*/` | `~/.claude/skills/` and `~/.copilot/skills/` | Shared skills for Claude and Copilot |
 
 Skills and global instructions are **shared** between Claude and Copilot. `symlinks.sh` warns if `CLAUDE.md` and `copilot-instructions.md` diverge in content (ignoring YAML frontmatter).
 
+opencode auto-discovers skills from `~/.claude/skills/` (it scans `~/.claude` for `skills/**/SKILL.md`) so no separate skill symlinks are needed for it.
+
 **`settings.json`** sets the default model to `opus`, enables the `swift-lsp` plugin, and pre-allows common read-only and git commands so Claude doesn't prompt for them. It also grants access to `~/Developer/work` and `~/Developer/personal`.
+
+**`opencode.json`** sets the model to `anthropic/claude-opus-4-6`, points instructions at `~/.claude/CLAUDE.md` (the shared global instructions), and pre-allows read, glob, grep, list, webfetch, websearch, skill, and bash tools.
 
 **Skills** (invoked as `/skill-name`):
 

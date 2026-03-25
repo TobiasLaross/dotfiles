@@ -18,3 +18,6 @@ When working inside a `/work/` directory, related repositories live in `~/Develo
 
 Pre-built context files for each repo live at `~/.claude/repo-context/<repo-name>.md`. When they exist, read them before reading source code — they contain purpose, architecture, inter-repo dependencies, external communication protocols, and canonical design patterns. Fall back to reading source only when context files are missing or insufficient.
 
+### Markdown files
+
+When writing markdown files, make sure that lines are not longer than 140 characters without trailing white-spaces.

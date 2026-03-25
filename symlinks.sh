@@ -15,8 +15,8 @@ ln -sf "$ROOT_DIR/ghostty/config" "$HOME/Library/Application Support/com.mitchel
 
 git -C "$ROOT_DIR" submodule update --init --recursive
 
-# Claude + Copilot CLI share the same skills and global instructions
-mkdir -p ~/.claude/skills ~/.copilot/skills
+# Claude + Copilot CLI + opencode share the same skills and global instructions
+mkdir -p ~/.claude/skills ~/.copilot/skills ~/.config/opencode
 for skill in "$ROOT_DIR"/agentic/skills/*/; do
     resolved=${skill:A}
     ln -sf "$resolved" ~/.claude/skills/
@@ -26,6 +26,7 @@ done
 ln -sf "$ROOT_DIR/agentic/CLAUDE.md" ~/.claude/CLAUDE.md
 ln -sf "$ROOT_DIR/agentic/copilot-instructions.md" ~/.copilot/copilot-instructions.md
 ln -sf "$ROOT_DIR/agentic/settings.json" ~/.claude/settings.json
+ln -sf "$ROOT_DIR/agentic/opencode.json" ~/.config/opencode/opencode.json
 
 # Warn if Claude and Copilot instructions diverge in content (ignoring YAML frontmatter)
 _claude_body=$(cat "$ROOT_DIR/agentic/CLAUDE.md")
