@@ -16,7 +16,18 @@ From the user's description, draft:
 
   **As a** [user type], **I want** [goal] **so that** [reason]
 
-Present both to the user and ask for approval. Do not proceed until they confirm or request changes.
+- **Acceptance criteria** — 3–5 specific, testable conditions that must be true for the story to be considered done (checkbox format)
+
+Before presenting to the user:
+1. Check whether `~/.claude/features/<short-name>/` already exists. If it does, warn the user:
+   _"A feature folder named `<short-name>` already exists. Proceeding will overwrite its files. Continue?"_
+   Do not proceed until they confirm.
+2. Check for a name collision with any other folder directly under `~/.claude/features/` (excluding `done/`).
+
+Present the folder name, user story, and acceptance criteria to the user and ask for approval.
+If they request changes, redraft and re-present — repeat up to 2 times.
+If still not approved after 2 redrafts, ask the user to provide a revised description directly.
+Do not proceed until they confirm.
 
 ## Step 2 — Create the story file
 
@@ -31,133 +42,157 @@ Contents of `story.md`:
 ```md
 # <Short descriptive title>
 
+> Original request: <user's exact words, verbatim>
+> Created: <today's date>
+
 **As a** [user type], **I want** [goal] **so that** [reason]
+
+## Acceptance Criteria
+
+- [ ] <criterion 1>
+- [ ] <criterion 2>
+- [ ] <criterion 3>
+[add more as needed]
 
 ## Notes
 
-- Created: <today's date>
+-
 ```
 
 ## Step 3a — Spawn planning subagent
 
-Spawn a **foreground** subagent (`subagent_type: general-purpose`) and **wait for it to finish** before continuing. Replace `<short-name>` with the actual folder name.
+Spawn a **foreground** subagent (`subagent_type: general-purpose`) and **wait for it to finish** before continuing.
+Replace `<short-name>` with the actual folder name.
 
 ```
 You are creating a high-level plan for a user story.
 
 Story file: ~/.claude/features/<short-name>/story.md
 
-Read that file to understand the goal.
+Read that file to understand the goal and acceptance criteria.
 
 ## Repo detection
 
 Always start by identifying the current repo from the working directory name.
 
-If the current working directory contains /work/, list all directories in ~/Developer/work/. Then:
+Check whether a context file exists at ~/.claude/repo-context/<repo-name>.md and read it if so — this contains
+purpose, architecture, dependencies, design patterns, and inter-repo relationships. Do not re-read the source
+for this repo if the context file covers what you need.
 
+If the current working directory contains /work/, also list all directories in ~/Developer/work/. Then:
 1. Check which repos have a pre-built context file: `ls ~/.claude/repo-context/ 2>/dev/null`
-2. For repos **with** a context file, read `~/.claude/repo-context/<repo-name>.md` — this contains purpose, architecture, dependencies, design patterns, and inter-repo relationships. Do not re-read the source for these repos unless the context file says "Unknown" for something critical to the story.
-3. For repos **without** a context file, read enough code to understand what it does — start with README.md, package.json, go.mod, Podfile, or equivalent manifest files.
+2. For repos **with** a context file, read `~/.claude/repo-context/<repo-name>.md`. Do not re-read source for
+   these repos unless the context file says "Unknown" for something critical to the story.
+3. For repos **without** a context file, read enough code to understand what it does — start with README.md,
+   package.json, go.mod, Podfile, or equivalent manifest files.
 
-Based on the story goal and what you find, identify which repos will need changes. Prefer repos listed under "Internal repo dependencies" in context files of the current repo when tracing the call chain.
-
-If not in a /work/ context, the affected repo is the current one — still include it in the **Repos involved** section below.
+Based on the story goal and acceptance criteria, identify which repos will need changes. Prefer repos listed
+under "Internal repo dependencies" in context files of the current repo when tracing the call chain.
 
 ## Plan
 
-Write a plan.md file to ~/.claude/features/<short-name>/plan.md with:
-
-- **Summary** — what needs to be built
-- **Design decisions** — key architectural choices
-- **Implementation phases** — ordered steps
-- **Repos involved** — every repo that will need changes, each with a short reason why. Always includes at least the current repo.
-
-Keep it concise. Do not implement anything.
-```
-
-## Step 3b — Spawn review subagents in parallel
-
-After the planning subagent has finished and `plan.md` exists, spawn **3 subagents in the same response** (`subagent_type: general-purpose`) and **wait for all 3 to finish** before continuing. These review the high-level plan — not implementation details.
+Write a plan.md file to ~/.claude/features/<short-name>/plan.md using exactly this template:
 
 ---
+# Plan: <Feature Title>
 
-**Reviewer 1 — Story coverage:**
+> Created: <today's date>
+
+## Summary
+[What needs to be built — 2–4 sentences]
+
+## Design Decisions
+[Key architectural choices and why]
+
+## Implementation Phases
+[Ordered steps — numbered list]
+
+## Repos Involved
+[Every repo that will need changes, each with a short reason why. Always includes at least the current repo.]
+
+## Open Questions
+[Ambiguities or decisions that need resolution before implementation starts. Leave blank if none.]
+---
+
+Keep it concise. Do not implement anything. Lines must not exceed 140 characters.
+```
+
+## Step 3b — Spawn review subagent
+
+After the planning subagent has finished and `plan.md` exists, spawn **1 subagent** (`subagent_type: general-purpose`)
+and **wait for it to finish** before continuing.
 
 ```
-You are reviewing a high-level feature plan against its user story.
+You are reviewing a high-level feature plan. You have access to the filesystem.
 
 Story: ~/.claude/features/<short-name>/story.md
 Plan:  ~/.claude/features/<short-name>/plan.md
 
-Read both files. Assess:
-1. Does the plan fully address the user's goal as stated in the story?
-2. Are there missing cases, overlooked user needs, or gaps between what the story asks for and what the plan proposes to build?
-3. Is the scope appropriate — neither too narrow (misses the goal) nor too broad (solves more than asked)?
+Read both files.
 
-Output your findings as a structured list with a **Verdict** (Approved / Needs changes) at the top, followed by specific gaps or suggestions. Be concise — this is a high-level plan, not an implementation.
+## 1. Story & Acceptance Criteria Coverage
+
+- Does the plan fully address the user's goal and each acceptance criterion stated in the story?
+- Are there missing cases, overlooked user needs, or gaps between what the story asks for and what the plan
+  proposes to build?
+- Is the scope appropriate — neither too narrow (misses the goal) nor too broad (solves more than asked)?
+
+Output a **Verdict** (Approved / Needs changes) followed by specific gaps or suggestions.
+
+## 2. Repo & Dependency Coverage
+
+Check whether the current working directory contains /work/.
+
+If not in /work/: write "Not a /work/ context — skipped" and move on.
+
+If in /work/:
+- Read the plan's "Repos Involved" section to see which repos are already listed.
+- For those repos only, check ~/Developer/work/ and read their context files at
+  ~/.claude/repo-context/<repo-name>.md if they exist.
+- Are all necessary repos listed? Are any listed repos unnecessary?
+- Are inter-repo dependencies (API contracts, shared types, event flows) correctly identified?
+
+Output a **Verdict** (Approved / Needs changes / N/A).
+
+## 3. Architectural Soundness
+
+- Detect the current repo name from the working directory.
+- Check whether ~/.claude/repo-context/<repo-name>.md exists. If it does, read the design patterns section —
+  use it as the source of truth for what patterns new code should follow.
+- Use Glob and Grep to find 2–3 existing features similar to what this plan describes.
+- Are the proposed design decisions sound for the problem? Are there simpler or more robust approaches?
+- Do the implementation phases make logical order? Are there missing or combinable phases?
+- Are there obvious architectural risks — tight coupling, wrong abstraction layer, hard-to-test approaches?
+- Would the planned approach introduce design patterns inconsistent with the rest of the codebase?
+
+Output a **Verdict** (Approved / Needs changes) followed by specific findings.
+
+## Output format
+
+Structure your full output under the three headings above. End with a **Suggested Changes** section:
+a consolidated, deduplicated list of actionable changes recommended across all three areas.
 ```
-
----
-
-**Reviewer 2 — Repo and dependency coverage** (run unconditionally — if not in a /work/ context, the reviewer will note that and return "N/A"):
-
-```
-You are reviewing whether a feature plan covers the right set of repositories and dependencies.
-
-Story: ~/.claude/features/<short-name>/story.md
-Plan:  ~/.claude/features/<short-name>/plan.md
-
-Read both files. Then:
-1. Check if the current working directory contains /work/. If not, output "Not a /work/ context — no repo review needed" and stop.
-2. If in /work/: list all directories in ~/Developer/work/. For each, check whether a context file exists at ~/.claude/repo-context/<repo-name>.md and read it if so.
-3. Based on what each repo does and what the story requires, assess:
-   - Are all necessary repos listed in the plan?
-   - Are any listed repos unnecessary for this story?
-   - Are inter-repo dependencies (API contracts, shared types, event flows) correctly identified?
-
-Output your findings as a structured list with a **Verdict** (Approved / Needs changes) at the top.
-```
-
----
-
-**Reviewer 3 — Architectural soundness:**
-
-```
-You are reviewing the architectural and design decisions in a high-level feature plan.
-
-Story: ~/.claude/features/<short-name>/story.md
-Plan:  ~/.claude/features/<short-name>/plan.md
-
-Read both files. Assess:
-1. Are the proposed design decisions sound for the problem? Are there simpler or more robust approaches that should be considered?
-2. Do the implementation phases make sense in order? Are there missing phases or phases that could be combined?
-3. Are there any obvious architectural risks — tight coupling, wrong layer of abstraction, approaches that will be hard to test or extend?
-
-Output your findings as a structured list with a **Verdict** (Approved / Needs changes) at the top. Focus on high-level design — do not critique implementation details that haven't been decided yet.
-```
-
----
 
 ## Step 3c — Collect review findings
 
-After all 3 reviewers return, synthesize their findings and write to `~/.claude/features/<short-name>/plan-review.md`:
+After the reviewer returns, write its output to `~/.claude/features/<short-name>/plan-review.md`:
 
 ```md
 # Plan Review
 
 > Reviewed: <today's date>
 
-## Story Coverage
-[Reviewer 1 verdict and findings]
+## Story & Acceptance Criteria Coverage
+[Verdict and findings]
 
 ## Repo & Dependency Coverage
-[Reviewer 2 verdict and findings, or "N/A — not a /work/ context"]
+[Verdict and findings, or "N/A — not a /work/ context"]
 
 ## Architectural Soundness
-[Reviewer 3 verdict and findings]
+[Verdict and findings]
 
 ## Suggested Changes
-[Consolidated, deduplicated list of actionable changes recommended across all reviewers]
+[Consolidated, deduplicated list of actionable changes]
 ```
 
 ## Step 3d — Spawn fix subagent
@@ -173,14 +208,29 @@ Review: ~/.claude/features/<short-name>/plan-review.md
 
 Read all three files. Then:
 
-1. For each item under "Suggested Changes" in the review, decide whether it is clearly correct and improves the plan. Apply only the changes you agree with — skip anything speculative, stylistic, or that contradicts the story goal.
-2. Rewrite ~/.claude/features/<short-name>/plan.md with the agreed fixes applied. Keep the same structure; only change what needs changing.
-3. Append a ## Revisions section at the bottom of plan.md listing each change you made and why, and each suggestion you skipped and why.
+1. For each item under "Suggested Changes" in the review, decide whether it is clearly correct and improves
+   the plan — meaning it closes a genuine gap or fixes an error. Apply those changes.
+   Skip anything speculative, stylistic, or that contradicts the story goal.
+2. Rewrite ~/.claude/features/<short-name>/plan.md with accepted changes applied. Keep the same template
+   structure. Update the header to add `> Last revised: <today's date>` below the Created line.
+   Lines must not exceed 140 characters.
+3. Append a `## Revisions` section at the bottom of plan.md with a changelog table:
+
+| Suggestion | Decision | Rationale |
+|------------|----------|-----------|
+| [brief description] | Applied / Rejected | [why] |
 ```
 
 ## Step 4 — Confirm
 
-Tell the user the feature plan is finished. Show the feature folder path and give a one-line summary of what was planned.
+Tell the user the feature plan is finished. Show the feature folder path and give a one-line summary of
+what was planned.
+
+Include a brief review summary:
+- Story & Acceptance Criteria Coverage verdict
+- Repo & Dependency Coverage verdict (or N/A)
+- Architectural Soundness verdict
+- Number of suggestions applied vs. rejected
 
 Then prompt: _"Next step: run `/feature-impl-plan` to break this into tasks and build an implementation plan."_
 
@@ -191,3 +241,5 @@ Then prompt: _"Next step: run `/feature-impl-plan` to break this into tasks and 
 - Active features live directly in `~/.claude/features/`
 - Completed features are moved to `~/.claude/features/done/<short-name>/`
 - All related md files for a feature go in that feature's folder
+- The `## Revisions` section appended to `plan.md` is the downstream-visible record of review changes;
+  `plan-review.md` is for human inspection only and is not read by downstream skills
