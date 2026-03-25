@@ -123,8 +123,9 @@ When all tasks are complete (or all unblocked tasks are complete), report:
 - Test results
 - Any deviations from the plan and why
 
-Then prompt: _"Next step: run `/feature-code-review <name>` to review the implemented
-code."_ (replace `<name>` with the actual feature folder name resolved in Step 1).
+Then prompt: _"Next step: run `/feature-code-review <name>` to review the
+implemented code, then `/feature-code-fix <name>` to apply any fixes."_
+(replace `<name>` with the actual feature folder name resolved in Step 1).
 
 ## Rules
 

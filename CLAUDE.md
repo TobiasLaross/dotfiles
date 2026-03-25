@@ -144,10 +144,11 @@ opencode auto-discovers skills from `~/.claude/skills/` (it scans `~/.claude` fo
 | `/feature-plan` | Draft a user story, create `~/.claude/features/<name>/` folder and files |
 | `/feature-impl-plan` | Break a feature into tasks with dependency analysis and parallel execution waves |
 | `/feature-implement` | Execute tasks from the impl plan in dependency order |
-| `/feature-code-review` | Review implemented feature code from 7 perspectives in parallel |
+| `/feature-code-review` | Review implemented feature code from 4 perspectives, output findings |
+| `/feature-code-fix` | Apply fixes from review findings, batch by file, run tests to verify |
 | `/feature-done` | Verify all tasks are complete, then move feature to `done/` |
 | `/review-plan` | Review an implementation plan from 6 perspectives in parallel |
-| `/review-code` | Review any code from 7 perspectives in parallel |
+| `/review-code` | Review any code from 4 perspectives in parallel |
 | `/bugfix` | Investigate a bug, write a failing test, implement and review a fix |
 | `/explain-code` | Explain code with diagrams and analogies |
 | `/repo-context` | Scan repos in `~/Developer/` and write per-repo context files to `~/.claude/repo-context/` |

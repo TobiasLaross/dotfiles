@@ -1,6 +1,10 @@
 ---
 name: feature-code-review
-description: Reviews implemented code for a feature from 7 perspectives in parallel — correctness, security, performance & scalability, maintainability & architecture, test quality, acceptance criteria, and design pattern consistency. Use when the user runs /feature-code-review with an optional feature name. Ideal to run after /feature-implement completes.
+description: >-
+  Reviews implemented code for a feature from 4 perspectives in parallel — runtime safety,
+  performance, code quality, and completeness. Outputs findings to review-fixes.md for
+  optional follow-up with /feature-code-fix. Use when the user runs /feature-code-review
+  with an optional feature name. Ideal to run after /feature-implement completes.
 argument-hint: [feature-name]
 disable-model-invocation: false
 allowed-tools: Read, Grep, Glob, Bash
@@ -14,105 +18,201 @@ The user has invoked `/feature-code-review`. Follow this workflow exactly.
 
 **If `$ARGUMENTS` is provided:**
 - Treat it as the folder name under `~/.claude/features/<name>/`
-- If the folder does not exist, try a fuzzy match against existing folder names in `~/.claude/features/` (exclude `done/`)
+- If the folder does not exist, try a fuzzy match against existing folder names
+  in `~/.claude/features/` (exclude `done/`)
 - If no match is found, list available features and ask the user to pick one
 
 **If no argument is provided:**
 - Infer from the current session conversation which feature is being discussed
-- If unclear, scan `~/.claude/features/` for feature folders (exclude `done/`), list them (numbered), and ask the user to pick one (by number or name)
+- If unclear, scan `~/.claude/features/` for feature folders (exclude `done/`),
+  list them (numbered), and ask the user to pick one (by number or name)
 
 ## Step 2 — Read all feature files
 
 Read every `.md` file in `~/.claude/features/<name>/`. At minimum, expect:
-- `story.md` — the user story and context (used as **original requirements** for the review)
+- `story.md` — the user story and context (used as **original requirements**)
 - `plan.md` — the high-level plan
 - `impl-plan.md` — the detailed implementation plan with tasks and execution waves
 - `test-plan.md` — the test plan (unit, integration, E2E)
 
-Store all of this. The story, impl-plan, and test-plan provide the acceptance criteria and requirements context for the review.
+Store all of this. The story, impl-plan, and test-plan provide the acceptance
+criteria and requirements context for the review.
 
 ## Step 3 — Gather code context
 
 Collect the following before launching agents:
 
-- **Changed files:** Run `git diff $(git merge-base HEAD $(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||') 2>/dev/null) --name-only 2>/dev/null` to get files changed relative to the base branch. If no changes are found, check the impl-plan for file paths mentioned in the tasks and use those instead.
-- **Full diff:** Run `git diff $(git merge-base HEAD $(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||') 2>/dev/null) 2>/dev/null` to get the complete diff against the base branch.
-- **Base branch:** Run `git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||'` to identify main/master/develop.
-- **File contents:** Read all changed source and test files in full using the Read tool.
-- **Tech stack:** Read `package.json`, `pyproject.toml`, `build.gradle`, `*.csproj`, `Cargo.toml`, `go.mod`, or equivalent. Fall back to file extensions.
+- **Changed files:** Run
+  `git diff $(git merge-base HEAD $(git symbolic-ref refs/remotes/origin/HEAD
+  2>/dev/null | sed 's|refs/remotes/origin/||') 2>/dev/null) --name-only 2>/dev/null`
+  to get files changed relative to the base branch. If no changes are found,
+  check the impl-plan for file paths mentioned in the tasks and use those instead.
+- **Full diff:** Run
+  `git diff $(git merge-base HEAD $(git symbolic-ref refs/remotes/origin/HEAD
+  2>/dev/null | sed 's|refs/remotes/origin/||') 2>/dev/null) 2>/dev/null`
+  to get the complete diff against the base branch.
+- **Base branch:** Run
+  `git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||'`
+  to identify main/master/develop.
+- **File contents:** Read all changed source and test files in full using the
+  Read tool.
+- **Tech stack:** Read `package.json`, `pyproject.toml`, `build.gradle`,
+  `*.csproj`, `Cargo.toml`, `go.mod`, or equivalent. Fall back to file extensions.
 - **Project structure:** Run `git ls-files | head -80`.
 
 If the impl-plan references multiple repos, repeat this for each repo directory.
 
-If no changed files can be identified from git or the impl-plan, ask the user to specify which files to review and stop.
+If no changed files can be identified from git or the impl-plan, ask the user to
+specify which files to review and stop.
 
-## Step 4 — Launch 7 sub-agents in parallel
+## Step 4 — Launch 4 sub-agents in parallel
 
-Call the Agent tool exactly 7 times in the same response. Do NOT wait for one to finish before launching the next. Replace placeholders with actual content from Steps 2–3. Use the feature's `story.md` as the [REQUIREMENTS] source.
+Call the Agent tool exactly 4 times in the same response. Do NOT wait for one to
+finish before launching the next. Replace placeholders with actual content from
+Steps 2–3. Use the feature's `story.md` as the [REQUIREMENTS] source.
 
-These agents review the **actual implementation** (code quality, runtime behavior, concrete bugs). Design-level concerns (architecture fit, task structure, security design) were already covered during `/feature-impl-plan` — do not duplicate that work here.
+These agents review the **actual implementation** (code quality, runtime behavior,
+concrete bugs). Design-level concerns (architecture fit, task structure, security
+design) were already covered during `/feature-impl-plan` — do not duplicate that
+work here.
 
-Agent 1 — Correctness:
-"Review the following code for correctness. Focus on: logic errors, off-by-one errors, incorrect assumptions, missing null/undefined checks, wrong return values, broken control flow, misuse of APIs or libraries, and anything that will produce wrong results at runtime. Reference file names and line numbers where possible. Use severity flags CRITICAL / HIGH / LOW on each finding.\n\nBase branch: [BASE_BRANCH]\nTech stack: [TECH_STACK]\nFiles reviewed: [FILE_PATHS]\n\n[CODE]"
+Agent 1 — Runtime Safety (correctness + security):
+"Review the following code for runtime correctness and security. Focus on:
 
-Agent 2 — Security:
-"Review the following code for security vulnerabilities. Focus on: injection risks (SQL, XSS, command injection), broken authentication or authorization, sensitive data in logs or responses, hardcoded secrets, insecure deserialization, missing input validation, and any OWASP Top 10 issues present in the actual implementation. Reference file names and line numbers where possible. Use severity flags CRITICAL / HIGH / LOW on each finding.\n\nTech stack: [TECH_STACK]\nFiles reviewed: [FILE_PATHS]\n\n[CODE]"
+Correctness: logic errors, off-by-one errors, incorrect assumptions, missing
+null/undefined checks, wrong return values, broken control flow, misuse of APIs
+or libraries, anything that will produce wrong results at runtime.
 
-Agent 3 — Performance & Scalability:
-"Review the following code for performance and scalability issues. Focus on: N+1 query patterns, missing database indexes, synchronous operations that should be async, unnecessary loops or recomputation, memory leaks, large payloads loaded into memory, missing pagination, and anything that will degrade under load. Reference file names and line numbers where possible. Use severity flags CRITICAL / HIGH / LOW on each finding.\n\nTech stack: [TECH_STACK]\nFiles reviewed: [FILE_PATHS]\n\n[CODE]"
+Security: injection risks (SQL, XSS, command injection), broken authentication or
+authorization, sensitive data in logs or responses, hardcoded secrets, insecure
+deserialization, missing input validation, OWASP Top 10 issues.
 
-Agent 4 — Maintainability & Architecture:
-"Review the following code for maintainability and architectural quality. Focus on: functions or classes doing too much, duplicated logic, misleading names, missing or misleading comments on non-obvious logic, magic numbers or strings, deeply nested code, tight coupling between modules, and anything that will make this code hard to change or understand later. Reference file names and line numbers where possible. Use severity flags CRITICAL / HIGH / LOW on each finding.\n\nTech stack: [TECH_STACK]\nProject structure: [PROJECT_STRUCTURE]\nFiles reviewed: [FILE_PATHS]\n\n[CODE]"
+Reference file names and line numbers where possible. Use severity flags
+CRITICAL / HIGH / LOW on each finding.
 
-Agent 5 — Test Quality:
-"Review the following test code for completeness and quality. Identify:\n\n1. **Missing edge cases** — inputs or states not covered but should be: boundary values, empty/null inputs, error states, concurrent access, large inputs, invalid types, etc.\n2. **Poorly implemented tests** — tests that give false confidence: tests that never fail, assertions that are too loose, tests that test implementation details instead of behavior, missing assertions, tests that depend on each other or on execution order, brittle tests.\n3. **Missing main flow coverage** — any critical happy path with no test.\n\nFor each issue, reference the specific test file and test name. Use severity flags CRITICAL / HIGH / LOW.\n\nTech stack: [TECH_STACK]\nFiles reviewed: [FILE_PATHS]\n\n[CODE]"
+Base branch: [BASE_BRANCH]
+Tech stack: [TECH_STACK]
+Files reviewed: [FILE_PATHS]
 
-Agent 6 — Acceptance Criteria:
-"You are verifying whether the following implementation satisfies the original requirements from the feature story and implementation plan. You have access to the filesystem.\n\nOriginal requirements (from story.md):\n[REQUIREMENTS]\n\nImplementation plan tasks:\n[IMPL_PLAN_TASKS]\n\nFor each requirement or acceptance criterion:\n1. Determine whether the implementation covers it — fully, partially, or not at all.\n2. If partially or not covered, describe specifically what is missing.\n3. Check the changed files and, if needed, adjacent files to confirm the behavior is actually wired up end-to-end (not just partially implemented).\n\nUse severity flags CRITICAL / HIGH / LOW. CRITICAL means a core requirement is missing from the implementation entirely.\n\nBase branch: [BASE_BRANCH]\nFiles reviewed: [FILE_PATHS]\n\n[CODE]"
+[CODE]"
 
-Agent 7 — Design Pattern Consistency:
-"You are reviewing whether the following implementation aligns with the established design patterns in this codebase. You have access to the filesystem.\n\n1. Detect the current repo name from the working directory path.\n2. Check whether a pre-built context file exists: `cat ~/.claude/repo-context/<repo-name>.md 2>/dev/null`. If it exists, read the '## Design patterns' section — it lists canonical patterns per area and resolves any conflicts between old and new approaches. Use this as your primary source of truth for what patterns new code should follow.\n3. Read the project structure to identify where similar features live.\n4. Use Glob and Grep to find 2-4 existing features that are similar in nature to what was implemented.\n5. Read those files to confirm the patterns match what the context file describes (or to discover patterns if no context file exists).\n6. Compare the new implementation against those patterns and flag any deviations. If the context file named a canonical pattern for an area touched by the new code, flag any deviation from that canonical pattern as HIGH or CRITICAL.\n\nUse severity flags CRITICAL / HIGH / LOW. CRITICAL means the deviation would make this feature feel foreign to the codebase and create long-term inconsistency.\n\nBase branch: [BASE_BRANCH]\nTech stack: [TECH_STACK]\nProject structure: [PROJECT_STRUCTURE]\nNew files reviewed: [FILE_PATHS]\n\n[CODE]"
+Agent 2 — Performance & Scalability:
+"Review the following code for performance and scalability issues. Focus on: N+1
+query patterns, missing database indexes, synchronous operations that should be
+async, unnecessary loops or recomputation, memory leaks, large payloads loaded
+into memory, missing pagination, and anything that will degrade under load.
+Reference file names and line numbers where possible. Use severity flags
+CRITICAL / HIGH / LOW on each finding.
+
+Tech stack: [TECH_STACK]
+Files reviewed: [FILE_PATHS]
+
+[CODE]"
+
+Agent 3 — Code Quality (maintainability + design patterns):
+"Review the following code for maintainability and design pattern consistency.
+
+Maintainability: functions or classes doing too much, duplicated logic, misleading
+names, missing or misleading comments on non-obvious logic, magic numbers or
+strings, deeply nested code, tight coupling between modules, anything that will
+make this code hard to change or understand later.
+
+Design pattern consistency: You have access to the filesystem.
+1. Detect the current repo name from the working directory path.
+2. Check whether a pre-built context file exists:
+   `cat ~/.claude/repo-context/<repo-name>.md 2>/dev/null`. If it exists, read
+   the '## Design patterns' section — use this as your primary source of truth
+   for what patterns new code should follow.
+3. Use Glob and Grep to find 2-4 existing features similar to what was
+   implemented. Read those files to confirm patterns.
+4. Compare the new implementation against those patterns and flag deviations.
+   If the context file named a canonical pattern for an area touched by the new
+   code, flag any deviation as HIGH or CRITICAL.
+
+Reference file names and line numbers where possible. Use severity flags
+CRITICAL / HIGH / LOW on each finding.
+
+Tech stack: [TECH_STACK]
+Project structure: [PROJECT_STRUCTURE]
+Files reviewed: [FILE_PATHS]
+
+[CODE]"
+
+Agent 4 — Completeness (acceptance criteria + test quality):
+"Review the following implementation for completeness against requirements and
+test quality. You have access to the filesystem.
+
+Part A — Acceptance Criteria:
+Original requirements (from story.md):
+[REQUIREMENTS]
+
+Implementation plan tasks:
+[IMPL_PLAN_TASKS]
+
+For each requirement or acceptance criterion:
+1. Determine whether the implementation covers it — fully, partially, or not
+   at all.
+2. If partially or not covered, describe specifically what is missing.
+3. Check the changed files and, if needed, adjacent files to confirm the behavior
+   is actually wired up end-to-end (not just partially implemented).
+
+Part B — Test Quality:
+Also read the test plan from: [TEST_PLAN]
+
+1. Missing edge cases — inputs or states not covered: boundary values, empty/null
+   inputs, error states, concurrent access, large inputs, invalid types, etc.
+2. Poorly implemented tests — tests that give false confidence: tests that never
+   fail, assertions too loose, tests that test implementation details instead of
+   behavior, missing assertions, tests that depend on each other or execution
+   order, brittle tests.
+3. Missing main flow coverage — any critical happy path with no test.
+4. Test plan coverage — for each test case in the test plan, determine whether a
+   corresponding test exists: Covered, Missing, or Partial.
+
+For each issue, reference specific files, line numbers, and test names. Use
+severity flags CRITICAL / HIGH / LOW. CRITICAL means a core requirement is missing
+or a critical happy path has no test.
+
+Base branch: [BASE_BRANCH]
+Tech stack: [TECH_STACK]
+Files reviewed: [FILE_PATHS]
+
+[CODE]"
 
 ## Step 5 — Synthesize findings
 
-After all 7 agents return their results, present everything in this format:
+After all 4 agents return their results, present everything in this format:
 
 ---
 
 ## Feature Code Review: `<feature-name>`
 
 Severity flags:
-- **CRITICAL:** must fix before merging — correctness, security, or data integrity risk
+- **CRITICAL:** must fix before merging — correctness, security, or data
+  integrity risk
 - **HIGH:** significant concern — should be fixed before or shortly after merging
 - **LOW:** worth addressing — code quality, minor improvements
 
-### Correctness
+### Runtime Safety
 [Agent 1 findings — bullet points with file:line references and severity flags]
 
-### Security
+### Performance & Scalability
 [Agent 2 findings — bullet points with file:line references and severity flags]
 
-### Performance & Scalability
+### Code Quality
 [Agent 3 findings — bullet points with file:line references and severity flags]
 
-### Maintainability & Architecture
-[Agent 4 findings — bullet points with file:line references and severity flags]
+### Completeness
+#### Acceptance Criteria
+[Agent 4 Part A — each requirement: Fully / Partially / Not covered,
+with explanation]
 
-### Test Quality
-#### Missing Edge Cases
-[Agent 5 missing edge case findings — bullet points with severity flags]
+#### Test Quality
+[Agent 4 Part B — bullet points with severity flags, referencing test names
+and files]
 
-#### Poorly Implemented Tests
-[Agent 5 poor test findings — bullet points referencing test name and file]
-
-#### Missing Main Flow Coverage
-[Agent 5 coverage gaps — bullet points]
-
-### Acceptance Criteria
-[Agent 6 findings — each requirement listed with: Fully covered / Partially covered / Not covered, and explanation]
-
-### Design Pattern Consistency
-[Agent 7 findings — bullet points with severity flags, referencing specific existing files as examples of the expected pattern]
+#### Test Plan Coverage
+[Agent 4 Part B.4 — X of Y test cases covered, list any missing/partial]
 
 ### Summary
 **Overall assessment:** [1-2 sentences on whether the code is ready to merge]
@@ -126,138 +226,36 @@ Severity flags:
 
 ---
 
-## Step 6 — Build fix tasks and apply fixes
+## Step 6 — Write review-fixes.md
 
-Go through every finding from all 7 agents. For each finding, decide:
-
-- **Accept** — will be fixed
-- **Reject** — leave unchanged, with an explicit argument for why
-
-### 6a — Create fix task list
-
-For every accepted finding, create a numbered fix task. Write the task list to `~/.claude/features/<name>/review-fixes.md`:
+Write findings to `~/.claude/features/<name>/review-fixes.md`:
 
 ```md
-# Review Fix Tasks
+# Review Findings
 
 > Generated: <today's date>
+> Feature: <feature-name>
 
-## Fix Tasks
+## Findings
 
-### F01 — <Short title describing the fix>
-- [ ] Fixed
+### F01 — <Short title describing the finding>
 - **Source:** <Agent name> (<severity>)
 - **Finding:** <1-2 sentence description>
 - **Files:** <file paths that need changes>
+- **Suggested fix:** <brief description of what to change>
 
-[Repeat for each accepted finding]
+[Repeat for each finding worth acting on]
 
-## Rejected Findings
+## No Action Needed
 
 | Finding | Agent | Severity | Rationale |
 |---------|-------|----------|-----------|
-| [brief description] | Agent N | CRITICAL/HIGH/LOW | [why rejected] |
+| [brief description] | Agent N | LOW | [why no action needed] |
 ```
 
-> **CRITICAL WARNING:** If any CRITICAL finding was **Rejected**, highlight it prominently. The user must consciously acknowledge they are accepting a known critical risk before this work is considered done.
+> **CRITICAL WARNING:** If any CRITICAL finding exists, highlight it prominently
+> at the top of the file.
 
-### 6b — Execute fix tasks
-
-For each fix task, spawn a subagent (`subagent_type: general-purpose`) to apply the fix. Group independent fixes and launch them in parallel where possible.
-
-Each subagent receives:
-```
-You are applying a specific code review fix.
-
-Feature folder: ~/.claude/features/<name>/
-Fix task: <fix-id> — <fix-title>
-Finding: <full finding description>
-Files to change: <file paths>
-
-## Instructions
-
-1. Read the relevant files.
-2. Apply the minimal fix that addresses the finding.
-3. If the fix involves writing a missing test, follow existing test conventions.
-4. Do not change anything beyond what the finding requires.
-5. Verify your fix is logically correct before finishing.
-```
-
-After each fix subagent returns, mark `- [ ] Fixed` → `- [x] Fixed` in `review-fixes.md`.
-
-### 6c — Re-review CRITICAL fixes
-
-For every CRITICAL finding that was fixed, spawn a single follow-up agent to verify the fix is correct and hasn't introduced a new problem. If the verification fails, report it to the user — do not loop indefinitely.
-
-### 6d — Present changelog
-
-```md
-## Changelog
-
-| Fix | Finding | Decision | Status |
-|-----|---------|----------|--------|
-| F01 | [brief description] | Applied | Fixed |
-| —   | [brief description] | Rejected | [why] |
-```
-
-## Step 7 — Per-task review
-
-After all fixes are applied and the changelog is presented, spawn one review subagent per implemented task to verify it individually. Read `~/.claude/features/<name>/impl-plan.md` and identify every task with `- [x] Implemented`. Launch all review subagents **in parallel** (`subagent_type: general-purpose`).
-
-Each subagent receives this prompt (replace placeholders with actual values):
-
-```
-You are reviewing a single implementation task to verify it fulfills its requirements.
-
-Feature folder: ~/.claude/features/<name>/
-Task: <task-id> — <task-title>
-Task scope from impl-plan:
-<task-scope>
-
-## Instructions
-
-1. Read ~/.claude/features/<name>/story.md and ~/.claude/features/<name>/impl-plan.md for full context.
-2. Examine the actual code for this task. Use Grep and Glob to find the files mentioned in the task scope. Read them in full.
-3. Verify:
-   - The done state described in the task scope is actually achieved
-   - The implementation matches the intent — no shortcuts, stubs, or incomplete wiring
-   - The code integrates correctly with adjacent tasks
-   - No obvious bugs, missing error handling for the task's scope, or logic gaps
-4. Return one of:
-   - **APPROVED** — the task is complete and correct. No changes needed.
-   - **NEEDS CHANGES** — describe specifically what is wrong or missing, referencing file paths and line numbers.
-```
-
-After all review subagents return:
-- **APPROVED** tasks: mark `- [ ] Reviewed` → `- [x] Reviewed` in `impl-plan.md` using the Edit tool
-- **NEEDS CHANGES** tasks: apply the requested fixes, then re-run the review subagent for that task. Only mark `- [x] Reviewed` after it returns APPROVED. If a fix requires changes beyond the task scope, ask the user before proceeding.
-
-In the **same parallel batch** as the per-task reviewers, also launch a test coverage reviewer:
-
-```
-You are reviewing whether all test cases defined in the implementation plan have actually been implemented.
-
-Feature folder: ~/.claude/features/<name>/
-
-## Instructions
-
-1. Read ~/.claude/features/<name>/test-plan.md — extract every test case (unit tests, integration tests, and E2E/acceptance tests).
-2. Also read ~/.claude/features/<name>/impl-plan.md for task context.
-3. Find all test files in the repo. Use Grep and Glob to locate them (look for common patterns: *.test.*, *.spec.*, *_test.*, test_*.*, etc.).
-4. For each test case in the plan, determine whether a corresponding test exists in the codebase:
-   - **Covered** — a test exists that matches the described scenario
-   - **Missing** — no test found for this planned test case
-   - **Partial** — a test exists but does not fully cover the described scenario (explain what is missing)
-5. Return a checklist:
-   - [ ] or [x] for each planned test case, with the test file and test name if covered
-   - A summary: X of Y test cases covered
-   - For any missing or partial cases, describe exactly what test needs to be written or extended
-```
-
-After the test coverage reviewer returns:
-- If all test cases are covered, report this.
-- If any are missing or partial, write the missing tests or extend partial ones. If unclear where a test should go, ask the user.
-
-Report which tasks passed review and which required additional fixes, plus test coverage results.
-
-Then prompt: _"Next step: run `/feature-done <name>` to mark this feature as complete and move it to done."_ (replace `<name>` with the actual feature folder name).
+Then prompt: _"Next step: run `/feature-code-fix <name>` to apply fixes, or
+review the findings in `~/.claude/features/<name>/review-fixes.md` first."_
+(replace `<name>` with the actual feature folder name).

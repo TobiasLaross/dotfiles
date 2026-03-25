@@ -23,10 +23,13 @@ The user has invoked `/feature-done`. Follow this workflow exactly.
 
 Read `~/.claude/features/<name>/impl-plan.md`. Check:
 
-1. **All tasks implemented:** Every task must have `- [x] Implemented`. List any that don't.
-2. **All tasks reviewed:** Every task must have `- [x] Reviewed`. List any that don't.
+1. **All tasks implemented:** Every task must have `- [x] Implemented`. List any
+   that don't.
+2. **Review completed:** Check that `~/.claude/features/<name>/review-fixes.md`
+   exists. If it doesn't, warn that `/feature-code-review` hasn't been run.
 
-If any tasks are incomplete, report exactly which tasks are missing implementation or review and ask the user how to proceed:
+If any tasks are not implemented or the review is missing, report what's
+outstanding and ask the user how to proceed:
 - Continue anyway (force move)
 - Go back and finish (abort)
 
@@ -42,7 +45,7 @@ Do not proceed unless the user explicitly confirms.
 
 Tell the user:
 - Feature `<name>` has been moved to `~/.claude/features/done/<name>/`
-- Summary: X tasks implemented, X tasks reviewed
+- Summary: X tasks implemented, review status
 - The feature is now archived
 
 ## Rules
