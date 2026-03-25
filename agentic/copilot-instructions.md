@@ -39,7 +39,8 @@ tools:
 
 ## Feature Tracking
 
-Features are tracked in `~/.claude/features/`. The folder and all files are created by `/feature-plan` — do not create feature folders manually. When the user runs `/feature-plan`, that skill handles naming, folder creation, planning, and review.
+Features are tracked in `~/.claude/features/`. The folder and all files are created by `/feature-plan`, — do not create feature folders
+manually. When the user runs `/feature-plan`, that skill handles naming, folder creation, planning, and review.
 
 If a feature folder already exists, you may read its files to resume context across sessions.
 
@@ -51,6 +52,12 @@ If a feature folder already exists, you may read its files to resume context acr
 
 ### Work repos
 
-When working inside a `/work/` directory, related repositories live in `~/Developer/work/`. Scan that directory to identify which repos are relevant to a given task or feature.
+When working inside a `/work/` directory, related repositories live in `~/Developer/work/`. Scan that directory to identify which repos are
+relevant to a given task or feature.
 
-Pre-built context files for each repo live at `~/.claude/repo-context/<repo-name>.md`. When they exist, read them before reading source code — they contain purpose, architecture, inter-repo dependencies, external communication protocols, and canonical design patterns. Fall back to reading source only when context files are missing or insufficient.
+Pre-built context files for each repo live at `~/.claude/repo-context/<repo-name>.md`. When they exist, read them before reading source
+code — they contain purpose, architecture, inter-repo dependencies, external communication protocols, and canonical design patterns.
+Fall back to reading source only when context files are missing or insufficient.
+
+### Markdown files
+When writing markdown files, make sure that lines are not longer than 140 characters without trailing white-spaces.

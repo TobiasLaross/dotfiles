@@ -56,7 +56,7 @@ Follow the **Execution Plan** section in `impl-plan.md`. Execute tasks wave by w
 - Do not skip tasks or reorder across waves — dependencies matter
 - If a task is blocked by an external dependency (e.g., waiting for a merge in another repo), skip it, complete all unblocked tasks, and tell the user what remains blocked and why
 
-## Step 5 — Run tests
+## Step 5 — Run tests (Optional ask the user first)
 
 After all tasks in a repo are complete:
 1. Run the repo's test suite unless running tests are blocked by another repo
