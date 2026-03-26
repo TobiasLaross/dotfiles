@@ -89,9 +89,7 @@ Follow the **Execution Plan** section in `impl-plan.md`. Execute tasks wave by w
       the next task. Report all blocked tasks in Step 6.
    b. Mark the task's checkbox in `impl-plan.md` from `- [ ] Implemented` to
       `- [x] Implemented` using the Edit tool
-6. Run existing tests after each wave to catch regressions early unless a dependency
-   from another repo is blocking us from running tests
-7. After completing all tasks in a wave, report: "Wave N complete: T01, T03, T05
+6. After completing all tasks in a wave, report: "Wave N complete: T01, T03, T05
    done. Moving to Wave N+1." If any tasks in the wave were blocked, list them.
 
 **Important:**
@@ -107,24 +105,20 @@ Follow the **Execution Plan** section in `impl-plan.md`. Execute tasks wave by w
   another repo), skip it, complete all unblocked tasks, and tell the user what
   remains blocked and why
 
-## Step 5 — Run tests (Optional)
+## Step 5 — Tests
 
-After all tasks in a repo are complete:
-1. Ask the user if tests should be run automatically (otherwise user will run manually)
-1. Run the repo's test suite unless running tests is blocked by another repo. If the
-   test command is expected to take longer than 2 minutes (e.g., large Java/Gradle
-   projects, full E2E suites), ask the user before running. For fast test suites
-   (unit tests in JS/Python/Go), run without asking.
-2. If tests fail, diagnose and fix by using subagent(s) — check
-   `~/.claude/features/<name>/test-plan.md` for expected test behavior
-3. If a fix requires changes beyond the task scope, ask the user before proceeding
+After all tasks in a repo are complete, prompt the user to run the test suite and report results back.
+Some repos (e.g. Xcode/iOS projects) can get stuck or time out during automated test runs, and some
+environments can't run the full suite locally — so it's more reliable to let the user run tests and
+share the output. Once they do, diagnose any failures and fix them. If a fix requires changes beyond
+the task scope, ask before proceeding.
 
 ## Step 6 — Report
 
 When all tasks are complete (or all unblocked tasks are complete), report:
 - Which tasks were completed
 - Which tasks are blocked (if any) and what they're waiting on
-- Test results
+- Test results (if the user has run them)
 - Any deviations from the plan and why
 
 Then prompt: _"Next step: run `/feature-code-review <name>` to review the
