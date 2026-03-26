@@ -13,7 +13,7 @@ argument-hint: <feature description>
 
 The user has invoked `/feature-plan` with a feature description. Follow this workflow exactly.
 
-## Step 1 — Draft the story
+## Step 1a — Draft the user story
 
 From the user's description, draft:
 - A **short folder name** (kebab-case, 2–4 words, e.g. `user-avatar-upload`)
@@ -21,18 +21,34 @@ From the user's description, draft:
 
   **As a** [user type], **I want** [goal] **so that** [reason]
 
-- **Acceptance criteria** — 3–5 specific, testable conditions that must be true for the story to be considered done (checkbox format)
-
 Before presenting to the user:
 1. Check whether `~/.claude/features/<short-name>/` already exists. If it does, warn the user:
    _"A feature folder named `<short-name>` already exists. Proceeding will overwrite its files. Continue?"_
    Do not proceed until they confirm.
 2. Check for a name collision with any other folder directly under `~/.claude/features/` (excluding `done/`).
 
-Present the folder name, user story, and acceptance criteria to the user and ask for approval.
+Present the folder name and user story. Ask: _"Does this capture what you want to build? Confirm or suggest changes."_
 If they request changes, redraft and re-present — repeat up to 2 times.
 If still not approved after 2 redrafts, ask the user to provide a revised description directly.
-Do not proceed until they confirm.
+Do not proceed to Step 1b until the user confirms the story.
+
+## Step 1b — Draft acceptance criteria
+
+Draft **3–5 acceptance criteria** — specific, testable conditions that must all be true for the story to be
+considered done. Good criteria are:
+- **Specific**: unambiguous about what must happen
+- **Testable**: someone can verify pass/fail without interpretation
+- **User-visible**: describes observable outcomes, not implementation details
+
+Present the criteria in checkbox format. Ask:
+_"These criteria will drive the entire plan and implementation — every design decision and task will trace back to
+them. Does each one fully define a 'done' state? Are any missing, too vague, or out of scope? Refine as many
+times as needed."_
+
+If they request changes, redraft and re-present. Repeat until the user explicitly confirms they are satisfied.
+There is no iteration cap — getting the acceptance criteria right is the most important step in the whole flow.
+
+Do not proceed to Step 2 until the user explicitly approves the acceptance criteria.
 
 ## Step 2 — Create the story file
 
@@ -75,6 +91,10 @@ You are creating a high-level plan for a user story.
 Story file: ~/.claude/features/<short-name>/story.md
 
 Read that file to understand the goal and acceptance criteria.
+
+The acceptance criteria are the ground truth for what this feature must achieve. Treat them as primary design
+constraints — every section of your plan must be traceable to at least one criterion, and no criterion should be
+left unaddressed.
 
 ## Repo detection
 
