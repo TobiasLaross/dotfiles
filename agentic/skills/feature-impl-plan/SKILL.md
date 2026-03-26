@@ -248,7 +248,6 @@ implementation plan. The test plan remains in its own file (`test-plan.md`).
 
 ### T01 — <Title>
 - [ ] Implemented
-- [ ] Reviewed
 
 **Area:** <area>
 **Depends on:** none (or T0X, T0Y)

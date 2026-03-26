@@ -6,8 +6,7 @@ description: >-
   optional follow-up with /feature-code-fix. Use when the user runs /feature-code-review
   with an optional feature name. Ideal to run after /feature-implement completes.
 argument-hint: [feature-name]
-disable-model-invocation: false
-allowed-tools: Read, Grep, Glob, Bash
+allowed-tools: Read, Grep, Glob, Bash, Agent
 ---
 
 # Feature Code Review Workflow
@@ -42,18 +41,17 @@ criteria and requirements context for the review.
 
 Collect the following before launching agents:
 
-- **Changed files:** Run
-  `git diff $(git merge-base HEAD $(git symbolic-ref refs/remotes/origin/HEAD
-  2>/dev/null | sed 's|refs/remotes/origin/||') 2>/dev/null) --name-only 2>/dev/null`
-  to get files changed relative to the base branch. If no changes are found,
-  check the impl-plan for file paths mentioned in the tasks and use those instead.
-- **Full diff:** Run
-  `git diff $(git merge-base HEAD $(git symbolic-ref refs/remotes/origin/HEAD
-  2>/dev/null | sed 's|refs/remotes/origin/||') 2>/dev/null) 2>/dev/null`
-  to get the complete diff against the base branch.
 - **Base branch:** Run
   `git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||'`
-  to identify main/master/develop.
+  to identify main/master/develop. If that returns nothing (no remote), default to `main`.
+  Store as `BASE_BRANCH`.
+- **Merge base:** Run `git merge-base HEAD origin/$BASE_BRANCH 2>/dev/null`. If that
+  fails (no remote or branch not found), fall back to `git merge-base HEAD HEAD~10
+  2>/dev/null`. Store as `MERGE_BASE`. If still empty, use `HEAD~1`.
+- **Changed files:** Run `git diff $MERGE_BASE --name-only` to get files changed
+  relative to the base. If no changes are found, check the impl-plan for file paths
+  mentioned in the tasks and use those instead.
+- **Full diff:** Run `git diff $MERGE_BASE` to get the complete diff against the base.
 - **File contents:** Read all changed source and test files in full using the
   Read tool.
 - **Tech stack:** Read `package.json`, `pyproject.toml`, `build.gradle`,

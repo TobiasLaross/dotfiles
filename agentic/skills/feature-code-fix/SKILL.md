@@ -5,7 +5,6 @@ description: >-
   applies them, and runs tests to verify. Use when the user runs /feature-code-fix with an
   optional feature name. Run after /feature-code-review.
 argument-hint: [feature-name]
-disable-model-invocation: false
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash, Agent
 ---
 
