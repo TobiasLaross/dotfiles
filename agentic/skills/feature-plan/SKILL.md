@@ -1,6 +1,11 @@
 ---
 name: feature-plan
-description: Create a new feature plan. Use when the user runs /feature-plan followed by a feature description. Drafts a user story for approval, then creates the feature folder and files under ~/.claude/features/.
+description: >-
+  Create a new feature plan. Use this whenever the user wants to start building something new —
+  even if they haven't said /feature-plan explicitly. If the user describes a feature, asks "how
+  should I build X", or says "let's plan this", reach for this skill. Drafts a user story with
+  acceptance criteria, generates a high-level plan with automated review, and saves everything
+  under ~/.claude/features/.
 argument-hint: <feature description>
 ---
 
@@ -236,7 +241,8 @@ Then prompt: _"Next step: run `/feature-impl-plan` to break this into tasks and 
 
 ## Rules
 
-- Never skip the approval step — the user must confirm before any file is written
+- Never skip the approval step — writing files before the user confirms can create stale or
+  misnamed feature folders that are annoying to clean up
 - Use kebab-case for folder names, lowercase only
 - Active features live directly in `~/.claude/features/`
 - Completed features are moved to `~/.claude/features/done/<short-name>/`

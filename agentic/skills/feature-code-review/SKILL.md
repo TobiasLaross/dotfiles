@@ -1,10 +1,11 @@
 ---
 name: feature-code-review
 description: >-
-  Reviews implemented code for a feature from 4 perspectives in parallel — runtime safety,
-  performance, code quality, and completeness. Outputs findings to review-fixes.md for
-  optional follow-up with /feature-code-fix. Use when the user runs /feature-code-review
-  with an optional feature name. Ideal to run after /feature-implement completes.
+  Review implemented feature code from 4 perspectives in parallel: runtime safety, performance,
+  code quality, and completeness against acceptance criteria. Use after /feature-implement — or
+  any time code has been written for a feature and needs a thorough review, even if the user just
+  says "review this" or "check my code". Outputs structured findings to review-fixes.md for
+  follow-up with /feature-code-fix.
 argument-hint: [feature-name]
 allowed-tools: Read, Grep, Glob, Bash, Agent
 ---

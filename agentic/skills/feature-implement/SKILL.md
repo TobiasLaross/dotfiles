@@ -1,6 +1,10 @@
 ---
 name: feature-implement
-description: Implement a feature from its plan. Reads all files in the feature folder (story, plan, impl-plan) and executes tasks in dependency order, following execution waves. Use when the user runs /feature-implement with an optional feature name.
+description: >-
+  Execute the tasks from a feature's impl-plan, wave by wave, following dependency order. Use
+  whenever the user is ready to start coding — even if they just say "start building", "let's go",
+  or "implement it". Reads story, plan, and impl-plan to stay aligned, marks tasks complete as
+  it goes, and runs tests after each wave to catch regressions early.
 argument-hint: [feature-name]
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash, Agent
 ---

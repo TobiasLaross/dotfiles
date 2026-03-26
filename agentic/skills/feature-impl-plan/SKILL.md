@@ -1,6 +1,10 @@
 ---
 name: feature-impl-plan
-description: Create a detailed implementation plan for a feature, breaking it into tasks with dependency analysis, parallel execution groups, subagent assignments (for large features), and per-task test details. Use when the user runs /feature-impl-plan with an optional feature name. If no argument is given, uses the feature currently discussed in the session.
+description: >-
+  Break a feature into concrete tasks with dependency analysis, execution waves, subagent
+  assignments (for large features), and a full test plan. Run this after /feature-plan whenever
+  the user is ready to start building — even if they just say "let's break this down" or "what
+  do I need to implement". If no feature name is given, uses the one currently being discussed.
 argument-hint: [feature-name]
 ---
 
@@ -248,6 +252,7 @@ implementation plan. The test plan remains in its own file (`test-plan.md`).
 
 ### T01 — <Title>
 - [ ] Implemented
+- [ ] Reviewed
 
 **Area:** <area>
 **Depends on:** none (or T0X, T0Y)
@@ -429,7 +434,8 @@ Then prompt: _"Next step: run `/feature-implement` to execute the tasks from thi
 ## Rules
 
 - Never invent tasks not grounded in the story and plan
-- Task IDs must be stable — T01, T02, … in order of logical appearance
+- Task IDs must be stable — T01, T02, … in order of logical appearance — because
+  `feature-implement` and `feature-done` reference tasks by ID; renumbering mid-flight breaks progress tracking
 - Every task must have a clear done state
 - Every acceptance criterion must map to at least one task and at least one E2E test
 - Subagent assignments are only recommended when they reduce total wall-clock time — do not recommend

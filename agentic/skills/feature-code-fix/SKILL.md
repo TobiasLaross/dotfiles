@@ -1,9 +1,10 @@
 ---
 name: feature-code-fix
 description: >-
-  Applies fixes from a feature code review. Reads review-fixes.md, batches fixes by file,
-  applies them, and runs tests to verify. Use when the user runs /feature-code-fix with an
-  optional feature name. Run after /feature-code-review.
+  Apply fixes from a feature code review, batched by file, with test verification. Use after
+  /feature-code-review — or any time review-fixes.md exists and the user wants the findings
+  addressed, even if they just say "fix it" or "apply the review". Marks all tasks as reviewed
+  in impl-plan.md when done, closing the review cycle before /feature-done.
 argument-hint: [feature-name]
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash, Agent
 ---
@@ -90,7 +91,7 @@ is expected to take longer than 2 minutes, ask the user before running.
 - If tests fail: diagnose and fix. If the failure is unrelated to the review
   fixes, note it and proceed. If it's caused by a fix, correct it.
 
-## Step 6 — Update review-fixes.md
+## Step 6 — Update review-fixes.md and mark tasks reviewed
 
 Update `~/.claude/features/<name>/review-fixes.md` to reflect what was done.
 Change the findings section to include status:
@@ -102,6 +103,11 @@ Change the findings section to include status:
 - **Files:** <file paths>
 - **Status:** Fixed / Excluded
 ```
+
+Also mark all implemented tasks as reviewed in `impl-plan.md`: for every task with
+`- [x] Implemented`, change `- [ ] Reviewed` to `- [x] Reviewed`. This closes the
+review cycle for those tasks and allows `/feature-done` to confirm the feature is
+fully complete.
 
 ## Step 7 — Present changelog
 
