@@ -1,6 +1,10 @@
 ---
 name: feature-done
-description: Mark a feature as complete and move it to done. Verifies all tasks are implemented and reviewed before moving. Use when the user runs /feature-done with an optional feature name.
+description: >-
+  Verify a feature is complete and archive it by moving it to ~/.claude/features/done/. Use
+  whenever the user says a feature is finished, done, or ready to close — even if they don't
+  say /feature-done explicitly. Checks that all tasks are implemented and reviewed before moving,
+  so nothing gets archived with loose ends.
 argument-hint: [feature-name]
 ---
 
@@ -25,7 +29,10 @@ Read `~/.claude/features/<name>/impl-plan.md`. Check:
 
 1. **All tasks implemented:** Every task must have `- [x] Implemented`. List any
    that don't.
-2. **Review completed:** Check that `~/.claude/features/<name>/review-fixes.md`
+2. **All tasks reviewed:** Every implemented task must have `- [x] Reviewed`. List
+   any that don't — this checkbox is marked by `/feature-code-fix` once the review
+   cycle completes.
+3. **Review file present:** Check that `~/.claude/features/<name>/review-fixes.md`
    exists. If it doesn't, warn that `/feature-code-review` hasn't been run.
 
 If any tasks are not implemented or the review is missing, report what's
