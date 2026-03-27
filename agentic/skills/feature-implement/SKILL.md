@@ -107,11 +107,18 @@ Follow the **Execution Plan** section in `impl-plan.md`. Execute tasks wave by w
 
 ## Step 5 — Tests
 
-After all tasks in a repo are complete, prompt the user to run the test suite and report results back.
-Some repos (e.g. Xcode/iOS projects) can get stuck or time out during automated test runs, and some
-environments can't run the full suite locally — so it's more reliable to let the user run tests and
-share the output. Once they do, diagnose any failures and fix them. If a fix requires changes beyond
-the task scope, ask before proceeding.
+After all tasks in a repo are complete, run only the test files touched during implementation:
+
+1. Collect all test files written or modified during Step 4 (from the tasks completed).
+2. If tasks modified source files but not test files, also run the test files most closely
+   associated with those source files (same module, adjacent test directory, etc.).
+3. Do not run the full test suite — limit scope to touched test files only.
+
+**Exception:** For Xcode/iOS projects, automated test runs can get stuck or time out. In that
+case, prompt the user to run the relevant tests and share the output instead.
+
+Once results are available (from auto-run or user-reported), diagnose any failures and fix them.
+If a fix requires changes beyond the task scope, ask before proceeding.
 
 ## Step 6 — Report
 

@@ -234,31 +234,22 @@ Write a summary to ~/.claude/bugs/<short-name>/failing-test.md:
 
 ---
 
-## Step 4 — Pause for manual test verification
+## Step 4 — Verify failing tests automatically
 
-After both subagents have finished, output the following to the user (fill in actual values):
+After both subagents have finished, run the exact command from the "How to run" section of
+`~/.claude/bugs/<short-name>/failing-test.md` to confirm the tests fail before any fix is applied.
 
-```
-Both subagents are done.
-
-**Investigation summary:** ~/.claude/bugs/<short-name>/investigation.md
-Root cause candidates: [list the titles and confidence levels from investigation.md]
-
-**Failing tests written:** ~/.claude/bugs/<short-name>/failing-test.md
-Run command: [the exact command from failing-test.md]
-
-Please run the failing tests now to confirm they fail as expected.
-
-Say **continue** (or **resume**) when you are ready to proceed with the fix.
-```
-
-Then **stop and wait**. Do not proceed until the user replies with "continue", "resume", "go",
-"proceed", or similar confirmation.
+- If the tests **fail as expected** → report the root cause candidates and test locations
+  to the user, then proceed automatically to Step 5.
+- If the tests **unexpectedly pass** → stop and report:
+  "The failing tests passed before any fix — the bug may already be fixed, or the tests may
+  not be targeting the right code path. Review failing-test.md before proceeding."
+  Do not continue to Step 5.
 
 ## Step 5 — Spawn fix subagent
 
-Once the user confirms, spawn a single **foreground** subagent (`subagent_type: general-purpose`)
-and **wait for it to finish**.
+Spawn a single **foreground** subagent (`subagent_type: general-purpose`) and **wait for it
+to finish**.
 
 ```
 You are implementing a bugfix.
@@ -284,8 +275,14 @@ unrelated code.
 ## Verification
 
 After making changes, re-read the affected code and the test to confirm the fix is logically
-correct. If the tech stack supports running tests without side effects, run the failing test
-command from failing-test.md to verify.
+correct. Then run tests automatically:
+
+1. Run the exact command from the "How to run" section of failing-test.md (the focused
+   command targeting only the written test files).
+2. If you modified any other test files during the fix, run those too.
+3. Do not run the full test suite — limit scope to the touched test files only.
+
+Report pass/fail in fix.md.
 
 ## Output
 
@@ -449,7 +446,6 @@ Review findings are saved to ~/.claude/bugs/<short-name>/review-findings.md
 
 ## Rules
 
-- Never skip Step 4 — the user must manually confirm before the fix is implemented
 - Do not implement the fix in Step 3 — Step 3 subagents investigate and write tests only
 - The fix in Step 5 must be minimal — no refactoring beyond what is necessary
 - All files are written under `~/.claude/bugs/<short-name>/`

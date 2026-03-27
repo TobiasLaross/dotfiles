@@ -84,8 +84,15 @@ Files to change: <file paths>
 
 ## Step 5 — Run tests
 
-After all fix subagents complete, run the repo's test suite. If the test command
-is expected to take longer than 2 minutes, ask the user before running.
+After all fix subagents complete, run only the test files touched during this step:
+
+1. Collect all files modified by the fix subagents.
+2. Filter to test files (files in test directories, or files matching `*.test.*`,
+   `*_test.*`, `*Spec.*`, `*Tests.*` conventions).
+3. If test files were directly modified, run those. If only source files were modified,
+   identify and run the test files most closely associated with the changed source files
+   (same module, adjacent test directory, etc.).
+4. Do not run the full test suite — limit scope to touched test files only.
 
 - If tests pass: proceed to Step 6.
 - If tests fail: diagnose and fix. If the failure is unrelated to the review
