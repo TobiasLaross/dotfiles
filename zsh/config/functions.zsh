@@ -95,29 +95,42 @@ zle -N fzf-history
 bindkey '^r' fzf-history
 
 function memtop() {
-    ps -Axo rss=,%cpu=,comm= | awk -v total="$(sysctl -n hw.memsize)" '
-      BEGIN { tgb = total / 1073741824 }
-      {
-        mb = $1 / 1024
-        cpu = $2 + 0
-        p = $3; for (i = 4; i <= NF; i++) p = p " " $i
-        n = split(p, a, "/")
-        name = a[n]
-        for (i = 1; i <= n; i++)
-          if (a[i] ~ /\.app$/) { gsub(/\.app$/, "", a[i]); name = a[i]; break }
-        m[name] += mb; cp[name] += cpu
-      }
-      END {
-        for (n in m)
-          printf "%-20s %7.2f %5.1f%% %5.1f%%\n", n, m[n]/1024, m[n]/1024/tgb*100, cp[n]
-      }' | sort -rn -k2 | head -10 | \
-    awk 'BEGIN {
-        printf "%-20s %7s %5s %5s\n", "APPLICATION", "GB", "%MEM", "%CPU"
-        printf "%-20s %7s %5s %5s\n", "--------------------", "-------", "-----", "-----"
-      }
-      { print; sum_gb += $2; sum_mem += $3; sum_cpu += $4 }
-      END {
-        printf "%-20s %7s %5s %5s\n", "--------------------", "-------", "-----", "-----"
-        printf "%-20s %7.2f %5.1f%% %5.1f%%\n", "TOTAL (top 10)", sum_gb, sum_mem, sum_cpu
-      }'
+    trap 'tput cnorm; return' INT
+    tput civis
+    while true; do
+        local output
+        output=$(ps -Axo rss=,%cpu=,comm= | awk -v total="$(sysctl -n hw.memsize)" '
+          BEGIN { tgb = total / 1073741824 }
+          {
+            mb = $1 / 1024
+            cpu = $2 + 0
+            p = $3; for (i = 4; i <= NF; i++) p = p " " $i
+            n = split(p, a, "/")
+            name = a[n]
+            for (i = 1; i <= n; i++)
+              if (a[i] ~ /\.app$/) { gsub(/\.app$/, "", a[i]); name = a[i]; break }
+            m[name] += mb; cp[name] += cpu
+          }
+          END {
+            for (n in m)
+              printf "%-20s %7.2f %5.1f%% %5.1f%%\n", n, m[n]/1024, m[n]/1024/tgb*100, cp[n]
+          }' | sort -rn -k2 | head -10 | \
+        awk 'BEGIN {
+            printf "%-20s %7s %5s %5s\n", "APPLICATION", "GB", "%MEM", "%CPU"
+            printf "%-20s %7s %5s %5s\n", "--------------------", "-------", "-----", "-----"
+          }
+          { print; sum_gb += $2; sum_mem += $3; sum_cpu += $4 }
+          END {
+            printf "%-20s %7s %5s %5s\n", "--------------------", "-------", "-----", "-----"
+            printf "%-20s %7.2f %5.1f%% %5.1f%%\n", "TOTAL (top 10)", sum_gb, sum_mem, sum_cpu
+          }')
+        clear
+        echo "$output"
+        echo ""
+        echo "Press q or Ctrl-C to exit"
+        if read -t 1 -k 1 key 2>/dev/null && [[ "$key" == "q" ]]; then
+            break
+        fi
+    done
+    tput cnorm
 }
