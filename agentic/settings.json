@@ -12,6 +12,9 @@
       "Bash(head:*)",
       "Bash(tail:*)",
       "Write(~/.claude/repo-context/*)",
+      "Edit(~/.claude/**)",
+      "Write(~/.claude/**)",
+      "Edit(CLAUDE.md)",
       "Read",
       "Grep",
       "WebFetch",
@@ -25,5 +28,6 @@
   "model": "opus",
   "enabledPlugins": {
     "swift-lsp@claude-plugins-official": true
-  }
+  },
+  "skipDangerousModePermissionPrompt": true
 }

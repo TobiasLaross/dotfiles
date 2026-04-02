@@ -166,39 +166,15 @@ Output a **Verdict** (Approved / Needs changes) followed by specific gaps or sug
 
 ## 2. Repo & Dependency Coverage
 
-Check whether the current working directory contains /work/.
-
-If not in /work/: write "Not a /work/ context — skipped" and move on.
-
-If in /work/:
 - Read the plan's "Repos Involved" section to see which repos are already listed.
-- For those repos only, check ~/Developer/work/ and read their context files at
+- For those repos only, check ~/Developer/work|personal/ and read their context files at
   ~/.claude/repo-context/<repo-name>.md if they exist.
 - Are all necessary repos listed? Are any listed repos unnecessary?
 - Are inter-repo dependencies (API contracts, shared types, event flows) correctly identified?
 
 Output a **Verdict** (Approved / Needs changes / N/A).
 
-## 3. Architectural Soundness
-
-- Detect the current repo name from the working directory.
-- Check whether ~/.claude/repo-context/<repo-name>.md exists. If it does, read the design patterns section —
-  use it as the source of truth for what patterns new code should follow.
-- Use Glob and Grep to find 2–3 existing features similar to what this plan describes.
-- Are the proposed design decisions sound for the problem? Are there simpler or more robust approaches?
-- Do the implementation phases make logical order? Are there missing or combinable phases?
-- Are there obvious architectural risks — tight coupling, wrong abstraction layer, hard-to-test approaches?
-- Would the planned approach introduce design patterns inconsistent with the rest of the codebase?
-
-Output a **Verdict** (Approved / Needs changes) followed by specific findings.
-
-## Output format
-
-Structure your full output under the three headings above. End with a **Suggested Changes** section:
-a consolidated, deduplicated list of actionable changes recommended across all three areas.
-```
-
-## Step 3c — Collect review findings
+## Step 3 — Collect review findings
 
 After the reviewer returns, write its output to `~/.claude/features/<short-name>/plan-review.md`:
 
@@ -213,14 +189,11 @@ After the reviewer returns, write its output to `~/.claude/features/<short-name>
 ## Repo & Dependency Coverage
 [Verdict and findings, or "N/A — not a /work/ context"]
 
-## Architectural Soundness
-[Verdict and findings]
-
 ## Suggested Changes
 [Consolidated, deduplicated list of actionable changes]
 ```
 
-## Step 3d — Spawn fix subagent
+## Step 3b — Spawn fix subagent
 
 Spawn a **foreground** subagent and **wait for it to finish** before continuing.
 
