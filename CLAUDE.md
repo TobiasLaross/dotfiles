@@ -147,6 +147,11 @@ opencode auto-discovers skills from `~/.claude/skills/` (it scans `~/.claude` fo
 | `/feature-code-review` | Review implemented feature code from 4 perspectives, output findings |
 | `/feature-code-fix` | Apply fixes from review findings, batch by file, run tests to verify |
 | `/feature-done` | Verify all tasks are complete, then move feature to `done/` |
+| `/feature-plan-lite` | Lite flow: draft story + plan, skip impl-plan step |
+| `/feature-implement-lite` | Lite flow: implement directly from story + plan |
+| `/feature-code-review-lite` | Lite flow: 4-perspective review using acceptance criteria |
+| `/feature-code-fix-lite` | Lite flow: apply fixes, mark criteria as reviewed |
+| `/feature-done-lite` | Lite flow: verify criteria complete, move to `done/` |
 | `/review-plan` | Review an implementation plan from 6 perspectives in parallel |
 | `/review-code` | Review any code from 4 perspectives in parallel |
 | `/bugfix` | Investigate a bug, write a failing test, implement and review a fix |
@@ -157,6 +162,7 @@ opencode auto-discovers skills from `~/.claude/skills/` (it scans `~/.claude` fo
 
 **Global instructions** (`agentic/CLAUDE.md`) define:
 - Feature tracking lifecycle under `~/.claude/features/` (active → `done/` when complete)
+- Two feature flows: full (with impl-plan) and lite (plan → implement directly)
 - Repo context workflow: read `~/.claude/repo-context/<repo>.md` before source code when available
 - Work repos live in `~/Developer/work/`; personal repos in `~/Developer/personal/`
 
