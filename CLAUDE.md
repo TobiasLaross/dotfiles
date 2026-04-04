@@ -154,6 +154,7 @@ opencode auto-discovers skills from `~/.claude/skills/` (it scans `~/.claude` fo
 | `/feature-done-lite` | Lite flow: verify criteria complete, move to `done/` |
 | `/review-plan` | Review an implementation plan from 6 perspectives in parallel |
 | `/review-code` | Review any code from 4 perspectives in parallel |
+| `/orchestra` | Single orchestrator: draft → plan → implement → review → fix → done in one session |
 | `/bugfix` | Investigate a bug, write a failing test, implement and review a fix |
 | `/explain-code` | Explain code with diagrams and analogies |
 | `/repo-context` | Scan repos in `~/Developer/` and write per-repo context files to `~/.claude/repo-context/` |
@@ -161,8 +162,9 @@ opencode auto-discovers skills from `~/.claude/skills/` (it scans `~/.claude` fo
 **Vendor skills** (git submodules under `agentic/vendor/`): `swift-concurrency-skill`, `swiftui-skill`, `swift-testing-skill` — also symlinked into `~/.claude/skills/`.
 
 **Global instructions** (`agentic/CLAUDE.md`) define:
+- Orchestra lifecycle under `~/.agentic/implementations/` (active → `done/` when complete)
 - Feature tracking lifecycle under `~/.claude/features/` (active → `done/` when complete)
-- Two feature flows: full (with impl-plan) and lite (plan → implement directly)
+- Three flows: orchestra (single orchestrator), full (with impl-plan), and lite (plan → implement)
 - Repo context workflow: read `~/.claude/repo-context/<repo>.md` before source code when available
 - Work repos live in `~/Developer/work/`; personal repos in `~/Developer/personal/`
 

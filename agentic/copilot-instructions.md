@@ -43,8 +43,12 @@ Features are tracked in `~/.claude/features/`. The folder and all files are crea
 or `/feature-plan-lite` — do not create feature folders manually. When the user runs either skill,
 it handles naming, folder creation, planning, and review.
 
-### Two flows
+### Three flows
 
+- **Orchestra** (`/orchestra`): Single orchestrator that runs the full lifecycle in one
+  continuous session. Works for bugfixes, features, and entire tools. Delegates all heavy
+  work to subagents. Scope-adaptive: light planning for bugfixes, iterative discovery Q&A
+  for tools. Resumable from any state via `state.md`. Best for any scope.
 - **Full flow** (`/feature-plan` → `/feature-impl-plan` → `/feature-implement` → review → fix → done):
   Detailed task breakdown with execution waves, test plan, and subagent assignments. Best for
   large or complex features.
@@ -54,6 +58,14 @@ it handles naming, folder creation, planning, and review.
   task checkboxes in `impl-plan.md`. Best for small to medium features.
 
 If a feature folder already exists, you may read its files to resume context across sessions.
+
+### Implementation lifecycle
+
+Orchestra implementations are tracked in `~/.agentic/implementations/`:
+- Active implementations live in `~/.agentic/implementations/<name>/`
+- Completed implementations move to `~/.agentic/implementations/done/<name>/`
+- Each implementation folder contains: `state.md`, `story.md`, `plan.md`, and a `context/`
+  directory with repo context and phase results
 
 ### Feature lifecycle
 

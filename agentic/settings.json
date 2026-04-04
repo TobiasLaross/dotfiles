@@ -25,9 +25,9 @@
       "~/Developer/personal"
     ]
   },
-  "model": "opus",
   "enabledPlugins": {
     "swift-lsp@claude-plugins-official": true
   },
-  "skipDangerousModePermissionPrompt": true
+  "skipDangerousModePermissionPrompt": true,
+  "model": "opus"
 }
