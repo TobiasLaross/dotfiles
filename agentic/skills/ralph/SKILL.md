@@ -75,6 +75,12 @@ If ~/.claude/repo-context/<repo-name>.md exists, read it.
 If the directory is under /work/, also list ~/Developer/work/ and read context
 files at ~/.claude/repo-context/ for related repos.
 
+If NO repo-context file exists for this repo, create one at
+~/.claude/repo-context/<repo-name>.md by exploring the codebase. Include:
+purpose, architecture overview, key directories, error handling conventions,
+test infrastructure, and notable patterns. This file will be used by future
+features too, so make it generally useful — not feature-specific.
+
 ## What to gather
 
 Explore the codebase enough to understand:
@@ -83,6 +89,7 @@ Explore the codebase enough to understand:
 3. Dependencies this feature would touch or need
 4. Existing tests and test infrastructure
 5. Any constraints (API contracts, shared types, config schemas)
+6. Error handling conventions (how errors are surfaced, logged, and propagated)
 
 Write a brief context summary (not full code) to stdout. Focus on what would
 help someone ask smart questions about the feature. Be concise — bullet points,
@@ -91,34 +98,31 @@ not paragraphs.
 
 ### 3b — Generate discovery questions
 
-Using the codebase context and user story, generate **5-10 probing questions**
-across these categories:
+Using the codebase context and user story, generate **only the questions needed**
+to fully understand the user's intent. There is no fixed count — ask as few or as
+many as the feature requires. Show up to 10 at a time.
 
-**Behavior & edge cases:**
-- What should happen when X? What if Y is empty/missing/invalid?
-- Are there boundary conditions (limits, timeouts, max sizes)?
+**Only ask product-owner questions** — things the user needs to decide as the person
+who knows *what* the feature should do and *why*. Do NOT ask technical questions.
+The implementation agent will figure out technical details (error handling, patterns,
+architecture, test strategy) from the codebase context and repo conventions.
 
-**Scope & constraints:**
-- What is explicitly out of scope?
-- Are there performance requirements (latency, throughput)?
-- Must it be backwards compatible with anything?
+Good questions (product-owner scope):
+- What should the user see when X happens?
+- Should this work for all users or only admins?
+- Is Y in scope or explicitly out of scope?
+- When you say "notifications", do you mean in-app, email, or both?
+- Should there be a limit on how many items can be added?
 
-**User experience:**
-- What does the user see/get on success? On failure?
-- Are there different user types or permission levels that matter?
+Bad questions (technical — do NOT ask these):
+- How should errors be handled?
+- Should we use middleware or a service layer?
+- What test framework should we use?
+- Should this be backwards compatible with the old API?
+- What existing patterns should we follow?
 
-**Integration:**
-- How does this interact with existing features?
-- Are there external services, APIs, or data sources involved?
-- Does this need to work across repos or is it contained?
-
-**Design intent:**
-- Why this approach vs alternatives? (surfaces hidden assumptions)
-- Is there prior art in the codebase to follow or deliberately diverge from?
-
-Present questions in small groups (3-4 at a time) to avoid overwhelming the user.
-Use concrete options where possible: _"Should X return an error or silently skip?"_
-rather than _"How should errors be handled?"_
+Use concrete options where possible: _"Should inactive users see a disabled button
+or no button at all?"_ rather than _"What should happen for inactive users?"_
 
 ### 3c — Record and iterate
 
@@ -200,19 +204,35 @@ and read their context files at ~/.claude/repo-context/.
 
 ## Task decomposition
 
-Break the acceptance criteria into an ordered list of implementation tasks. Each
-task must be:
-- **Atomic**: completable in a single focused session (15-30 min of agent work)
+Break the acceptance criteria into an ordered list of **behavior-level** tasks.
+Each task describes an observable outcome — what the system should do — not
+implementation steps like "create a file" or "add a method". The agent decides
+*how* to implement each task.
+
+Each task must be:
+- **Behavior-scoped**: describes a user-visible or system-observable outcome
 - **Testable**: the agent can verify it worked before moving on
-- **Independent enough**: minimal coupling to unfinished tasks (order handles deps)
+- **Right-sized**: bigger than a single function, smaller than an entire feature
+  (think: "a user can do X and sees Y" or "the system handles Z correctly")
 
 Guidelines:
-- First task should be the simplest possible change that proves the approach works
-- Infrastructure/setup tasks before feature tasks
+- First task should be the simplest end-to-end behavior that proves the approach
 - Each task that adds behavior should include writing tests for that behavior
-- Include tasks for edge cases and error scenarios from the Discovery section
+- Group related edge cases into the task they belong to rather than splitting
+  each edge case into its own task
 - Final task before review: run full test suite, fix any failures
 - Order tasks so each builds on the previous — the agent sees only one at a time
+
+Good task examples:
+- "Users can create a new widget with a name and description; duplicates are
+  rejected with a clear error message"
+- "The sync job retries failed items up to 3 times with backoff, then reports
+  them in the summary"
+
+Bad task examples (too granular):
+- "Create the Widget model with name and description fields"
+- "Add validation for duplicate names"
+- "Write unit tests for Widget creation"
 
 Write ~/.claude/ralph/<name>/tasks.md:
 
