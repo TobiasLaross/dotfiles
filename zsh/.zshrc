@@ -84,6 +84,7 @@ source /opt/homebrew/share/powerlevel10k/powerlevel10k.zsh-theme
 # --- Aliases ---
 alias vim="nvim"
 alias sess="$DOTFILES/scripts/sessionizer.sh"
+alias ralph="$DOTFILES/scripts/ralph.sh"
 alias ag='ag 2>/dev/null'
 alias pip='pip3'
 alias brewski="brew doctor; brew update && brew upgrade && brew cleanup -s"

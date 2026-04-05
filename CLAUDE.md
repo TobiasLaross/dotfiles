@@ -85,7 +85,7 @@ WORK="$HOME/Developer/work"
 DOTFILES="$HOME/dotfiles"
 ```
 
-Notable aliases: `vim` → `nvim`, `sess` → `scripts/sessionizer.sh`, git shortcuts (`gcb`, `gcm`, `gcd`, `gd`, `gds`), `brewski` (brew update+cleanup), `reload`.
+Notable aliases: `vim` → `nvim`, `sess` → `scripts/sessionizer.sh`, `ralph` → `scripts/ralph.sh`, git shortcuts (`gcb`, `gcm`, `gcd`, `gd`, `gds`), `brewski` (brew update+cleanup), `reload`.
 
 Lazy-loaded: `gcloud`/`bq`/`gsutil` (GCP SDK), `nvm`.
 
@@ -103,6 +103,13 @@ Additional functions in `zsh/config/functions.zsh`:
 - On selection, creates a tmux session with windows: Code, Test, Lazygit (Dotfiles gets Code + Test only)
 - Session name: directory basename converted to kebab-case then capitalised
 - Special shortcuts: `sess dotfiles`, `sess notes`, `sess existing`
+
+**`ralph.sh`** — Ralph Wiggum loop runner:
+- Runs `claude -p --dangerously-skip-permissions` in a loop, one task per context window
+- Reads working directory from `story.md`, auto-cds into the repo
+- Shows task progress (`done/total`) each iteration
+- Exits and archives to `~/.claude/ralph/done/` when `RALPH_DONE` appears in `progress.md`
+- Usage: `ralph <name>` (PRD must be created first via `/ralph` in Claude Code)
 
 ### Aerospace (`aerospace/`)
 
@@ -154,6 +161,7 @@ opencode auto-discovers skills from `~/.claude/skills/` (it scans `~/.claude` fo
 | `/feature-done-lite` | Lite flow: verify criteria complete, move to `done/` |
 | `/review-plan` | Review an implementation plan from 6 perspectives in parallel |
 | `/review-code` | Review any code from 4 perspectives in parallel |
+| `/ralph` | Shell-loop flow: PRD with discovery Q&A and user sign-off, then auto-starts autonomous impl loop |
 | `/orchestra` | Single orchestrator: draft → plan → implement → review → fix → done in one session |
 | `/bugfix` | Investigate a bug, write a failing test, implement and review a fix |
 | `/explain-code` | Explain code with diagrams and analogies |
@@ -162,9 +170,11 @@ opencode auto-discovers skills from `~/.claude/skills/` (it scans `~/.claude` fo
 **Vendor skills** (git submodules under `agentic/vendor/`): `swift-concurrency-skill`, `swiftui-skill`, `swift-testing-skill` — also symlinked into `~/.claude/skills/`.
 
 **Global instructions** (`agentic/CLAUDE.md`) define:
+- Ralph lifecycle under `~/.claude/ralph/` (active → `done/` when complete)
 - Orchestra lifecycle under `~/.agentic/implementations/` (active → `done/` when complete)
 - Feature tracking lifecycle under `~/.claude/features/` (active → `done/` when complete)
-- Three flows: orchestra (single orchestrator), full (with impl-plan), and lite (plan → implement)
+- Four flows: ralph (shell loop), orchestra (single orchestrator), full (with impl-plan),
+  and lite (plan → implement)
 - Repo context workflow: read `~/.claude/repo-context/<repo>.md` before source code when available
 - Work repos live in `~/Developer/work/`; personal repos in `~/Developer/personal/`
 

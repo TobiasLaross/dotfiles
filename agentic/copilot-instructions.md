@@ -43,8 +43,13 @@ Features are tracked in `~/.claude/features/`. The folder and all files are crea
 or `/feature-plan-lite` — do not create feature folders manually. When the user runs either skill,
 it handles naming, folder creation, planning, and review.
 
-### Three flows
+### Four flows
 
+- **Ralph** (`/ralph` → `ralph <name>`): Shell-loop flow. `/ralph` creates the PRD
+  (user story + tasks) interactively with user sign-off. Then `ralph <name>` runs
+  `claude -p` in a loop — one task per context window, progress tracked in files.
+  Final iteration reviews the entire PR and adds fix tasks if needed. Resumable at
+  any point. Best for autonomous implementation with minimal token waste.
 - **Orchestra** (`/orchestra`): Single orchestrator that runs the full lifecycle in one
   continuous session. Works for bugfixes, features, and entire tools. Delegates all heavy
   work to subagents. Scope-adaptive: light planning for bugfixes, iterative discovery Q&A
@@ -58,6 +63,14 @@ it handles naming, folder creation, planning, and review.
   task checkboxes in `impl-plan.md`. Best for small to medium features.
 
 If a feature folder already exists, you may read its files to resume context across sessions.
+
+### Ralph lifecycle
+
+Ralph implementations are tracked in `~/.claude/ralph/`:
+- Active implementations live in `~/.claude/ralph/<name>/`
+- Completed implementations move to `~/.claude/ralph/done/<name>/`
+- Each folder contains: `story.md`, `tasks.md`, `progress.md`, `RALPH.md`,
+  and optionally `test-output.log` and `review.md`
 
 ### Implementation lifecycle
 
