@@ -10,6 +10,13 @@
     "webfetch": "allow",
     "websearch": "allow",
     "skill": "allow",
-    "bash": "allow"
+    "bash": "allow",
+    "external_directory": {
+      "~/.claude/**": "allow",
+      "~/Developer/work/**": "allow",
+      "~/Developer/personal/**": "allow",
+      "~/dotfiles/**": "allow",
+      "/tmp/**": "allow"
+    }
   }
 }
