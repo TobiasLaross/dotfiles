@@ -306,93 +306,24 @@ Write a summary to ~/.claude/bugs/<short-name>/fix.md:
 ```
 ```
 
-## Step 6 — Spawn 3 review subagents in parallel
+## Step 6 — Delegate to /review-code
 
-After the fix subagent has finished, spawn **3 subagents in the same response**
-(`subagent_type: general-purpose`) and **wait for all 3 to finish** before continuing.
+After the fix subagent has finished, invoke the `/review-code` skill. All bug context
+(bug.md, investigation.md, fix.md, failing-test.md) and the changed files are already
+in the conversation — `/review-code` will use them without re-collecting.
 
----
+The review launches 3 sub-agents in parallel:
+1. **Cold Review** — reviews the fix with no context, catching issues visible to
+   fresh eyes
+2. **Contextual Review** — reviews with full bug context (bug.md, investigation.md,
+   fix.md, failing-test.md)
+3. **Pattern Consistency** — verifies the fix follows existing codebase patterns
 
-**Reviewer 1 — Correctness:**
-
-```
-You are reviewing a bugfix for correctness.
-
-Bug:    ~/.claude/bugs/<short-name>/bug.md
-Fix:    ~/.claude/bugs/<short-name>/fix.md
-Tests:  ~/.claude/bugs/<short-name>/failing-test.md
-
-Read all three files. Then read the changed files listed in fix.md.
-
-Assess:
-1. Does the fix actually address the root cause? Could the bug still occur under a different
-   code path or input?
-2. Are there edge cases the fix misses — boundary values, null/nil inputs, concurrent access,
-   empty collections?
-3. Does the fix introduce any regressions — could it break existing behaviour that tests
-   don't cover?
-4. Are the new tests actually sufficient to catch the bug? Could the tests pass even with
-   a wrong fix (false confidence)?
-
-Use severity flags CRITICAL / HIGH / LOW on each finding. Cite file and line numbers. If no
-issues are found, state that explicitly.
-```
-
----
-
-**Reviewer 2 — Security:**
-
-```
-You are reviewing a bugfix for security regressions or newly introduced vulnerabilities.
-
-Bug:  ~/.claude/bugs/<short-name>/bug.md
-Fix:  ~/.claude/bugs/<short-name>/fix.md
-
-Read both files. Then read the changed files listed in fix.md.
-
-Assess:
-1. Does the fix introduce any injection risks (SQL, command, XSS, path traversal)?
-2. Does it expose sensitive data or weaken authentication / authorisation checks?
-3. Does it bypass input validation that was there for a reason?
-4. Does it introduce insecure defaults, hardcoded secrets, or unsafe deserialization?
-
-Use severity flags CRITICAL / HIGH / LOW on each finding. If no issues are found, state that
-explicitly.
-```
-
----
-
-**Reviewer 3 — Code quality and pattern consistency:**
-
-```
-You are reviewing a bugfix for code quality and consistency with existing patterns.
-
-Bug:  ~/.claude/bugs/<short-name>/bug.md
-Fix:  ~/.claude/bugs/<short-name>/fix.md
-
-Read both files. Then read the changed files listed in fix.md.
-
-1. Detect the repo name from the working directory.
-2. Check whether ~/.claude/repo-context/<repo-name>.md exists. If it does, read the design
-   patterns section.
-3. Use Grep to find 1–2 other files in the same area of the codebase for style reference.
-
-Assess:
-- Does the fix follow the same patterns as surrounding code (naming, error handling,
-  abstractions)?
-- Is the fix unnecessarily complex — could it be simpler while still being correct?
-- Does it introduce duplication that should use an existing utility or abstraction?
-- Are there any naming, formatting, or structural issues that would fail a code review?
-
-Use severity flags CRITICAL / HIGH / LOW on each finding. Reference specific existing files
-as examples when flagging pattern deviations. If no issues are found, state that explicitly.
-```
-
----
+Wait for `/review-code` to complete and present its findings.
 
 ## Step 7 — Write review-findings.md and present summary
 
-After all 3 reviewers return, collect their findings and write
+After the review completes, collect the findings and write
 `~/.claude/bugs/<short-name>/review-findings.md`:
 
 ```md
@@ -404,7 +335,7 @@ After all 3 reviewers return, collect their findings and write
 ## Findings
 
 ### F01 — <Short title>
-- **Source:** Correctness / Security / Code Quality (<severity>)
+- **Source:** Cold Review / Contextual Review / Pattern Consistency (<severity>)
 - **Finding:** <1-2 sentence description>
 - **Files:** `path/to/file.ext:line-range`
 - **Suggested fix:** <brief description of what to change>
@@ -413,27 +344,27 @@ After all 3 reviewers return, collect their findings and write
 
 ## No Action Needed
 
-| Finding | Reviewer | Severity | Rationale |
-|---------|----------|----------|-----------|
-| [brief description] | Correctness | LOW | [why no action needed] |
+| Finding | Agent | Severity | Rationale |
+|---------|-------|----------|-----------|
+| [brief description] | Cold Review | LOW | [why no action needed] |
 ```
 
-> **CRITICAL WARNING:** If any CRITICAL finding exists, highlight it prominently at the top of
-> the file before the Findings section.
+> **CRITICAL WARNING:** If any CRITICAL finding exists, highlight it prominently
+> at the top of the file before the Findings section.
 
 Then present the consolidated summary to the user:
 
 ```md
 ## Bugfix Review Complete
 
-### Correctness
-[Reviewer 1 findings, or "No issues found"]
+### Cold Review
+[Agent 1 findings, or "No issues found"]
 
-### Security
-[Reviewer 2 findings, or "No issues found"]
+### Contextual Review
+[Agent 2 findings, or "No issues found"]
 
-### Code Quality
-[Reviewer 3 findings, or "No issues found"]
+### Pattern Consistency
+[Agent 3 findings, or "No issues found"]
 
 ---
 

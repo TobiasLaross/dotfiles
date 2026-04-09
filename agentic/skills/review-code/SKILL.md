@@ -1,23 +1,34 @@
 ---
 name: review-code
 description: >-
-  Reviews implemented code from 4 perspectives in parallel — runtime safety, performance,
-  code quality, and completeness. Use when asked to review code or a completed implementation.
-argument-hint: [file paths or description of what was implemented]
+  Reviews implemented code from 3 perspectives in parallel: cold read, contextual review,
+  and pattern consistency. Use when asked to review code, a completed implementation, or
+  when another skill delegates a code review step.
+argument-hint: "[file paths or description of what was implemented]"
 disable-model-invocation: false
-allowed-tools: Read, Grep, Glob, Bash
+allowed-tools: Read, Grep, Glob, Bash, Agent
 ---
 
-Review the implemented code. Follow these steps exactly:
+# Code Review Workflow
 
-**Step 1 — Gather context**
-Collect the following before launching agents:
+This skill can be invoked directly by the user (`/review-code`), or delegated to by
+other skills (feature-code-review-lite, orchestra, bugfix).
+
+When delegated, the calling skill may pass context via `$ARGUMENTS` — this can include
+file paths, a feature folder path, or a description of what to review. The calling skill
+may also have already gathered context (changed files, diffs, feature docs) — if so, use
+what is available in the conversation rather than re-collecting.
+
+## Step 1 — Gather context
+
+Collect the following before launching agents. Skip any item that was already provided
+by the calling skill or conversation context.
 
 - **Changed files:** Run
   `git diff $(git merge-base HEAD $(git symbolic-ref refs/remotes/origin/HEAD
   2>/dev/null | sed 's|refs/remotes/origin/||') 2>/dev/null) --name-only 2>/dev/null`
-  to get files changed relative to the base branch. If `$ARGUMENTS` is provided,
-  treat it as file paths instead.
+  to get files changed relative to the base branch. If `$ARGUMENTS` contains file
+  paths, use those instead.
 - **Full diff:** Run
   `git diff $(git merge-base HEAD $(git symbolic-ref refs/remotes/origin/HEAD
   2>/dev/null | sed 's|refs/remotes/origin/||') 2>/dev/null) 2>/dev/null`
@@ -29,115 +40,154 @@ Collect the following before launching agents:
 - **Tech stack:** Read `package.json`, `pyproject.toml`, `build.gradle`, `*.csproj`,
   `Cargo.toml`, `go.mod`, or equivalent. Fall back to file extensions.
 - **Project structure:** Run `git ls-files | head -80`.
-- **Original requirements:** Extract the original task or feature description from
-  the conversation context.
+
+**Context files (for Agents 2 and 3):**
+- **Repo context:** Detect the repo name from the working directory path. Check whether
+  `~/.claude/repo-context/<repo-name>.md` exists. If it does, read it in full.
+- **Feature/scope docs:** If this review is for a feature, read the relevant `.md` files
+  from the feature folder (story.md, plan.md — whatever exists). If this is a bugfix,
+  read the bug folder files (bug.md, investigation.md, fix.md, failing-test.md).
+- **Requirements:** Extract the original task, feature description, or acceptance criteria
+  from the conversation context or feature docs.
 
 If no changed files can be identified, ask the user to specify which files to review
 and stop.
 
-Store all of this. You will inject it into each sub-agent prompt.
+Store all of this. You will inject relevant parts into each sub-agent prompt.
 
-**Step 2 — Launch 4 sub-agents in parallel**
-Call the Agent tool exactly 4 times in the same response. Do NOT wait for one to
+## Step 2 — Launch 3 sub-agents in parallel
+
+Call the Agent tool exactly 3 times in the same response. Do NOT wait for one to
 finish before launching the next. Replace placeholders with actual content from Step 1.
 
-Agent 1 — Runtime Safety (correctness + security):
-"Review the following code for runtime correctness and security. Focus on:
+---
 
-Correctness: logic errors, off-by-one errors, incorrect assumptions, missing
-null/undefined checks, wrong return values, broken control flow, misuse of APIs
-or libraries, anything that will produce wrong results at runtime.
+### Agent 1 — Cold Review (no context, minimal guidelines)
 
-Security: injection risks (SQL, XSS, command injection), broken authentication or
-authorization, sensitive data in logs or responses, hardcoded secrets, insecure
-deserialization, missing input validation, OWASP Top 10 issues.
+This agent reviews the code with fresh eyes. It receives only the code and tech stack —
+no requirements, no repo context, no feature docs. It should catch anything that looks
+wrong, unclear, or concerning to a developer seeing this code for the first time.
 
-Reference file names and line numbers where possible. Use severity flags
+```
+You are reviewing code as a fresh pair of eyes. You have no context about the project,
+its requirements, or its history. Review the code purely on its own merits.
+
+Look for anything that concerns you — bugs, unclear logic, poor naming, missing error
+handling, potential crashes, security issues, performance problems, or anything that
+makes you pause. Trust your instincts. Do not over-specify what to look for — just
+review the code honestly and note what stands out.
+
+Keep findings concise. Reference file names and line numbers. Use severity flags
 CRITICAL / HIGH / LOW on each finding.
 
+- CRITICAL: will cause incorrect behaviour, crashes, data loss, or security
+  vulnerabilities
+- HIGH: significant concern that should be addressed
+- LOW: minor improvement or nit
+
+Tech stack: [TECH_STACK]
+Files reviewed: [FILE_PATHS]
+
+[CODE]
+```
+
+---
+
+### Agent 2 — Contextual Review (full context, minimal guidelines)
+
+This agent receives everything — the code, the diff, requirements, feature/bug docs,
+repo context, and project structure. It reviews with the full picture but still with
+minimal prescriptive guidelines. It should catch issues that only become apparent when
+you understand what the code is supposed to do and how it fits into the larger system.
+
+```
+You are reviewing code with full context about the project and its requirements.
+Review the code honestly — look for anything that concerns you, with the benefit
+of understanding what this code is supposed to do and how it fits into the codebase.
+
+You have context about the requirements, the project structure, and the repo's
+architecture. Use this to catch issues that would be invisible without context:
+misunderstood requirements, incomplete implementations, incorrect integration with
+existing systems, missing edge cases specific to the domain, or subtle bugs that
+only appear when you understand the intended behaviour.
+
+Keep findings concise. Reference file names and line numbers. Use severity flags
+CRITICAL / HIGH / LOW on each finding.
+
+- CRITICAL: will cause incorrect behaviour, crashes, data loss, or security
+  vulnerabilities — or a core requirement is not met
+- HIGH: significant concern that should be addressed
+- LOW: minor improvement or nit
+
+Tech stack: [TECH_STACK]
+Project structure: [PROJECT_STRUCTURE]
 Base branch: [BASE_BRANCH]
-Tech stack: [TECH_STACK]
 Files reviewed: [FILE_PATHS]
+Requirements: [REQUIREMENTS]
 
-[CODE]"
+[REPO_CONTEXT]
 
-Agent 2 — Performance & Scalability:
-"Review the following code for performance and scalability issues. Focus on: N+1
-query patterns, missing database indexes, synchronous operations that should be
-async, unnecessary loops or recomputation, memory leaks, large payloads loaded
-into memory, missing pagination, and anything that will degrade under load.
-Reference file names and line numbers where possible. Use severity flags
-CRITICAL / HIGH / LOW on each finding.
+[FEATURE_OR_BUG_DOCS]
 
-Tech stack: [TECH_STACK]
-Files reviewed: [FILE_PATHS]
+[CODE]
+```
 
-[CODE]"
+---
 
-Agent 3 — Code Quality (maintainability + design patterns):
-"Review the following code for maintainability and design pattern consistency.
+### Agent 3 — Pattern Consistency (full context, pattern-focused)
 
-Maintainability: functions or classes doing too much, duplicated logic, misleading
-names, missing or misleading comments on non-obvious logic, magic numbers or
-strings, deeply nested code, tight coupling between modules, anything that will
-make this code hard to change or understand later.
+This agent also receives full context but has a single focused mandate: verify that
+the new code follows the same design patterns, coding style, and conventions as the
+rest of the codebase. It has filesystem access to read existing code for comparison.
 
-Design pattern consistency: You have access to the filesystem.
+```
+You are reviewing code specifically for consistency with existing codebase patterns
+and coding style. You have access to the filesystem.
+
+Your job is to ensure the new code looks like it belongs in this codebase — same
+patterns, same conventions, same style. New code should be indistinguishable from
+existing code in how it structures logic, handles errors, names things, and
+organises files.
+
+Steps:
 1. Detect the current repo name from the working directory path.
 2. Check whether a pre-built context file exists:
    `cat ~/.claude/repo-context/<repo-name>.md 2>/dev/null`. If it exists, read
-   the '## Design patterns' section — use this as your primary source of truth
-   for what patterns new code should follow.
-3. Use Glob and Grep to find 2-4 existing features similar to what was
-   implemented. Read those files to confirm patterns.
+   the '## Design patterns' section as your primary source of truth for canonical
+   patterns.
+3. Use Glob and Grep to find 2-4 existing files or features similar to what was
+   implemented. Read those files to understand the established patterns.
 4. Compare the new implementation against those patterns and flag deviations.
    If the context file named a canonical pattern for an area touched by the new
    code, flag any deviation as HIGH or CRITICAL.
 
-Reference file names and line numbers where possible. Use severity flags
+Focus areas: naming conventions, error handling patterns, file/module organisation,
+abstraction levels, test structure and conventions, API patterns, state management
+patterns, and any repo-specific idioms.
+
+Reference file names and line numbers. When flagging a deviation, cite the existing
+file that demonstrates the correct pattern. Use severity flags
 CRITICAL / HIGH / LOW on each finding.
+
+- CRITICAL: breaks a canonical pattern documented in repo-context or universally
+  followed in the codebase
+- HIGH: deviates from a common pattern followed by most similar code
+- LOW: minor style inconsistency
 
 Tech stack: [TECH_STACK]
 Project structure: [PROJECT_STRUCTURE]
 Files reviewed: [FILE_PATHS]
 
-[CODE]"
+[REPO_CONTEXT]
 
-Agent 4 — Completeness (acceptance criteria + test quality):
-"Review the following implementation for completeness against requirements and
-test quality. You have access to the filesystem.
+[FEATURE_OR_BUG_DOCS]
 
-Part A — Acceptance Criteria:
-Original requirements:
-[REQUIREMENTS]
+[CODE]
+```
 
-For each requirement or acceptance criterion:
-1. Determine whether the implementation covers it — fully, partially, or not at all.
-2. If partially or not covered, describe specifically what is missing.
-3. Check the changed files and, if needed, adjacent files to confirm the behavior
-   is actually wired up end-to-end (not just partially implemented).
+## Step 3 — Synthesize findings
 
-Part B — Test Quality:
-1. Missing edge cases — inputs or states not covered: boundary values, empty/null
-   inputs, error states, concurrent access, large inputs, invalid types, etc.
-2. Poorly implemented tests — tests that give false confidence: tests that never
-   fail, assertions too loose, tests that test implementation details instead of
-   behavior, missing assertions, tests that depend on each other or execution
-   order, brittle tests.
-3. Missing main flow coverage — any critical happy path with no test.
-
-For each issue, reference specific files, line numbers, and test names. Use
-severity flags CRITICAL / HIGH / LOW. CRITICAL means a core requirement is missing
-or a critical happy path has no test.
-
-Base branch: [BASE_BRANCH]
-Tech stack: [TECH_STACK]
-Files reviewed: [FILE_PATHS]
-
-[CODE]"
-
-**Step 3 — Synthesize findings**
-After all 4 agents return their results, present everything in this format:
+After all 3 agents return their results, present everything in this format:
 
 ---
 
@@ -148,21 +198,15 @@ Severity flags:
 - **HIGH:** significant concern — should be fixed before or shortly after merging
 - **LOW:** worth addressing — code quality, minor improvements
 
-### Runtime Safety
+### Cold Review
 [Agent 1 findings — bullet points with file:line references and severity flags]
 
-### Performance & Scalability
+### Contextual Review
 [Agent 2 findings — bullet points with file:line references and severity flags]
 
-### Code Quality
-[Agent 3 findings — bullet points with file:line references and severity flags]
-
-### Completeness
-#### Acceptance Criteria
-[Agent 4 Part A — each requirement: Fully / Partially / Not covered, with explanation]
-
-#### Test Quality
-[Agent 4 Part B — bullet points with severity flags, referencing test names and files]
+### Pattern Consistency
+[Agent 3 findings — bullet points with file:line references and severity flags,
+citing existing files as examples]
 
 ### Summary
 **Overall assessment:** [1-2 sentences on whether the code is ready to merge]
@@ -176,28 +220,5 @@ Severity flags:
 
 ---
 
-**Step 4 — Apply fixes**
-Go through every finding from all 4 agents and for each one:
-
-- **Apply it** — fix the code using the Edit tool, OR write the missing test
-- **Reject it** — leave unchanged, but provide an explicit argument for why
-
-After applying all changes:
-
-1. **Run tests** — run the repo's test suite to verify fixes haven't introduced
-   regressions. If the test command is expected to take longer than 2 minutes,
-   ask the user before running.
-
-2. Present the changelog:
-
-## Changelog
-
-| Finding | Decision | Rationale |
-|---|---|---|
-| [brief description] | Applied / Rejected | [why] |
-
----
-
-> **CRITICAL WARNING:** If any CRITICAL finding was **Rejected** in the changelog
-> above, highlight it here explicitly. The user must consciously acknowledge they
-> are accepting a known critical risk before this work is considered done.
+> **CRITICAL WARNING:** If any CRITICAL finding was identified, highlight it
+> prominently so the user can address it before merging.

@@ -14,8 +14,7 @@ allowed-tools: Read, Write, Edit, Grep, Glob, Bash, Agent
 
 The user has invoked `/feature-code-fix-lite`. Follow this workflow exactly.
 
-This is the **lite** code fix flow. It marks acceptance criteria as reviewed in `story.md`
-instead of marking tasks in `impl-plan.md`.
+This is the **lite** code fix flow. It marks acceptance criteria as reviewed in `story.md`.
 
 ## Step 1 — Resolve the feature
 

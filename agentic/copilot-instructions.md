@@ -39,11 +39,11 @@ tools:
 
 ## Feature Tracking
 
-Features are tracked in `~/.claude/features/`. The folder and all files are created by `/feature-plan`
-or `/feature-plan-lite` — do not create feature folders manually. When the user runs either skill,
+Features are tracked in `~/.claude/features/`. The folder and all files are created by
+`/feature-plan-lite` — do not create feature folders manually. When the user runs the skill,
 it handles naming, folder creation, planning, and review.
 
-### Four flows
+### Three flows
 
 - **Ralph** (`/ralph` → `ralph <name>`): Shell-loop flow. `/ralph` creates the PRD
   (user story + tasks) interactively with user sign-off. Then `ralph <name>` runs
@@ -54,13 +54,10 @@ it handles naming, folder creation, planning, and review.
   continuous session. Works for bugfixes, features, and entire tools. Delegates all heavy
   work to subagents. Scope-adaptive: light planning for bugfixes, iterative discovery Q&A
   for tools. Resumable from any state via `state.md`. Best for any scope.
-- **Full flow** (`/feature-plan` → `/feature-impl-plan` → `/feature-implement` → review → fix → done):
-  Detailed task breakdown with execution waves, test plan, and subagent assignments. Best for
-  large or complex features.
-- **Lite flow** (`/feature-plan-lite` → `/feature-implement-lite` → review-lite → fix-lite → done-lite):
-  Skips the impl-plan step. The implementation agent reads the high-level plan directly and uses
-  its own judgment. Tracks progress via acceptance criteria checkboxes in `story.md` instead of
-  task checkboxes in `impl-plan.md`. Best for small to medium features.
+- **Feature flow** (`/feature-plan-lite` → `/feature-implement-lite` → review → fix → done):
+  Drafts a user story with acceptance criteria, generates a high-level plan, then implements
+  directly from the plan. Tracks progress via acceptance criteria checkboxes in `story.md`.
+  Best for small to medium features.
 
 If a feature folder already exists, you may read its files to resume context across sessions.
 

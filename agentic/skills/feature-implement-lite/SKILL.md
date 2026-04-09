@@ -1,10 +1,10 @@
 ---
 name: feature-implement-lite
 description: >-
-  Implement a feature directly from its story and high-level plan, without a detailed impl-plan.
-  Use whenever the user is ready to start coding in the lite flow — even if they just say "start
-  building", "let's go", or "implement it". Reads story.md and plan.md, implements the feature
-  using its own judgment for task ordering, writes tests ad-hoc, and marks acceptance criteria
+  Implement a feature directly from its story and high-level plan. Use whenever the user is
+  ready to start coding in the lite flow — even if they just say "start building", "let's go",
+  or "implement it". Reads story.md and plan.md, implements the feature using its own judgment
+  for task ordering, writes tests ad-hoc, and marks acceptance criteria as implemented.
   as implemented.
 argument-hint: [feature-name]
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash, Agent
@@ -14,9 +14,9 @@ allowed-tools: Read, Write, Edit, Grep, Glob, Bash, Agent
 
 The user has invoked `/feature-implement-lite`. Follow this workflow exactly.
 
-This is the **lite** implementation flow. There is no `impl-plan.md` with pre-defined tasks,
-waves, or subagent assignments. You read the story and high-level plan, then implement the
-feature using your own judgment for ordering and approach.
+This is the **lite** implementation flow. There are no pre-defined tasks, waves, or subagent
+assignments. You read the story and high-level plan, then implement the feature using your
+own judgment for ordering and approach.
 
 ## Step 1 — Resolve the feature
 
@@ -41,8 +41,6 @@ If `story.md` or `plan.md` is missing, tell the user and suggest running
 `/feature-plan-lite` first.
 
 Confirm the feature uses the lite flow by checking for `> Flow: lite` in `story.md`.
-If the feature has an `impl-plan.md`, it was planned with the full flow — suggest the user
-run `/feature-implement` instead.
 
 ## Step 3 — Detect repos, branches, and context
 

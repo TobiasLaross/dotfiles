@@ -435,32 +435,28 @@ Spawn a **foreground** subagent:
 > - Tech stack (from manifest files)
 > - Project structure (`git ls-files | head -80`)
 
-### 2. Launch 4 parallel review subagents
+### 2. Delegate to /review-code
 
-Spawn exactly 4 subagents in parallel. Each reads from review-input.md and the
-implementation folder's context/ files. Use the same 4 perspectives as
-`/feature-code-review-lite`:
+All context has been gathered (review-input.md, context/ files, story.md).
+Invoke the `/review-code` skill. It selectively distributes context to each
+sub-agent — Agent 1 intentionally receives only the code and tech stack (no
+requirements, no repo context). It will launch 3 sub-agents in parallel:
 
-**Agent 1 — Runtime Safety:** correctness + security. Logic errors, null checks,
-injection risks, OWASP issues. Severity: CRITICAL / HIGH / LOW.
+1. **Cold Review** — reviews code with no context, catching issues visible to
+   fresh eyes
+2. **Contextual Review** — reviews with full context (story, repo context,
+   review-input.md)
+3. **Pattern Consistency** — verifies the code follows existing codebase patterns
 
-**Agent 2 — Performance:** N+1 queries, missing indexes, sync-should-be-async,
-memory leaks, missing pagination. Severity flags.
-
-**Agent 3 — Code Quality:** maintainability, design pattern consistency. Read
-repo-context for canonical patterns. Severity flags.
-
-**Agent 4 — Completeness:** acceptance criteria coverage + test quality assessment.
-Read story.md as requirements source.
-
-Each agent prompt must include:
-> Read `~/.agentic/implementations/<name>/context/review-input.md` for the diff
-> and changed files. Read files in `~/.agentic/implementations/<name>/context/`
-> for repo context. Read the actual source files as needed.
+Agents 2 and 3 read from
+`~/.agentic/implementations/<name>/context/review-input.md` for the diff and
+changed files, and files in `~/.agentic/implementations/<name>/context/` for
+repo context.
 
 ### 3. Synthesise and write findings
 
-After all 4 return, write `~/.agentic/implementations/<name>/review-fixes.md`:
+After `/review-code` completes, write
+`~/.agentic/implementations/<name>/review-fixes.md`:
 
 ```
 # Review Findings

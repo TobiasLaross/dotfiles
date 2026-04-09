@@ -148,19 +148,13 @@ opencode auto-discovers skills from `~/.claude/skills/` (it scans `~/.claude` fo
 
 | Skill | Description |
 |-------|-------------|
-| `/feature-plan` | Draft a user story, create `~/.claude/features/<name>/` folder and files |
-| `/feature-impl-plan` | Break a feature into tasks with dependency analysis and parallel execution waves |
-| `/feature-implement` | Execute tasks from the impl plan in dependency order |
-| `/feature-code-review` | Review implemented feature code from 4 perspectives, output findings |
-| `/feature-code-fix` | Apply fixes from review findings, batch by file, run tests to verify |
-| `/feature-done` | Verify all tasks are complete, then move feature to `done/` |
-| `/feature-plan-lite` | Lite flow: draft story + plan, skip impl-plan step |
-| `/feature-implement-lite` | Lite flow: implement directly from story + plan |
-| `/feature-code-review-lite` | Lite flow: 4-perspective review using acceptance criteria |
-| `/feature-code-fix-lite` | Lite flow: apply fixes, mark criteria as reviewed |
-| `/feature-done-lite` | Lite flow: verify criteria complete, move to `done/` |
+| `/feature-plan-lite` | Draft story + plan, create `~/.claude/features/<name>/` folder and files |
+| `/feature-implement-lite` | Implement directly from story + plan |
+| `/feature-code-review-lite` | Review implemented feature code, delegates to /review-code |
+| `/feature-code-fix-lite` | Apply fixes from review findings, mark criteria as reviewed |
+| `/feature-done-lite` | Verify criteria complete, move to `done/` |
 | `/review-plan` | Review an implementation plan from 6 perspectives in parallel |
-| `/review-code` | Review any code from 4 perspectives in parallel |
+| `/review-code` | Review any code from 3 perspectives in parallel (cold, contextual, pattern) |
 | `/ralph` | Shell-loop flow: PRD with discovery Q&A and user sign-off, then auto-starts autonomous impl loop |
 | `/orchestra` | Single orchestrator: draft → plan → implement → review → fix → done in one session |
 | `/bugfix` | Investigate a bug, write a failing test, implement and review a fix |
@@ -173,8 +167,8 @@ opencode auto-discovers skills from `~/.claude/skills/` (it scans `~/.claude` fo
 - Ralph lifecycle under `~/.claude/ralph/` (active → `done/` when complete)
 - Orchestra lifecycle under `~/.agentic/implementations/` (active → `done/` when complete)
 - Feature tracking lifecycle under `~/.claude/features/` (active → `done/` when complete)
-- Four flows: ralph (shell loop), orchestra (single orchestrator), full (with impl-plan),
-  and lite (plan → implement)
+- Three flows: ralph (shell loop), orchestra (single orchestrator),
+  and feature (plan → implement)
 - Repo context workflow: read `~/.claude/repo-context/<repo>.md` before source code when available
 - Work repos live in `~/Developer/work/`; personal repos in `~/Developer/personal/`
 
@@ -211,3 +205,8 @@ Examples from this repo: `Fixed swift lsp`, `Improved nvim startup time`, `Updat
 - Do not modify `agentic/CLAUDE.md` and `agentic/copilot-instructions.md` independently — keep them in sync (content identical, only frontmatter may differ)
 - Do not commit `nvim/lazy-lock.json` (excluded via `.gitignore`)
 - Do not add font binaries or large binary blobs to git
+- Do not create or edit skill files outside `agentic/skills/` — all skills live in
+  `agentic/skills/<name>/SKILL.md` and are symlinked to `~/.claude/skills/` and
+  `~/.copilot/skills/` by `symlinks.sh`. Never place skills directly in the symlink
+  targets. When adding a new skill, create it in `agentic/skills/` and re-run
+  `./symlinks.sh` to activate it

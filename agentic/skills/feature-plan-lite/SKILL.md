@@ -4,8 +4,8 @@ description: >-
   Lightweight feature planning. Use this whenever the user wants to start building something
   with the lite flow — even if they haven't said /feature-plan-lite explicitly. Drafts a user
   story with acceptance criteria (with Implemented/Reviewed tracking), generates a high-level
-  plan with automated review, and saves everything under ~/.claude/features/. Skips the
-  impl-plan step — the implementation agent reads the plan directly.
+  plan with automated review, and saves everything under ~/.claude/features/. The implementation
+  agent reads the plan directly.
 argument-hint: <feature description>
 ---
 
@@ -13,10 +13,9 @@ argument-hint: <feature description>
 
 The user has invoked `/feature-plan-lite` with a feature description. Follow this workflow exactly.
 
-This is the **lite** feature flow. It skips the detailed implementation plan (`/feature-impl-plan`)
-entirely. The high-level plan produced here is read directly by `/feature-implement-lite`, which
-uses its own judgment to implement the feature. Because there is no impl-plan safety net, getting
-the plan right matters more — keep the same review rigor as the full flow.
+This is the **lite** feature flow. The high-level plan produced here is read directly by
+`/feature-implement-lite`, which uses its own judgment to implement the feature. Getting
+the plan right matters — keep review rigor high.
 
 ## Step 1a — Draft the user story
 
@@ -218,8 +217,7 @@ Output a **Verdict** (Approved / Needs changes / N/A).
 
 ## 3. Implementation Phase Clarity
 
-Since there is no impl-plan step, the Implementation Phases must be clear enough for an agent
-to follow directly. For each phase:
+The Implementation Phases must be clear enough for an agent to follow directly. For each phase:
 - Is it actionable without further decomposition?
 - Are affected files or modules identified where non-obvious?
 - Are dependencies between phases clear?

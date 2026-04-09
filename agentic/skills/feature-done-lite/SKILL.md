@@ -12,8 +12,7 @@ argument-hint: [feature-name]
 
 The user has invoked `/feature-done-lite`. Follow this workflow exactly.
 
-This is the **lite** done flow. It checks acceptance criteria checkboxes in `story.md`
-instead of task checkboxes in `impl-plan.md`.
+This is the **lite** done flow. It checks acceptance criteria checkboxes in `story.md`.
 
 ## Step 1 — Resolve the feature
 
