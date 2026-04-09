@@ -1,21 +1,21 @@
 ---
-name: feature-plan-lite
+name: feature-plan
 description: >-
-  Lightweight feature planning. Use this whenever the user wants to start building something
-  with the lite flow — even if they haven't said /feature-plan-lite explicitly. Drafts a user
-  story with acceptance criteria (with Implemented/Reviewed tracking), generates a high-level
-  plan with automated review, and saves everything under ~/.claude/features/. The implementation
+  Create a new feature plan. Use this whenever the user wants to start building something
+  new — even if they haven't said /feature-plan explicitly. Drafts a user story with
+  acceptance criteria (with Implemented/Reviewed tracking), generates a high-level plan
+  with automated review, and saves everything under ~/.claude/features/. The implementation
   agent reads the plan directly.
 argument-hint: <feature description>
 ---
 
-# Feature Plan Lite Workflow
+# Feature Plan Workflow
 
-The user has invoked `/feature-plan-lite` with a feature description. Follow this workflow exactly.
+The user has invoked `/feature-plan` with a feature description. Follow this workflow exactly.
 
-This is the **lite** feature flow. The high-level plan produced here is read directly by
-`/feature-implement-lite`, which uses its own judgment to implement the feature. Getting
-the plan right matters — keep review rigor high.
+The high-level plan produced here is read directly by `/feature-implement`, which uses its
+own judgment to implement the feature. Getting the plan right matters — keep review rigor
+high.
 
 ## Step 1a — Draft the user story
 
@@ -74,7 +74,6 @@ Contents of `story.md`:
 
 > Original request: <user's exact words, verbatim>
 > Created: <today's date>
-> Flow: lite
 
 **As a** [user type], **I want** [goal] **so that** [reason]
 
@@ -97,8 +96,8 @@ Contents of `story.md`:
 ```
 
 The nested `Implemented` and `Reviewed` checkboxes under each criterion are the tracking
-mechanism for the entire lite flow. `/feature-implement-lite` marks `Implemented`,
-`/feature-code-fix-lite` marks `Reviewed`, and `/feature-done-lite` checks both.
+mechanism for the feature flow. `/feature-implement` marks `Implemented`,
+`/feature-code-fix` marks `Reviewed`, and `/feature-done` checks both.
 
 ## Step 3a — Spawn planning subagent
 
@@ -116,7 +115,6 @@ The acceptance criteria are the ground truth for what this feature must achieve.
 primary design constraints — every section of your plan must be traceable to at least one
 criterion, and no criterion should be left unaddressed.
 
-This is a **lite flow** plan — there will be no detailed implementation plan step after this.
 The implementation agent will read this plan directly and use its own judgment to build the
 feature. Therefore:
 - Implementation Phases should be clear enough that an agent can follow them without further
@@ -154,7 +152,6 @@ Write a plan.md file to ~/.claude/features/<short-name>/plan.md using exactly th
 # Plan: <Feature Title>
 
 > Created: <today's date>
-> Flow: lite
 
 ## Summary
 [What needs to be built — 2–4 sentences]
@@ -191,8 +188,7 @@ Plan:  ~/.claude/features/<short-name>/plan.md
 
 Read both files.
 
-This is a **lite flow** plan — there will be no detailed implementation plan step. The
-implementation agent reads this plan directly, so gaps here become implementation gaps.
+The implementation agent reads this plan directly, so gaps here become implementation gaps.
 Review with that in mind.
 
 ## 1. Story & Acceptance Criteria Coverage
@@ -284,7 +280,7 @@ Include a brief review summary:
 - Implementation Phase Clarity verdict
 - Number of suggestions applied vs. rejected
 
-Then prompt: _"Next step: run `/feature-implement-lite` to start building."_
+Then prompt: _"Next step: run `/feature-implement` to start building."_
 
 ## Rules
 
