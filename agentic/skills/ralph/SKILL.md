@@ -25,7 +25,7 @@ context window, progress tracked in files, until done.
 - Read its `tasks.md` and `progress.md`
 - Report status: how many tasks done, what's next
 - If `RALPH.md` exists, ask the user: _"Resume the loop?"_
-  - If yes, jump to **Step 10** to launch
+  - If yes, jump to **Step 11** to launch
   - If no, ask what they want to change
 - If `RALPH.md` is missing, continue from Step 5
 
@@ -369,12 +369,31 @@ Create `~/.claude/ralph/<name>/progress.md`:
 > Started: <today's date>
 ```
 
-## Step 10 — Launch the loop
+## Step 10 — Ensure feature branch
+
+Check if the working directory is a git repository. If it is:
+
+1. Get the current branch: `git rev-parse --abbrev-ref HEAD`
+2. If the branch is `main`, `master`, or `develop`:
+   - Create and checkout a new branch: `git checkout -b ralph/<name>`
+   - Tell the user: _"Created branch `ralph/<name>` — the loop will commit here."_
+3. If the branch is anything else (already on a feature branch):
+   - Tell the user: _"Already on branch `<branch>` — the loop will commit here."_
+4. Store the branch name in `story.md` by adding a `> Branch: <branch>` line
+   after the `> Working directory:` line
+
+If multiple repos are involved (e.g. the working directory is under `/work/` and
+related repos were identified in discovery), check each repo. For any repo that is
+on `main`/`master`/`develop`, create `ralph/<name>` there too, and note the branch
+in `progress.md`.
+
+## Step 11 — Launch the loop
 
 Tell the user:
 1. Feature folder: `~/.claude/ralph/<name>/`
 2. Number of tasks generated
 3. Detected test command
+4. Branch name
 
 Then say: _"Starting the Ralph loop now. You can Ctrl+C between iterations to
 pause — run `ralph <name>` to resume anytime."_
