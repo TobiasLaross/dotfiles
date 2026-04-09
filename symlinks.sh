@@ -23,6 +23,15 @@ for skill in "$ROOT_DIR"/agentic/skills/*/; do
 	ln -sf "$resolved" ~/.copilot/skills/
 done
 
+# Remove dangling skill symlinks (from deleted skills)
+for dir in ~/.claude/skills ~/.copilot/skills; do
+	for link in "$dir"/*(N@); do
+		if [[ ! -e "$link" ]]; then
+			rm "$link"
+		fi
+	done
+done
+
 ln -sf "$ROOT_DIR/agentic/CLAUDE.md" ~/.claude/CLAUDE.md
 ln -sf "$ROOT_DIR/agentic/copilot-instructions.md" ~/.copilot/copilot-instructions.md
 ln -sf "$ROOT_DIR/agentic/settings.json" ~/.claude/settings.json
