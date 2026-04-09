@@ -148,11 +148,11 @@ opencode auto-discovers skills from `~/.claude/skills/` (it scans `~/.claude` fo
 
 | Skill | Description |
 |-------|-------------|
-| `/feature-plan-lite` | Draft story + plan, create `~/.claude/features/<name>/` folder and files |
-| `/feature-implement-lite` | Implement directly from story + plan |
-| `/feature-code-review-lite` | Review implemented feature code, delegates to /review-code |
-| `/feature-code-fix-lite` | Apply fixes from review findings, mark criteria as reviewed |
-| `/feature-done-lite` | Verify criteria complete, move to `done/` |
+| `/feature-plan` | Draft story + plan, create `~/.claude/features/<name>/` folder and files |
+| `/feature-implement` | Implement directly from story + plan |
+| `/feature-code-review` | Review implemented feature code, delegates to /review-code |
+| `/feature-code-fix` | Apply fixes from review findings, mark criteria as reviewed |
+| `/feature-done` | Verify criteria complete, move to `done/` |
 | `/review-plan` | Review an implementation plan from 6 perspectives in parallel |
 | `/review-code` | Review any code from 3 perspectives in parallel (cold, contextual, pattern) |
 | `/ralph` | Shell-loop flow: PRD with discovery Q&A and user sign-off, then auto-starts autonomous impl loop |

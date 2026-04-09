@@ -1,20 +1,19 @@
 ---
-name: feature-code-fix-lite
+name: feature-code-fix
 description: >-
-  Apply fixes from a lite feature code review, batched by file, with test verification. Use after
-  /feature-code-review-lite — or any time review-fixes.md exists in a lite feature and the user
-  wants the findings addressed, even if they just say "fix it" or "apply the review". Marks
-  acceptance criteria as reviewed in story.md when done, closing the review cycle before
-  /feature-done-lite.
+  Apply fixes from a feature code review, batched by file, with test verification. Use after
+  /feature-code-review — or any time review-fixes.md exists and the user wants the findings
+  addressed, even if they just say "fix it" or "apply the review". Marks acceptance criteria
+  as reviewed in story.md when done, closing the review cycle before /feature-done.
 argument-hint: [feature-name]
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash, Agent
 ---
 
-# Feature Code Fix Lite Workflow
+# Feature Code Fix Workflow
 
-The user has invoked `/feature-code-fix-lite`. Follow this workflow exactly.
+The user has invoked `/feature-code-fix`. Follow this workflow exactly.
 
-This is the **lite** code fix flow. It marks acceptance criteria as reviewed in `story.md`.
+This flow marks acceptance criteria as reviewed in `story.md`.
 
 ## Step 1 — Resolve the feature
 
@@ -32,7 +31,7 @@ This is the **lite** code fix flow. It marks acceptance criteria as reviewed in 
 ## Step 2 — Read review findings
 
 Read `~/.claude/features/<name>/review-fixes.md`. If it does not exist, tell
-the user to run `/feature-code-review-lite <name>` first and stop.
+the user to run `/feature-code-review <name>` first and stop.
 
 Also read `~/.claude/features/<name>/story.md` and
 `~/.claude/features/<name>/plan.md` for context.
@@ -131,7 +130,7 @@ To:
   - [x] Reviewed
 ```
 
-This closes the review cycle for those criteria and allows `/feature-done-lite` to
+This closes the review cycle for those criteria and allows `/feature-done` to
 confirm the feature is fully complete.
 
 ## Step 7 — Present changelog
@@ -151,6 +150,6 @@ confirm the feature is fully complete.
 > here. The user must consciously acknowledge they are accepting a known critical
 > risk.
 
-Then prompt: _"Next step: run `/feature-done-lite <name>` to mark this feature as
+Then prompt: _"Next step: run `/feature-done <name>` to mark this feature as
 complete and move it to done."_ (replace `<name>` with the actual feature folder
 name).

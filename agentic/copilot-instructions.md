@@ -40,7 +40,7 @@ tools:
 ## Feature Tracking
 
 Features are tracked in `~/.claude/features/`. The folder and all files are created by
-`/feature-plan-lite` — do not create feature folders manually. When the user runs the skill,
+`/feature-plan` — do not create feature folders manually. When the user runs the skill,
 it handles naming, folder creation, planning, and review.
 
 ### Three flows
@@ -54,7 +54,7 @@ it handles naming, folder creation, planning, and review.
   continuous session. Works for bugfixes, features, and entire tools. Delegates all heavy
   work to subagents. Scope-adaptive: light planning for bugfixes, iterative discovery Q&A
   for tools. Resumable from any state via `state.md`. Best for any scope.
-- **Feature flow** (`/feature-plan-lite` → `/feature-implement-lite` → review → fix → done):
+- **Feature flow** (`/feature-plan` → `/feature-implement` → review → fix → done):
   Drafts a user story with acceptance criteria, generates a high-level plan, then implements
   directly from the plan. Tracks progress via acceptance criteria checkboxes in `story.md`.
   Best for small to medium features.

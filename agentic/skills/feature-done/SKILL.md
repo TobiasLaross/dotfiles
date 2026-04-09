@@ -1,18 +1,18 @@
 ---
-name: feature-done-lite
+name: feature-done
 description: >-
-  Verify a lite feature is complete and archive it by moving it to ~/.claude/features/done/.
-  Use whenever the user says a lite feature is finished, done, or ready to close — even if they
-  don't say /feature-done-lite explicitly. Checks that all acceptance criteria are implemented
+  Verify a feature is complete and archive it by moving it to ~/.claude/features/done/.
+  Use whenever the user says a feature is finished, done, or ready to close — even if they
+  don't say /feature-done explicitly. Checks that all acceptance criteria are implemented
   and reviewed in story.md before moving, so nothing gets archived with loose ends.
 argument-hint: [feature-name]
 ---
 
-# Feature Done Lite Workflow
+# Feature Done Workflow
 
-The user has invoked `/feature-done-lite`. Follow this workflow exactly.
+The user has invoked `/feature-done`. Follow this workflow exactly.
 
-This is the **lite** done flow. It checks acceptance criteria checkboxes in `story.md`.
+This flow checks acceptance criteria checkboxes in `story.md`.
 
 ## Step 1 — Resolve the feature
 
@@ -35,9 +35,9 @@ Read `~/.claude/features/<name>/story.md`. Check each acceptance criterion:
    under it. List any that don't.
 2. **All criteria reviewed:** Every implemented criterion must have
    `- [x] Reviewed` under it. List any that don't — this checkbox is marked by
-   `/feature-code-fix-lite` once the review cycle completes.
+   `/feature-code-fix` once the review cycle completes.
 3. **Review file present:** Check that `~/.claude/features/<name>/review-fixes.md`
-   exists. If it doesn't, warn that `/feature-code-review-lite` hasn't been run.
+   exists. If it doesn't, warn that `/feature-code-review` hasn't been run.
 
 If any criteria are not implemented or the review is missing, report what's
 outstanding and ask the user how to proceed:

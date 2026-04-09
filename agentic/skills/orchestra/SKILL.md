@@ -23,13 +23,13 @@ the user. Obey these constraints at all times:
    the next subagent (or a resumed session) can pick up where they left off
 5. **Never ask the user to re-invoke** — ask questions inline, then continue
 
-Base directory: `~/.agentic/implementations/`
+Base directory: `~/.claude/implementations/`
 
 ---
 
 ## Entry
 
-1. Create `~/.agentic/implementations/` if it does not exist.
+1. Create `~/.claude/implementations/` if it does not exist.
 
 2. **Existing implementation** — if `$ARGUMENTS` matches a folder name in the base
    directory, read its `state.md` and resume from the current state.
@@ -95,7 +95,7 @@ Spawn a **foreground** subagent (`subagent_type: general-purpose`):
 >
 > Scope: `<scope>`
 > User's description: `<exact user words>`
-> Target file: `~/.agentic/implementations/<name>/story.md`
+> Target file: `~/.claude/implementations/<name>/story.md`
 >
 > Create the directory and write story.md.
 >
@@ -153,7 +153,7 @@ requirements before planning.
 Spawn a **foreground** subagent:
 
 > You are a requirements analyst. Read:
-> `~/.agentic/implementations/<name>/story.md`
+> `~/.claude/implementations/<name>/story.md`
 >
 > Based on the scope and acceptance criteria, generate 3-7 clarifying questions.
 > Focus on:
@@ -164,7 +164,7 @@ Spawn a **foreground** subagent:
 > - Integration points and dependencies
 >
 > Present each question with concrete options where possible.
-> Write to `~/.agentic/implementations/<name>/discovery-questions.md`:
+> Write to `~/.claude/implementations/<name>/discovery-questions.md`:
 >
 > ```
 > # Discovery Questions
@@ -187,7 +187,7 @@ has clear options; use plain text for open-ended questions.
 
 After each answer or batch of answers, spawn a **foreground** subagent:
 
-> Read `~/.agentic/implementations/<name>/story.md` and add/update a
+> Read `~/.claude/implementations/<name>/story.md` and add/update a
 > `## Design Decisions` section with the user's answers. Each answer
 > should be a clear statement, not a Q&A transcript. Also update
 > acceptance criteria if answers reveal new criteria or refine existing ones.
@@ -210,7 +210,7 @@ to plan?"_
 Spawn a **foreground** subagent:
 
 > You are gathering codebase context for an implementation. Read:
-> `~/.agentic/implementations/<name>/story.md`
+> `~/.claude/implementations/<name>/story.md`
 >
 > **Repo detection:**
 > - Identify the current repo from the working directory name
@@ -220,7 +220,7 @@ Spawn a **foreground** subagent:
 > - If under `/personal/`, check `~/Developer/personal/`
 >
 > **Context collection:**
-> Create `~/.agentic/implementations/<name>/context/` directory.
+> Create `~/.claude/implementations/<name>/context/` directory.
 >
 > For each relevant repo:
 > 1. If repo-context exists, extract sections relevant to this implementation
@@ -240,12 +240,12 @@ Spawn a **foreground** subagent:
 Spawn a **foreground** subagent:
 
 > You are creating a plan. Read:
-> - `~/.agentic/implementations/<name>/story.md`
-> - All files in `~/.agentic/implementations/<name>/context/`
+> - `~/.claude/implementations/<name>/story.md`
+> - All files in `~/.claude/implementations/<name>/context/`
 >
 > Scope: `<scope>`
 >
-> Write `~/.agentic/implementations/<name>/plan.md`:
+> Write `~/.claude/implementations/<name>/plan.md`:
 >
 > ```
 > # Plan: <Title>
@@ -292,9 +292,9 @@ Spawn a **foreground** subagent:
 Spawn a **foreground** subagent:
 
 > You are reviewing a plan. Read:
-> - `~/.agentic/implementations/<name>/story.md`
-> - `~/.agentic/implementations/<name>/plan.md`
-> - All files in `~/.agentic/implementations/<name>/context/`
+> - `~/.claude/implementations/<name>/story.md`
+> - `~/.claude/implementations/<name>/plan.md`
+> - All files in `~/.claude/implementations/<name>/context/`
 >
 > For repos listed in the plan, also read their context files at
 > `~/.claude/repo-context/<repo-name>.md` if they exist.
@@ -305,7 +305,7 @@ Spawn a **foreground** subagent:
 > 3. **Dependencies** — serial/parallel relationships are correct
 > 4. **Scope** — nothing missing or over-scoped
 >
-> Write `~/.agentic/implementations/<name>/plan-review.md` with a verdict
+> Write `~/.claude/implementations/<name>/plan-review.md` with a verdict
 > per category (Approved / Needs changes) and a consolidated list of
 > suggested changes.
 > Lines must not exceed 140 characters.
@@ -315,8 +315,8 @@ Spawn a **foreground** subagent:
 Spawn a **foreground** subagent:
 
 > Read:
-> - `~/.agentic/implementations/<name>/plan.md`
-> - `~/.agentic/implementations/<name>/plan-review.md`
+> - `~/.claude/implementations/<name>/plan.md`
+> - `~/.claude/implementations/<name>/plan-review.md`
 >
 > Apply suggestions that are clearly correct. Skip speculative ones.
 > Rewrite plan.md. Add `> Last revised: <today's date>`.
@@ -369,9 +369,9 @@ Each implementation subagent prompt:
 > You are implementing Phase `<N>`: `<title>`
 >
 > Read these files for full context:
-> - `~/.agentic/implementations/<name>/story.md` (acceptance criteria)
-> - `~/.agentic/implementations/<name>/plan.md` (your phase details + design decisions)
-> - All files in `~/.agentic/implementations/<name>/context/`
+> - `~/.claude/implementations/<name>/story.md` (acceptance criteria)
+> - `~/.claude/implementations/<name>/plan.md` (your phase details + design decisions)
+> - All files in `~/.claude/implementations/<name>/context/`
 >
 > ## Your task
 > Implement Phase `<N>` as described in plan.md.
@@ -386,7 +386,7 @@ Each implementation subagent prompt:
 >
 > ## When done
 > Write a summary to:
-> `~/.agentic/implementations/<name>/context/phase-<N>-result.md`
+> `~/.claude/implementations/<name>/context/phase-<N>-result.md`
 >
 > Include: files created/modified, tests written, deviations from plan, which
 > acceptance criteria are now satisfied. Lines must not exceed 140 characters.
@@ -426,7 +426,7 @@ Ask: _"Ready for code review, or skip to done?"_
 Spawn a **foreground** subagent:
 
 > Gather git diff and changed file information for the implementation.
-> Write to `~/.agentic/implementations/<name>/context/review-input.md`:
+> Write to `~/.claude/implementations/<name>/context/review-input.md`:
 > - Base branch (detect via `git symbolic-ref refs/remotes/origin/HEAD` or default
 >   to `main`)
 > - Merge base
@@ -449,14 +449,14 @@ requirements, no repo context). It will launch 3 sub-agents in parallel:
 3. **Pattern Consistency** — verifies the code follows existing codebase patterns
 
 Agents 2 and 3 read from
-`~/.agentic/implementations/<name>/context/review-input.md` for the diff and
-changed files, and files in `~/.agentic/implementations/<name>/context/` for
+`~/.claude/implementations/<name>/context/review-input.md` for the diff and
+changed files, and files in `~/.claude/implementations/<name>/context/` for
 repo context.
 
 ### 3. Synthesise and write findings
 
 After `/review-code` completes, write
-`~/.agentic/implementations/<name>/review-fixes.md`:
+`~/.claude/implementations/<name>/review-fixes.md`:
 
 ```
 # Review Findings
@@ -491,7 +491,7 @@ Each fix subagent:
 
 > You are applying code review fixes.
 >
-> Feature folder: `~/.agentic/implementations/<name>/`
+> Feature folder: `~/.claude/implementations/<name>/`
 > Fixes to apply:
 > - F`<id>`: `<description>` (Severity: `<sev>`, Suggested: `<suggestion>`)
 >
@@ -543,8 +543,8 @@ Transition to `done`.
 
 ## State: done
 
-1. Create `~/.agentic/implementations/done/` if needed
-2. `mv ~/.agentic/implementations/<name> ~/.agentic/implementations/done/<name>`
+1. Create `~/.claude/implementations/done/` if needed
+2. `mv ~/.claude/implementations/<name> ~/.claude/implementations/done/<name>`
 3. Verify the move succeeded
 4. Report: name, criteria completed count, archive location
 
@@ -579,6 +579,6 @@ Tell the user: _"Resuming `<name>` from state `<state>`. Already completed: ..."
 - Subagents write results to files in the implementation folder
 - The orchestrator reads only summaries and metadata from those files
 - Lines in all markdown files must not exceed 140 characters
-- All files go in `~/.agentic/implementations/<name>/`
-- Active implementations live in `~/.agentic/implementations/`
-- Completed implementations move to `~/.agentic/implementations/done/`
+- All files go in `~/.claude/implementations/<name>/`
+- Active implementations live in `~/.claude/implementations/`
+- Completed implementations move to `~/.claude/implementations/done/`

@@ -12,7 +12,7 @@ allowed-tools: Read, Grep, Glob, Bash, Agent
 # Code Review Workflow
 
 This skill can be invoked directly by the user (`/review-code`), or delegated to by
-other skills (feature-code-review-lite, orchestra, bugfix).
+other skills (feature-code-review, orchestra, bugfix).
 
 When delegated, the calling skill may pass context via `$ARGUMENTS` — this can include
 file paths, a feature folder path, or a description of what to review. The calling skill

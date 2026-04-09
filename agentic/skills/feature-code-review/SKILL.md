@@ -1,19 +1,19 @@
 ---
-name: feature-code-review-lite
+name: feature-code-review
 description: >-
-  Review implemented feature code by delegating to /review-code with lite feature context.
-  Lite flow variant — uses story.md acceptance criteria as the requirements source. Outputs
-  structured findings to review-fixes.md for follow-up with /feature-code-fix-lite.
+  Review implemented feature code by delegating to /review-code with feature context. Uses
+  story.md acceptance criteria as the requirements source. Outputs structured findings to
+  review-fixes.md for follow-up with /feature-code-fix.
 argument-hint: [feature-name]
 allowed-tools: Read, Grep, Glob, Bash, Agent
 ---
 
-# Feature Code Review Lite Workflow
+# Feature Code Review Workflow
 
-The user has invoked `/feature-code-review-lite`. Follow this workflow exactly.
+The user has invoked `/feature-code-review`. Follow this workflow exactly.
 
-This is the **lite** review flow. It uses `story.md` acceptance criteria as the requirements
-source and assesses test quality against what was written ad-hoc during implementation.
+This review flow uses `story.md` acceptance criteria as the requirements source and assesses
+test quality against what was written ad-hoc during implementation.
 
 ## Step 1 — Resolve the feature
 
@@ -88,7 +88,6 @@ After the review completes, take the synthesized findings and write them to
 
 > Generated: <today's date>
 > Feature: <feature-name>
-> Flow: lite
 
 ## Findings
 
@@ -110,6 +109,6 @@ After the review completes, take the synthesized findings and write them to
 > **CRITICAL WARNING:** If any CRITICAL finding exists, highlight it prominently
 > at the top of the file.
 
-Then prompt: _"Next step: run `/feature-code-fix-lite <name>` to apply fixes, or
+Then prompt: _"Next step: run `/feature-code-fix <name>` to apply fixes, or
 review the findings in `~/.claude/features/<name>/review-fixes.md` first."_
 (replace `<name>` with the actual feature folder name).

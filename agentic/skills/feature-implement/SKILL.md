@@ -1,22 +1,20 @@
 ---
-name: feature-implement-lite
+name: feature-implement
 description: >-
   Implement a feature directly from its story and high-level plan. Use whenever the user is
-  ready to start coding in the lite flow — even if they just say "start building", "let's go",
-  or "implement it". Reads story.md and plan.md, implements the feature using its own judgment
-  for task ordering, writes tests ad-hoc, and marks acceptance criteria as implemented.
-  as implemented.
+  ready to start coding — even if they just say "start building", "let's go", or "implement
+  it". Reads story.md and plan.md, implements the feature using its own judgment for task
+  ordering, writes tests ad-hoc, and marks acceptance criteria as implemented.
 argument-hint: [feature-name]
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash, Agent
 ---
 
-# Feature Implementation Lite Workflow
+# Feature Implementation Workflow
 
-The user has invoked `/feature-implement-lite`. Follow this workflow exactly.
+The user has invoked `/feature-implement`. Follow this workflow exactly.
 
-This is the **lite** implementation flow. There are no pre-defined tasks, waves, or subagent
-assignments. You read the story and high-level plan, then implement the feature using your
-own judgment for ordering and approach.
+There are no pre-defined tasks, waves, or subagent assignments. You read the story and
+high-level plan, then implement the feature using your own judgment for ordering and approach.
 
 ## Step 1 — Resolve the feature
 
@@ -38,9 +36,7 @@ Read all `.md` files in `~/.claude/features/<name>/`. Expect at minimum:
 - `plan.md` — the high-level plan with design decisions and implementation phases
 
 If `story.md` or `plan.md` is missing, tell the user and suggest running
-`/feature-plan-lite` first.
-
-Confirm the feature uses the lite flow by checking for `> Flow: lite` in `story.md`.
+`/feature-plan` first.
 
 ## Step 3 — Detect repos, branches, and context
 
@@ -78,8 +74,8 @@ them as your guide, but you have full discretion over:
    progression. You may split a phase into sub-steps or combine small phases, but don't
    reorder them unless there's a technical reason (and note the deviation).
 
-3. **Write tests as you go.** There is no pre-defined test plan in the lite flow. Write
-   tests alongside implementation, guided by the acceptance criteria. At minimum:
+3. **Write tests as you go.** There is no pre-defined test plan. Write tests alongside
+   implementation, guided by the acceptance criteria. At minimum:
    - Unit tests for non-trivial business logic
    - Integration tests for API endpoints or cross-module interactions
    - Follow existing test conventions in the repo (detect from repo-context or by
@@ -140,8 +136,8 @@ When implementation is complete, report:
 - Test results
 - Any deviations from the plan and why
 
-Then prompt: _"Next step: run `/feature-code-review-lite <name>` to review the
-implemented code, then `/feature-code-fix-lite <name>` to apply any fixes."_
+Then prompt: _"Next step: run `/feature-code-review <name>` to review the
+implemented code, then `/feature-code-fix <name>` to apply any fixes."_
 (replace `<name>` with the actual feature folder name resolved in Step 1).
 
 ## Rules

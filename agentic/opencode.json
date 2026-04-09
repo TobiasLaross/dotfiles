@@ -13,6 +13,7 @@
     "bash": "allow",
     "external_directory": {
       "~/.claude/**": "allow",
+      "~/.claude/repo-context/*": "allow",
       "~/Developer/work/**": "allow",
       "~/Developer/personal/**": "allow",
       "~/dotfiles/**": "allow",
