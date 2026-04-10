@@ -108,8 +108,9 @@ Additional functions in `zsh/config/functions.zsh`:
 - Runs `claude -p --dangerously-skip-permissions` in a loop, one task per context window
 - Reads working directory from `story.md`, auto-cds into the repo
 - Shows task progress (`done/total`) each iteration
-- Exits and archives to `~/.claude/ralph/done/` when `RALPH_DONE` appears in `progress.md`
-- Usage: `ralph <name>` (PRD must be created first via `/ralph` in Claude Code)
+- Max iteration cap (default 50, configurable via second arg)
+- Exits and archives to `~/.claude/features/done/` when `RALPH_DONE` appears in `progress.md`
+- Usage: `ralph <name> [max-iterations]` (run `/feature-plan` then `/ralph` first)
 
 ### Aerospace (`aerospace/`)
 
@@ -148,28 +149,27 @@ opencode auto-discovers skills from `~/.claude/skills/` (it scans `~/.claude` fo
 
 | Skill | Description |
 |-------|-------------|
-| `/feature-plan` | Draft story + plan, create `~/.claude/features/<name>/` folder and files |
-| `/feature-implement` | Implement directly from story + plan |
+| `/feature-plan` | Discovery Q&A, draft story + plan — shared entry point for both flows |
+| `/feature-implement` | Implement directly from story + plan (interactive) |
+| `/ralph` | Decompose plan into tasks, launch autonomous shell loop |
 | `/feature-code-review` | Review implemented feature code, delegates to /review-code |
 | `/feature-code-fix` | Apply fixes from review findings, mark criteria as reviewed |
 | `/feature-done` | Verify criteria complete, move to `done/` |
 | `/review-plan` | Review an implementation plan from 6 perspectives in parallel |
 | `/review-code` | Review any code from 3 perspectives in parallel (cold, contextual, pattern) |
-| `/ralph` | Shell-loop flow: PRD with discovery Q&A and user sign-off, then auto-starts autonomous impl loop |
-| `/orchestra` | Single orchestrator: draft → plan → implement → review → fix → done in one session |
 | `/bugfix` | Investigate a bug, write a failing test, implement and review a fix |
 | `/explain-code` | Explain code with diagrams and analogies |
 | `/repo-context` | Scan repos in `~/Developer/` and write per-repo context files to `~/.claude/repo-context/` |
 
-**Vendor skills** (git submodules under `agentic/vendor/`): `swift-concurrency-skill`, `swiftui-skill`, `swift-testing-skill` — also symlinked into `~/.claude/skills/`.
+**Vendor skills** (git submodules under `agentic/vendor/`): `swift-concurrency-skill`,
+`swiftui-skill`, `swift-testing-skill` — also symlinked into `~/.claude/skills/`.
 
 **Global instructions** (`agentic/CLAUDE.md`) define:
-- Ralph lifecycle under `~/.claude/ralph/` (active → `done/` when complete)
-- Orchestra lifecycle under `~/.agentic/implementations/` (active → `done/` when complete)
-- Feature tracking lifecycle under `~/.claude/features/` (active → `done/` when complete)
-- Three flows: ralph (shell loop), orchestra (single orchestrator),
-  and feature (plan → implement)
-- Repo context workflow: read `~/.claude/repo-context/<repo>.md` before source code when available
+- Shared planning via `/feature-plan` (discovery, story, plan, review)
+- Two implementation flows: ralph (autonomous loop) and feature (interactive)
+- Feature lifecycle under `~/.claude/features/` (active → `done/`)
+- Ralph loop files live alongside feature files in `~/.claude/features/<name>/`
+- Repo context workflow: read `~/.claude/repo-context/<repo>.md` before source code
 - Work repos live in `~/Developer/work/`; personal repos in `~/Developer/personal/`
 
 ### Other files

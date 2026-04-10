@@ -14,7 +14,8 @@ allowed-tools: Read, Write, Edit, Grep, Glob, Bash, Agent
 The user has invoked `/feature-implement`. Follow this workflow exactly.
 
 There are no pre-defined tasks, waves, or subagent assignments. You read the story and
-high-level plan, then implement the feature using your own judgment for ordering and approach.
+high-level plan, then implement the feature using your own judgment for ordering and
+approach.
 
 ## Step 1 — Resolve the feature
 
@@ -32,7 +33,8 @@ high-level plan, then implement the feature using your own judgment for ordering
 ## Step 2 — Read feature files
 
 Read all `.md` files in `~/.claude/features/<name>/`. Expect at minimum:
-- `story.md` — the user story with acceptance criteria (the source of truth)
+- `story.md` — the user story with acceptance criteria and discovery decisions
+  (the source of truth)
 - `plan.md` — the high-level plan with design decisions and implementation phases
 
 If `story.md` or `plan.md` is missing, tell the user and suggest running
@@ -42,58 +44,68 @@ If `story.md` or `plan.md` is missing, tell the user and suggest running
 
 From `plan.md`, identify:
 - Which repos need changes (check the **Repos Involved** section)
-- Determine appropriate branch names
+- Determine appropriate branch names (convention: `feature/<name>`)
 
 For each repo:
-1. Check if `~/.claude/repo-context/<repo-name>.md` exists and read it — it contains
-   architecture, design patterns, and inter-repo dependencies that inform how code
-   should be written.
+1. Check if `~/.claude/repo-context/<repo-name>.md` exists and read it — it
+   contains architecture, design patterns, and inter-repo dependencies that
+   inform how code should be written.
 2. Check out the correct branch. If the branch already exists, use it. If not,
    create it from the main/master branch.
+
+Store the branch name in `story.md` by adding a `> Branch: <branch>` line
+after the `> Working directory:` line (if not already present).
 
 ## Step 4 — Resume check
 
 Before starting, scan `story.md` for acceptance criteria already marked
 `- [x] Implemented`. Skip those and report which ones were already done
-(e.g., "Resuming: criteria 1 and 2 already implemented. Starting from criterion 3.").
+(e.g., "Resuming: criteria 1 and 2 already implemented. Starting from
+criterion 3.").
 
 ## Step 5 — Implement the feature
 
-Read the **Implementation Phases** and **Design Decisions** sections from `plan.md`. Use
-them as your guide, but you have full discretion over:
+Read the **Implementation Phases** and **Design Decisions** sections from
+`plan.md`. Also read the **Discovery** section from `story.md` for
+product-owner decisions and constraints. Use them as your guide, but you have
+full discretion over:
 - How to decompose the work into concrete coding steps
 - What order to implement things in
 - How to handle cross-cutting concerns
 
 ### Implementation guidelines
 
-1. **Follow the plan's design decisions.** If the plan says "use a middleware approach"
-   or "store in Redis", do that. Don't second-guess reviewed decisions.
+1. **Follow the plan's design decisions.** If the plan says "use a middleware
+   approach" or "store in Redis", do that. Don't second-guess reviewed
+   decisions.
 
-2. **Follow the plan's implementation phases in order.** The phases define a logical
-   progression. You may split a phase into sub-steps or combine small phases, but don't
-   reorder them unless there's a technical reason (and note the deviation).
+2. **Follow the plan's implementation phases in order.** The phases define a
+   logical progression. You may split a phase into sub-steps or combine small
+   phases, but don't reorder them unless there's a technical reason (and note
+   the deviation).
 
-3. **Write tests as you go.** There is no pre-defined test plan. Write tests alongside
-   implementation, guided by the acceptance criteria. At minimum:
+3. **Write tests as you go.** There is no pre-defined test plan. Write tests
+   alongside implementation, guided by the acceptance criteria. At minimum:
    - Unit tests for non-trivial business logic
    - Integration tests for API endpoints or cross-module interactions
-   - Follow existing test conventions in the repo (detect from repo-context or by
-     reading existing test files)
+   - Follow existing test conventions in the repo (detect from repo-context or
+     by reading existing test files)
 
-4. **Check the acceptance criteria frequently.** They are the source of truth for what
-   "done" means. After completing each implementation phase, check which criteria you've
-   satisfied.
+4. **Check the acceptance criteria frequently.** They are the source of truth
+   for what "done" means. After completing each implementation phase, check
+   which criteria you've satisfied.
 
-5. **Handle open questions.** If `plan.md` has an **Open Questions** section with
-   unresolved items that affect what you're implementing, ask the user before proceeding.
+5. **Handle open questions.** If `plan.md` has an **Open Questions** section
+   with unresolved items that affect what you're implementing, ask the user
+   before proceeding.
 
-6. **Cross-repo work.** If the plan involves multiple repos, implement changes in
-   dependency order — upstream repos first, then downstream consumers.
+6. **Cross-repo work.** If the plan involves multiple repos, implement changes
+   in dependency order — upstream repos first, then downstream consumers.
 
 ### Progress tracking
 
-After completing work that satisfies an acceptance criterion, mark it in `story.md`:
+After completing work that satisfies an acceptance criterion, mark it in
+`story.md`:
 
 Change:
 ```md
@@ -113,20 +125,22 @@ Do this incrementally as you go — not all at once at the end.
 
 ## Step 6 — Tests
 
-After implementation is complete, run only the test files written or modified during
-implementation:
+After implementation is complete, run only the test files written or modified
+during implementation:
 
 1. Collect all test files written or modified during Step 5.
-2. If you modified source files but not their associated test files, also run the test
-   files most closely associated with those source files (same module, adjacent test
-   directory, etc.).
+2. If you modified source files but not their associated test files, also run
+   the test files most closely associated with those source files (same module,
+   adjacent test directory, etc.).
 3. Do not run the full test suite — limit scope to touched test files only.
 
-**Exception:** For Xcode/iOS projects, automated test runs can get stuck or time out. In
-that case, prompt the user to run the relevant tests and share the output instead.
+**Exception:** For Xcode/iOS projects, automated test runs can get stuck or
+time out. In that case, prompt the user to run the relevant tests and share the
+output instead.
 
-Once results are available (from auto-run or user-reported), diagnose any failures and fix
-them. If a fix requires changes beyond the plan's scope, ask before proceeding.
+Once results are available (from auto-run or user-reported), diagnose any
+failures and fix them. If a fix requires changes beyond the plan's scope, ask
+before proceeding.
 
 ## Step 7 — Report
 
@@ -143,9 +157,12 @@ implemented code, then `/feature-code-fix <name>` to apply any fixes."_
 ## Rules
 
 - Follow the plan's design decisions — they have been reviewed and approved
-- If the plan has open questions, ask the user before implementing the affected areas
-- If you discover something the plan got wrong (e.g., a file path changed, a function
-  was renamed, an API works differently than assumed), fix it and note the deviation
+- If the plan has open questions, ask the user before implementing the affected
+  areas
+- If you discover something the plan got wrong (e.g., a file path changed, a
+  function was renamed, an API works differently than assumed), fix it and note
+  the deviation
 - Do not create commits unless the user asks — just make the changes
 - Do not push to remote unless the user asks
-- Mark acceptance criteria as implemented incrementally, not in a batch at the end
+- Mark acceptance criteria as implemented incrementally, not in a batch at the
+  end

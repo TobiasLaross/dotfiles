@@ -1,43 +1,46 @@
 #!/bin/zsh
 
-RALPH_BASE="$HOME/.claude/ralph"
+FEATURES_BASE="$HOME/.claude/features"
+MAX_ITERATIONS="${2:-50}"
 
 name="$1"
 if [[ -z "$name" ]]; then
-	echo "Available implementations:"
-	for dir in "$RALPH_BASE"/*/; do
+	echo "Available features with Ralph loops:"
+	for dir in "$FEATURES_BASE"/*/; do
 		[[ "$(basename "$dir")" == "done" ]] && continue
 		[[ -d "$dir" ]] || continue
-		local tasks_done=$(grep -c '^\- \[x\]' "$dir/tasks.md" 2>/dev/null || echo 0)
-		local tasks_total=$(grep -c '^\- \[' "$dir/tasks.md" 2>/dev/null || echo 0)
+		[[ -f "$dir/RALPH.md" ]] || continue
+		tasks_done=$(grep -c '^- \[x\] ' "$dir/tasks.md" 2>/dev/null || echo 0)
+		tasks_total=$(grep -c '^- \[.\] ' "$dir/tasks.md" 2>/dev/null || echo 0)
 		echo "  $(basename "$dir")  ($tasks_done/$tasks_total tasks)"
 	done
 	echo ""
-	echo "Usage: ralph <name>"
+	echo "Usage: ralph <name> [max-iterations]"
+	echo "Default max iterations: 50"
 	exit 1
 fi
 
-RALPH_DIR="$RALPH_BASE/$name"
+FEATURE_DIR="$FEATURES_BASE/$name"
 
-if [[ ! -d "$RALPH_DIR" ]]; then
-	echo "No implementation found at $RALPH_DIR"
-	echo "Run /ralph in Claude Code first to create the PRD."
+if [[ ! -d "$FEATURE_DIR" ]]; then
+	echo "No feature found at $FEATURE_DIR"
+	echo "Run /feature-plan then /ralph in Claude Code first."
 	exit 1
 fi
 
-if [[ ! -f "$RALPH_DIR/RALPH.md" ]]; then
+if [[ ! -f "$FEATURE_DIR/RALPH.md" ]]; then
 	echo "No RALPH.md found. Run /ralph in Claude Code first."
 	exit 1
 fi
 
-if grep -q "^RALPH_DONE$" "$RALPH_DIR/progress.md" 2>/dev/null; then
+if grep -q "^RALPH_DONE$" "$FEATURE_DIR/progress.md" 2>/dev/null; then
 	echo "This implementation is already done."
-	[[ -f "$RALPH_DIR/review.md" ]] && echo "Review: $RALPH_DIR/review.md"
+	[[ -f "$FEATURE_DIR/review.md" ]] && echo "Review: $FEATURE_DIR/review.md"
 	exit 0
 fi
 
 # Read working directory from story.md
-workdir=$(grep '^> Working directory:' "$RALPH_DIR/story.md" | sed 's/> Working directory: //')
+workdir=$(grep '^> Working directory:' "$FEATURE_DIR/story.md" | sed 's/> Working directory: //')
 if [[ -n "$workdir" && -d "$workdir" ]]; then
 	cd "$workdir"
 else
@@ -46,28 +49,36 @@ fi
 
 echo "Starting Ralph loop: $name"
 echo "Working directory: $(pwd)"
-
+echo "Max iterations: $MAX_ITERATIONS"
 echo ""
 
 iteration=0
 while :; do
 	iteration=$((iteration + 1))
-	tasks_done=$(grep -c '^\- \[x\]' "$RALPH_DIR/tasks.md" 2>/dev/null || echo 0)
-	tasks_total=$(grep -c '^\- \[' "$RALPH_DIR/tasks.md" 2>/dev/null || echo 0)
 
-	echo "=== Iteration $iteration ($tasks_done/$tasks_total tasks done) ==="
+	if [[ $iteration -gt $MAX_ITERATIONS ]]; then
+		echo ""
+		echo "Reached max iterations ($MAX_ITERATIONS). Stopping."
+		echo "Run 'ralph $name [higher-limit]' to continue."
+		break
+	fi
 
-	claude -p --dangerously-skip-permissions <"$RALPH_DIR/RALPH.md"
+	tasks_done=$(grep -c '^- \[x\] ' "$FEATURE_DIR/tasks.md" 2>/dev/null || echo 0)
+	tasks_total=$(grep -c '^- \[.\] ' "$FEATURE_DIR/tasks.md" 2>/dev/null || echo 0)
 
-	if grep -q "^RALPH_DONE$" "$RALPH_DIR/progress.md" 2>/dev/null; then
+	echo "=== Iteration $iteration/$MAX_ITERATIONS ($tasks_done/$tasks_total tasks done) ==="
+
+	claude -p --dangerously-skip-permissions <"$FEATURE_DIR/RALPH.md"
+
+	if grep -q "^RALPH_DONE$" "$FEATURE_DIR/progress.md" 2>/dev/null; then
 		echo ""
 		echo "Ralph is done!"
-		[[ -f "$RALPH_DIR/review.md" ]] && echo "Review: $RALPH_DIR/review.md"
+		[[ -f "$FEATURE_DIR/review.md" ]] && echo "Review: $FEATURE_DIR/review.md"
 
 		# Move to done
-		mkdir -p "$RALPH_BASE/done"
-		mv "$RALPH_DIR" "$RALPH_BASE/done/$name"
-		echo "Archived to: $RALPH_BASE/done/$name"
+		mkdir -p "$FEATURES_BASE/done"
+		mv "$FEATURE_DIR" "$FEATURES_BASE/done/$name"
+		echo "Archived to: $FEATURES_BASE/done/$name"
 		break
 	fi
 

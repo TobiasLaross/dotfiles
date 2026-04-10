@@ -54,8 +54,8 @@ findings, warn explicitly that a known critical risk will remain.
 ## Step 4 — Batch and apply fixes
 
 Group accepted findings by file. For each file (or small group of related files),
-spawn a subagent (`subagent_type: general-purpose`) to apply all fixes for that
-file in a single pass.
+spawn a subagent (`subagent_type: general`) to apply all fixes for that file in
+a single pass.
 
 Launch independent file groups in parallel. Files that depend on each other
 (e.g., a function definition and its callers) should be handled by the same
