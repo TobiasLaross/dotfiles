@@ -5,16 +5,17 @@ MAX_ITERATIONS="${2:-50}"
 
 name="$1"
 if [[ -z "$name" ]]; then
-	echo "Available features with ralph loops:"
+	echo "Available features with task loops:"
 	for dir in "$FEATURES_BASE"/*/; do
 		[[ "$(basename "$dir")" == "done" ]] && continue
 		[[ -d "$dir" ]] || continue
-		[[ -f "$dir/PROMPT.md" ]] || continue
-		iterations=$(grep -c '^## Iteration' "$dir/progress.md" 2>/dev/null || echo 0)
-		echo "  $(basename "$dir")  ($iterations iterations so far)"
+		[[ -f "$dir/TASKER.md" ]] || continue
+		tasks_done=$(grep -c '^- \[x\] ' "$dir/tasks.md" 2>/dev/null || echo 0)
+		tasks_total=$(grep -c '^- \[.\] ' "$dir/tasks.md" 2>/dev/null || echo 0)
+		echo "  $(basename "$dir")  ($tasks_done/$tasks_total tasks)"
 	done
 	echo ""
-	echo "Usage: ralph <name> [max-iterations]"
+	echo "Usage: tasker <name> [max-iterations]"
 	echo "Default max iterations: 50"
 	exit 1
 fi
@@ -23,17 +24,18 @@ FEATURE_DIR="$FEATURES_BASE/$name"
 
 if [[ ! -d "$FEATURE_DIR" ]]; then
 	echo "No feature found at $FEATURE_DIR"
-	echo "Run /feature-plan then /ralph in Claude Code first."
+	echo "Run /feature-plan then /tasker in Claude Code first."
 	exit 1
 fi
 
-if [[ ! -f "$FEATURE_DIR/PROMPT.md" ]]; then
-	echo "No PROMPT.md found. Run /ralph in Claude Code first."
+if [[ ! -f "$FEATURE_DIR/TASKER.md" ]]; then
+	echo "No TASKER.md found. Run /tasker in Claude Code first."
 	exit 1
 fi
 
-if grep -q "^RALPH_DONE$" "$FEATURE_DIR/progress.md" 2>/dev/null; then
+if grep -q "^TASKER_DONE$" "$FEATURE_DIR/progress.md" 2>/dev/null; then
 	echo "This implementation is already done."
+	[[ -f "$FEATURE_DIR/review.md" ]] && echo "Review: $FEATURE_DIR/review.md"
 	exit 0
 fi
 
@@ -45,7 +47,7 @@ else
 	echo "Warning: Could not detect working directory from story.md, using $(pwd)"
 fi
 
-echo "Starting ralph loop: $name"
+echo "Starting task loop: $name"
 echo "Working directory: $(pwd)"
 echo "Max iterations: $MAX_ITERATIONS"
 echo ""
@@ -57,19 +59,21 @@ while :; do
 	if [[ $iteration -gt $MAX_ITERATIONS ]]; then
 		echo ""
 		echo "Reached max iterations ($MAX_ITERATIONS). Stopping."
-		echo "Run 'ralph $name [higher-limit]' to continue."
+		echo "Run 'tasker $name [higher-limit]' to continue."
 		break
 	fi
 
-	iterations_done=$(grep -c '^## Iteration' "$FEATURE_DIR/progress.md" 2>/dev/null || echo 0)
+	tasks_done=$(grep -c '^- \[x\] ' "$FEATURE_DIR/tasks.md" 2>/dev/null || echo 0)
+	tasks_total=$(grep -c '^- \[.\] ' "$FEATURE_DIR/tasks.md" 2>/dev/null || echo 0)
 
-	echo "=== Iteration $iteration/$MAX_ITERATIONS ($iterations_done completed so far) ==="
+	echo "=== Iteration $iteration/$MAX_ITERATIONS ($tasks_done/$tasks_total tasks done) ==="
 
-	claude -p --dangerously-skip-permissions <"$FEATURE_DIR/PROMPT.md"
+	claude -p --dangerously-skip-permissions <"$FEATURE_DIR/TASKER.md"
 
-	if grep -q "^RALPH_DONE$" "$FEATURE_DIR/progress.md" 2>/dev/null; then
+	if grep -q "^TASKER_DONE$" "$FEATURE_DIR/progress.md" 2>/dev/null; then
 		echo ""
-		echo "Ralph is done!"
+		echo "Tasker is done!"
+		[[ -f "$FEATURE_DIR/review.md" ]] && echo "Review: $FEATURE_DIR/review.md"
 
 		# Move to done
 		mkdir -p "$FEATURES_BASE/done"

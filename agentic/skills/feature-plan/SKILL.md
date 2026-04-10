@@ -404,7 +404,9 @@ Then prompt:
 
 _"The plan is ready. Choose your implementation path:_
 - _`/feature-implement` — interactive implementation in this session_
-- _`/ralph` — autonomous loop (one task per context window, runs until done)"_
+- _`/tasker` — autonomous task loop (one task per context window, runs until done)_
+- _`/ralph` — true Ralph Wiggum loop (same prompt every iteration, agent decides
+  what to do)"_
 
 ## Rules
 

@@ -6,17 +6,21 @@ Features are tracked in `~/.claude/features/`. The folder and all files are crea
 `/feature-plan` — do not create feature folders manually. When the user runs the skill,
 it handles naming, folder creation, discovery, planning, and review.
 
-### Two implementation flows
+### Three implementation flows
 
-Both flows start with `/feature-plan`, which creates the story, runs discovery Q&A,
+All flows start with `/feature-plan`, which creates the story, runs discovery Q&A,
 drafts acceptance criteria with user sign-off, and generates a reviewed plan. After
 planning, the user chooses an implementation path:
 
-- **Ralph** (`/feature-plan` → `/ralph`): Autonomous shell-loop flow. `/ralph` decomposes
-  the plan into tasks and launches `ralph.sh`, which runs `claude -p` in a loop — one task
-  per context window, progress tracked in files. Final iteration reviews the entire diff
-  and adds fix tasks if needed. Resumable at any point. Best for autonomous implementation
-  with minimal token waste.
+- **Tasker** (`/feature-plan` → `/tasker`): Autonomous task loop. `/tasker` decomposes
+  the plan into behavior-level tasks and launches `tasker.sh`, which runs `claude -p`
+  in a loop — one task per context window, progress tracked in files. Final iteration
+  reviews the entire diff and adds fix tasks if needed. Resumable at any point. Best
+  for structured autonomous implementation.
+- **Ralph** (`/feature-plan` → `/ralph`): True Ralph Wiggum loop. Same prompt piped to
+  the agent every iteration. The agent sees its previous work through the filesystem
+  and decides what to do next. No pre-decomposed tasks. Best for greenfield work where
+  the agent should have full autonomy.
 - **Feature flow** (`/feature-plan` → `/feature-implement` → review → fix → done):
   Interactive implementation in a single session. The agent reads the plan and implements
   using its own judgment for task ordering. Tracks progress via acceptance criteria
@@ -25,7 +29,7 @@ planning, the user chooses an implementation path:
 
 ### Shared planning
 
-`/feature-plan` is the single entry point for both flows. It produces:
+`/feature-plan` is the single entry point for all flows. It produces:
 - `story.md` — user story, discovery decisions, acceptance criteria
   (with `Implemented`/`Reviewed` tracking)
 - `plan.md` — reviewed high-level plan with design decisions and implementation phases
@@ -36,7 +40,9 @@ planning, the user chooses an implementation path:
 - Active features live in `~/.claude/features/<name>/`
 - Completed features move to `~/.claude/features/done/<name>/`
 - All related md files for a feature go in its folder
-- Ralph loop files (`tasks.md`, `RALPH.md`, `progress.md`) also live in the feature folder
+- Tasker loop files (`tasks.md`, `TASKER.md`, `progress.md`) also live in the
+  feature folder
+- Ralph loop files (`PROMPT.md`) also live in the feature folder
 
 If a feature folder already exists, you may read its files to resume context across
 sessions.
