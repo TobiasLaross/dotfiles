@@ -204,6 +204,52 @@ tracking mechanism for both flows. `/feature-implement` and `/ralph` mark
 `Implemented`, `/feature-code-fix` marks `Reviewed`, and `/feature-done` checks
 both.
 
+## Step 5b — Offer worktree
+
+If the current working directory is a git repository, ask the user:
+
+_"Do you want to use a git worktree for this feature? This creates an isolated
+working directory so you can keep working on the main branch while the agent
+(or another session) implements the feature."_
+
+**If the user declines** (or the directory is not a git repo): skip to Step 6.
+The feature will work in the current directory with a feature branch (existing
+behaviour).
+
+**If the user accepts:**
+
+1. Determine the repo root and its parent directory:
+   ```sh
+   repo_root=$(git rev-parse --show-toplevel)
+   repo_name=$(basename "$repo_root")
+   parent_dir=$(dirname "$repo_root")
+   ```
+2. Derive the worktree path and branch name:
+   - Worktree path: `$parent_dir/$repo_name--<name>`
+     (where `<name>` is the feature folder name from Step 2)
+   - Branch: `feature/<name>`
+3. Check the worktree path does not already exist. If it does, warn the user
+   and ask whether to reuse it or abort.
+4. Create the worktree:
+   ```sh
+   git worktree add -b "feature/<name>" "$parent_dir/$repo_name--<name>"
+   ```
+   If the branch already exists (e.g. from a previous attempt), use:
+   ```sh
+   git worktree add "$parent_dir/$repo_name--<name>" "feature/<name>"
+   ```
+5. Update `story.md` to record the worktree. Replace the
+   `> Working directory:` line and add metadata lines immediately after it:
+   ```md
+   > Working directory: <worktree-path>
+   > Worktree: true
+   > Worktree source: <repo_root>
+   > Branch: feature/<name>
+   ```
+6. Tell the user: _"Created worktree at `<worktree-path>` on branch
+   `feature/<name>`. The sessionizer will show it as a separate tmux
+   session."_
+
 ## Step 6 — Generate high-level plan
 
 Spawn a **foreground** subagent (`subagent_type: general`) and **wait for it to
@@ -419,4 +465,9 @@ _"The plan is ready. Choose your implementation path:_
 - The `## Revisions` section appended to `plan.md` is the downstream-visible
   record of review changes; `plan-review.md` is for human inspection only and
   is not read by downstream skills
+- Worktree naming convention: `<repo>--<feature-name>` as a sibling of the
+  original repo directory. The `--` delimiter is required — downstream cleanup
+  depends on it
+- When a worktree is created, the `> Working directory:` in `story.md` must
+  point to the worktree path (not the original repo)
 - Lines in all markdown files must not exceed 140 characters

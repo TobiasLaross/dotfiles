@@ -67,11 +67,49 @@ This gives a clean final state in `story.md` where all criteria are visibly comp
    `mv ~/.claude/features/<name> ~/.claude/features/done/<name>`
 3. Verify the move succeeded by checking the destination exists
 
+## Step 4b — Clean up worktree
+
+Read `story.md` (now at `~/.claude/features/done/<name>/story.md`) and check
+for `> Worktree: true`. If that line is **not** present, skip this step.
+
+If the feature used a worktree:
+
+1. Read the worktree metadata from `story.md`:
+   - `> Worktree source:` — the path to the original repo
+   - `> Working directory:` — the worktree path to remove
+   - `> Branch:` — the feature branch name
+2. Remove the git worktree from the source repo:
+   ```sh
+   git -C "<worktree-source>" worktree remove "<working-directory>" --force
+   ```
+   If the worktree directory was already deleted or is not registered, run:
+   ```sh
+   git -C "<worktree-source>" worktree prune
+   ```
+3. If the worktree directory still exists after removal (e.g. untracked files
+   prevented cleanup), delete it:
+   ```sh
+   rm -rf "<working-directory>"
+   ```
+4. Kill the associated tmux session if one exists. Derive the session name
+   from the worktree directory basename using the same logic as the
+   sessionizer — replace `:`, spaces, and `.` with `_`, lowercase, then
+   capitalise the first letter:
+   ```sh
+   dir_name=$(basename "<working-directory>")
+   session_name=$(echo "$dir_name" | tr ':. ' '___' | tr '[:upper:]' '[:lower:]')
+   session_name=$(echo "${session_name:0:1}" | tr '[:lower:]' '[:upper:]')${session_name:1}
+   tmux kill-session -t "$session_name" 2>/dev/null
+   ```
+   If no tmux session with that name exists, this is a no-op.
+
 ## Step 5 — Report
 
 Tell the user:
 - Feature `<name>` has been moved to `~/.claude/features/done/<name>/`
 - Summary: X of Y acceptance criteria completed, review status
+- If a worktree was cleaned up: which directory was removed, which tmux
+  session was killed (or "no active session found")
 - The feature is now archived
 
 ## Rules
@@ -79,3 +117,5 @@ Tell the user:
 - Never move a feature without checking acceptance criteria status first
 - Always ask for confirmation if any criteria are incomplete
 - Do not delete any files — only move the folder
+- Worktree cleanup must happen after the feature folder is moved, not before
+- Never delete the worktree source repo — only the worktree directory itself

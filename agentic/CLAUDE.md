@@ -47,6 +47,66 @@ planning, the user chooses an implementation path:
 If a feature folder already exists, you may read its files to resume context across
 sessions.
 
+### Git worktrees
+
+Features use **git worktrees** so the user can keep working on the main branch
+while an agent (or another session) implements a feature in an isolated working
+tree. Each worktree is a sibling directory of the original repo, visible to the
+sessionizer as a separate tmux session.
+
+#### Naming convention
+
+Worktrees live as siblings of the original repo directory, named
+`<repo>--<feature-name>`:
+
+```
+~/Developer/work/
+  my-app/                       # main branch (original repo)
+  my-app--user-avatar-upload/   # worktree for feature/user-avatar-upload
+```
+
+The `--` delimiter separates the repo name from the feature name. The
+sessionizer picks up each worktree as a distinct fzf entry and tmux session.
+
+#### story.md metadata
+
+When a worktree is created, `story.md` records it:
+
+```md
+> Working directory: /Users/tobias/Developer/work/my-app--user-avatar-upload
+> Worktree: true
+> Worktree source: /Users/tobias/Developer/work/my-app
+> Branch: feature/user-avatar-upload
+```
+
+- `> Worktree: true` signals downstream skills that the working directory is a
+  worktree (skip branch creation — the worktree already has its branch).
+- `> Worktree source:` is the path to the original repo (needed for cleanup).
+
+#### Lifecycle
+
+- `/feature-plan` **creates** the worktree after writing `story.md` (Step 5b).
+  It asks the user whether to use a worktree. If declined, the feature falls
+  back to working in the original repo directory with a feature branch (existing
+  behaviour).
+- `/feature-implement`, `/tasker`, and `/ralph` detect `> Worktree: true` in
+  `story.md` and **skip branch creation** — the worktree is already on the
+  correct branch.
+- `/feature-done` **cleans up** the worktree after archiving: removes the git
+  worktree, deletes the directory, prunes stale worktree refs, and kills the
+  associated tmux session if one exists.
+
+#### Detection
+
+To check if the current working directory is inside a worktree:
+
+```sh
+git rev-parse --is-inside-work-tree &>/dev/null \
+  && [ "$(git rev-parse --git-common-dir)" != "$(git rev-parse --git-dir)" ]
+```
+
+If this returns true, the directory is a worktree (not the main repo).
+
 ### Work repos
 
 When working inside a `/work/` directory, related repositories live in

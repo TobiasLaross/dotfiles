@@ -180,8 +180,22 @@ opencode auto-discovers skills from `~/.claude/skills/` (it scans `~/.claude` fo
   Wiggum loop), and feature (interactive)
 - Feature lifecycle under `~/.claude/features/` (active → `done/`)
 - Tasker and Ralph loop files live alongside feature files in `~/.claude/features/<name>/`
+- Git worktrees for feature isolation (optional, offered during `/feature-plan`)
 - Repo context workflow: read `~/.claude/repo-context/<repo>.md` before source code
 - Work repos live in `~/Developer/work/`; personal repos in `~/Developer/personal/`
+
+#### Git worktrees
+
+`/feature-plan` offers to create a git worktree so the user can keep working on the
+main branch while an agent implements a feature in an isolated directory. Worktrees
+are siblings of the original repo, named `<repo>--<feature-name>` (e.g.
+`my-app--user-avatar-upload`). The sessionizer picks them up as separate fzf entries
+and tmux sessions.
+
+When used, `story.md` records `> Worktree: true`, `> Worktree source:`, and
+`> Branch:`. Downstream skills (`/feature-implement`, `/tasker`, `/ralph`) detect
+these lines and skip branch creation. `/feature-done` cleans up: removes the git
+worktree, deletes the directory, and kills the tmux session.
 
 ### Other files
 

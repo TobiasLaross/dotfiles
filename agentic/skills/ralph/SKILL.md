@@ -235,6 +235,16 @@ Create `~/.claude/features/<name>/progress.md`:
 
 ### 5b — Ensure feature branch
 
+Check `story.md` for `> Worktree: true`. If present, the worktree was already
+created by `/feature-plan` with the correct branch checked out. In that case:
+- Read `> Branch:` to confirm the branch name
+- **Skip branch creation entirely**
+- Tell the user: _"Worktree already on branch `<branch>` — the loop will
+  commit here."_
+- Jump to Step 6
+
+If `> Worktree: true` is **not** present, handle branches normally:
+
 Check if the working directory is a git repository. If it is:
 
 1. Get the current branch: `git rev-parse --abbrev-ref HEAD`

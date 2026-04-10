@@ -46,6 +46,16 @@ From `plan.md`, identify:
 - Which repos need changes (check the **Repos Involved** section)
 - Determine appropriate branch names (convention: `feature/<name>`)
 
+Check `story.md` for `> Worktree: true`. If present, the worktree was already
+created by `/feature-plan` with the correct branch checked out. In that case:
+- Read `> Working directory:` to confirm the worktree path exists
+- Read `> Branch:` to confirm the branch name
+- **Skip branch creation entirely** — the worktree is already on the correct
+  branch
+- Read repo context as described below
+
+If `> Worktree: true` is **not** present, handle branches normally:
+
 For each repo:
 1. Check if `~/.claude/repo-context/<repo-name>.md` exists and read it — it
    contains architecture, design patterns, and inter-repo dependencies that
