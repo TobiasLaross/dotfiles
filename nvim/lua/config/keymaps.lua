@@ -112,9 +112,11 @@ vim.keymap.set("n", "gx", function()
 
 	if not target or target == "" then return end
 
-	-- Resolve relative file paths
+	-- Resolve relative file paths against the current buffer's directory
 	if not target:match("^https?://") and not target:match("^file://") then
-		local resolved = vim.fn.fnamemodify(target, ":p")
+		local buf_dir = vim.fn.expand("%:p:h")
+		local resolved = buf_dir .. "/" .. target
+		resolved = vim.fn.fnamemodify(resolved, ":p")
 		if vim.fn.filereadable(resolved) == 1 then
 			vim.cmd("edit " .. vim.fn.fnameescape(resolved))
 			return
