@@ -131,19 +131,50 @@ else
     echo "Please switch to the main branch before running gittag.";
 fi'
 
+alias releaseBookNotes='f() {
+  local version="$1"
+  if [[ -z "$version" ]]; then echo "Usage: releaseBookNotes <version>"; return 1; fi
+  local proj="$HOME/Developer/personal/lilium/Lilium.xcodeproj/project.pbxproj"
+  local marketing=$(grep "MARKETING_VERSION" "$proj" | grep -v "2024" | head -1 | sed "s/.*= \(.*\);/\1/" | tr -d "[:space:]")
+  local build=$(grep "CURRENT_PROJECT_VERSION" "$proj" | grep -v "56" | head -1 | sed "s/.*= \(.*\);/\1/" | tr -d "[:space:]")
+  local xcode_version="${marketing}.${build}"
+  if [[ "$version" != "$xcode_version" ]]; then
+    echo "Version mismatch: input=$version, Xcode=$xcode_version"
+    return 1
+  fi
+  git -C "$HOME/Developer/personal/lilium" tag "v$version" && \
+  git -C "$HOME/Developer/personal/lilium" push origin "v$version" && \
+  echo "Tagged and pushed v$version"
+}; f'
+
+# --- Grafana Loki (logcli) ---
+export LOKI_ADDR=https://logs-prod-025.grafana.net
+export LOKI_USERNAME=1547415
+export LOKI_PASSWORD=$(cat ~/.config/grafana-loki-token)
+lila-logs() {
+  if [[ -n "$1" ]]; then
+    logcli query '{app="BookNotes"}' --limit="$1"
+  else
+    logcli query '{app="BookNotes"}' --limit=100 --since=12h
+  fi
+}
+
 alias deployLilaStage='npm install && tsc && npm run test && \
 docker build --no-cache --platform linux/amd64 -t gcr.io/$GCP_PROJECT_ID/lila:latest . --build-arg NODE_ENV=stage && \
 docker push gcr.io/$GCP_PROJECT_ID/lila:latest && \
 gcloud run deploy lila --image gcr.io/$GCP_PROJECT_ID/lila:latest --platform managed --region $GCP_REGION \
---update-secrets=MONGODB_URI=projects/$GCP_PROJECT_NUMBER/secrets/mongodb-uri:latest \
+--update-secrets=GRAFANA_LOKI_HOST=grafana-loki-host:latest,GRAFANA_LOKI_USER=grafana-loki-user:latest,GRAFANA_LOKI_TOKEN=grafana-loki-token:latest
+ \
 --set-env-vars=NODE_ENV=stage,GCLOUD_PROJECT_ID=$GCP_PROJECT_ID,GCLOUD_PROJECT_NUMBER=$GCP_PROJECT_NUMBER'
 
-alias deployLilaStageNoTests='npm install &&  \
+alias deployLilaStageNoTests='npm install && \
 docker build --platform linux/amd64 -t gcr.io/$GCP_PROJECT_ID/lila:latest . --build-arg NODE_ENV=stage && \
 docker push gcr.io/$GCP_PROJECT_ID/lila:latest && \
 gcloud run deploy lila --image gcr.io/$GCP_PROJECT_ID/lila:latest --platform managed --region $GCP_REGION \
---update-secrets=MONGODB_URI=projects/$GCP_PROJECT_NUMBER/secrets/mongodb-uri:latest \
+--update-secrets=GRAFANA_LOKI_HOST=grafana-loki-host:latest,GRAFANA_LOKI_USER=grafana-loki-user:latest,GRAFANA_LOKI_TOKEN=grafana-loki-token:latest
+ \
 --set-env-vars=NODE_ENV=stage,GCLOUD_PROJECT_ID=$GCP_PROJECT_ID,GCLOUD_PROJECT_NUMBER=$GCP_PROJECT_NUMBER'
+
 alias deployLilaDev='npm install && npm run test && docker compose up --build'
 
 # --- Lazy-load gcloud SDK ---
