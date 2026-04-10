@@ -152,11 +152,37 @@ export LOKI_ADDR=https://logs-prod-025.grafana.net
 export LOKI_USERNAME=1547415
 export LOKI_PASSWORD=$(cat ~/.config/grafana-loki-token)
 lila-logs() {
-  if [[ -n "$1" ]]; then
-    logcli query '{app="BookNotes"}' --limit="$1"
-  else
-    logcli query '{app="BookNotes"}' --limit=100 --since=12h
+  local limit=100 since=12h severity=""
+  for arg in "$@"; do
+    if [[ "$arg" =~ ^[0-9]+$ ]]; then
+      limit="$arg"; since="336h"
+    elif [[ "$arg" =~ ^[0-9]+[hmd]$ ]]; then
+      since="$arg"
+    else
+      severity="$arg"
+    fi
+  done
+  local sev_pattern=""
+  if [[ -n "$severity" ]]; then
+    sev_pattern=$(echo "$severity" | tr '[:lower:]|' '[:upper:]|')
   fi
+  logcli query '{app="BookNotes"}' --limit="$limit" --since="$since" --quiet \
+    | sed 's/.*{detected_level[^}]*} *//' \
+    | jq -r --arg sev "$sev_pattern" '
+      (if $sev != "" then select(.severity | test("^(\($sev))$")) else . end) |
+      def color(s; code): "\u001b[\(code)m\(s)\u001b[0m";
+      def severity_color:
+        if .severity == "WARNING" then color(.severity; "33")
+        elif .severity == "ERROR" then color(.severity; "31")
+        else color(.severity; "36") end;
+      [
+        (.timestamp.seconds | todate | sub("T"; " ") | sub("Z$"; "")),
+        severity_color,
+        .message,
+        (if .path then "[\(.method) \(.path)]" else empty end),
+        (if .identifier then "(\(.identifier))" else empty end),
+        (if .err.message then color("err: \(.err.message)"; "31") else empty end)
+      ] | join("  ")'
 }
 
 alias deployLilaStage='npm install && tsc && npm run test && \
