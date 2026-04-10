@@ -450,9 +450,30 @@ Then prompt:
 
 _"The plan is ready. Choose your implementation path:_
 - _`/feature-implement` — interactive implementation in this session_
-- _`/tasker` — autonomous task loop (one task per context window, runs until done)_
-- _`/ralph` — true Ralph Wiggum loop (same prompt every iteration, agent decides
-  what to do)"_
+- _`/tasker` — autonomous task loop (one task per context window, runs until
+  done)_
+- _`/ralph` — true Ralph Wiggum loop (same prompt every iteration, agent
+  decides what to do)"_
+
+If a worktree was created in Step 5b, also tell the user:
+
+_"The worktree is at `<worktree-path>`. Open it in a new tmux session with
+`sess`, then start implementation from there:_
+
+```
+/feature-implement <name>
+```
+
+_or for autonomous loops:_
+
+```
+/tasker <name>
+```
+
+```
+/ralph <name>
+```
+_"_
 
 ## Rules
 
