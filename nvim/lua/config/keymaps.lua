@@ -112,18 +112,21 @@ vim.keymap.set("n", "gx", function()
 
 	if not target or target == "" then return end
 
-	-- Resolve relative file paths against the current buffer's directory
-	if not target:match("^https?://") and not target:match("^file://") then
-		local buf_dir = vim.fn.expand("%:p:h")
-		local resolved = buf_dir .. "/" .. target
-		resolved = vim.fn.fnamemodify(resolved, ":p")
-		if vim.fn.filereadable(resolved) == 1 then
-			vim.cmd("edit " .. vim.fn.fnameescape(resolved))
-			return
-		end
+	-- URLs: open in browser
+	if target:match("^https?://") or target:match("^file://") then
+		vim.ui.open(target)
+		return
 	end
 
-	vim.ui.open(target)
+	-- File paths: open in Neovim (resolve relative to buffer directory)
+	local path = target:gsub("#.*$", "") -- strip #fragment
+	local buf_dir = vim.fn.expand("%:p:h")
+	local resolved = vim.fn.fnamemodify(buf_dir .. "/" .. path, ":p")
+	if vim.fn.filereadable(resolved) == 1 then
+		vim.cmd("edit " .. vim.fn.fnameescape(resolved))
+	else
+		vim.notify("File not found: " .. resolved, vim.log.levels.WARN)
+	end
 end, { desc = "Open link or file under cursor" })
 
 -- LSP
