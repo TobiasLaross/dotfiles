@@ -88,6 +88,42 @@ vim.keymap.set("n", "<leader>fs", "<cmd>lua SwitchToRelatedFile()<CR>", { norema
 vim.keymap.set("n", "<leader>lw", "<cmd>lua LogWord()<CR>", { noremap = true, silent = true })
 vim.keymap.set("v", "<leader>lw", "<cmd>lua LogWord()<CR>", { noremap = true, silent = true })
 
+-- Open URL or file under cursor (replaces netrw's gx)
+vim.keymap.set("n", "gx", function()
+	local target = nil
+
+	-- Check for markdown link [text](url_or_path)
+	local line = vim.api.nvim_get_current_line()
+	local col = vim.fn.col(".")
+	for link in line:gmatch("%[.-%]%((.-)%)") do
+		local start, finish = line:find("%[.-%]%(" .. vim.pesc(link) .. "%)")
+		if start and col >= start and col <= finish then
+			target = link
+			break
+		end
+	end
+
+	-- Fall back to WORD under cursor
+	if not target then
+		target = vim.fn.expand("<cWORD>")
+		-- Strip surrounding punctuation (markdown, parens, quotes)
+		target = target:gsub("^[%[%(\"'<]+", ""):gsub("[%]%)\"'>,.;:!?]+$", "")
+	end
+
+	if not target or target == "" then return end
+
+	-- Resolve relative file paths
+	if not target:match("^https?://") and not target:match("^file://") then
+		local resolved = vim.fn.fnamemodify(target, ":p")
+		if vim.fn.filereadable(resolved) == 1 then
+			vim.cmd("edit " .. vim.fn.fnameescape(resolved))
+			return
+		end
+	end
+
+	vim.ui.open(target)
+end, { desc = "Open link or file under cursor" })
+
 -- LSP
 vim.keymap.set("n", "<leader>lr", "<cmd>LspRestart<cr>")
 
