@@ -107,7 +107,7 @@ sessionizer picks up each worktree as a distinct fzf entry and tmux session.
 
 #### story.md metadata
 
-When a worktree is created, `story.md` records it:
+When worktrees are created, `story.md` records them:
 
 ```md
 > Working directory: /Users/tobias/Developer/work/my-app--user-avatar-upload
@@ -120,12 +120,17 @@ When a worktree is created, `story.md` records it:
   worktree (skip branch creation — the worktree already has its branch).
 - `> Worktree source:` is the path to the original repo (needed for cleanup).
 
+If multiple repos have worktrees, `story.md` also contains a `## Worktrees`
+table listing every worktree path, source repo, and branch. `/feature-done`
+reads this table to clean up all worktrees.
+
 #### Lifecycle
 
-- `/feature-plan` **creates** the worktree after writing `story.md` (Step 5b).
-  It asks the user whether to use a worktree. If declined, the feature falls
-  back to working in the original repo directory with a feature branch (existing
-  behaviour).
+- `/feature-plan` **creates** worktrees after the plan is finalized
+  (Step 8b). It asks the user whether to use worktrees. If declined, the
+  feature falls back to working in the original repo directories with
+  feature branches (existing behaviour). When the plan involves multiple
+  repos, a worktree is created for each one.
 - `/feature-implement`, `/tasker`, and `/ralph` detect `> Worktree: true` in
   `story.md` and **skip branch creation** — the worktree is already on the
   correct branch.

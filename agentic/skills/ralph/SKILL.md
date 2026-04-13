@@ -50,6 +50,21 @@ Read `~/.claude/features/<name>/story.md` and `~/.claude/features/<name>/plan.md
     - If yes, jump to **Step 6** to launch
     - If no, ask what they want to change
 
+## Step 2b — Trigger filesystem access
+
+To surface permission prompts early (before the loop starts), touch a file in
+every directory the autonomous agent will write to:
+
+1. The feature folder:
+   `touch ~/.claude/features/<name>/.gitkeep`
+2. Each repo that will be modified (from **Repos Involved** in `plan.md`).
+   If worktrees exist (check `> Worktree: true` and the `## Worktrees`
+   table in `story.md`), use the worktree paths:
+   ```sh
+   touch "<repo-or-worktree-path>/.feature-touch"
+   rm "<repo-or-worktree-path>/.feature-touch"
+   ```
+
 ## Step 3 — Detect test command and base branch
 
 ### 3a — Test command
@@ -145,12 +160,15 @@ context window.
    context.
 2. Read the source files you need. Implement the change.
 3. Write tests for the behavior you added (if applicable).
-4. Run tests using a subagent and pipe output to file:
+4. Check `story.md` for `> Tests: manual`. If set to `manual`, skip
+   automated test runs — note in progress.md that tests need manual
+   verification. Otherwise, run tests using a subagent and pipe output
+   to file:
    ```
    <test-command> 2>&1 | tee ~/.claude/features/<name>/test-output.log
    ```
-   The subagent should read ONLY the last 30 lines of `test-output.log` and
-   report the summary back to you.
+   The subagent should read ONLY the last 30 lines of `test-output.log`
+   and report the summary back to you.
 5. If tests fail, fix and re-run (max 3 attempts). If still failing after 3
    attempts, note the failure in progress.md and move on.
 

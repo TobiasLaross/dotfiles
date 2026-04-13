@@ -42,6 +42,18 @@ keep review rigor high.
 
 ## Step 2 — Draft user story
 
+**Before anything else**, create the feature folder to trigger filesystem
+access approval early:
+
+```sh
+mkdir -p ~/.claude/features/<name>
+touch ~/.claude/features/<name>/.gitkeep
+```
+
+Use a placeholder name derived from the user's description (the final name
+is confirmed below). If the name changes after confirmation, rename the
+folder.
+
 From the user's description, draft:
 - A **short folder name** (kebab-case, 2-4 words, e.g. `user-avatar-upload`)
 - A **user story**: **As a** [type], **I want** [goal] **so that** [reason]
@@ -160,6 +172,16 @@ criteria right is the most important step in the entire flow.
 
 Do **not** proceed until the user confirms.
 
+## Step 4b — Test preference
+
+Ask the user:
+
+_"Should tests be run automatically by the agent, or do you want to run them
+manually and share the output?"_
+
+Store the answer as `auto` or `manual`. This will be recorded in `story.md`
+and read by downstream skills.
+
 ## Step 5 — Create the story file
 
 Create `~/.claude/features/` and `~/.claude/features/<name>/` if needed.
@@ -172,6 +194,7 @@ Write `~/.claude/features/<name>/story.md`:
 > Original request: <user's exact words, verbatim>
 > Created: <today's date>
 > Working directory: <current working directory>
+> Tests: <auto or manual>
 
 **As a** [type], **I want** [goal] **so that** [reason]
 
@@ -203,52 +226,6 @@ The nested `Implemented` and `Reviewed` checkboxes under each criterion are the
 tracking mechanism for both flows. `/feature-implement` and `/ralph` mark
 `Implemented`, `/feature-code-fix` marks `Reviewed`, and `/feature-done` checks
 both.
-
-## Step 5b — Offer worktree
-
-If the current working directory is a git repository, ask the user:
-
-_"Do you want to use a git worktree for this feature? This creates an isolated
-working directory so you can keep working on the main branch while the agent
-(or another session) implements the feature."_
-
-**If the user declines** (or the directory is not a git repo): skip to Step 6.
-The feature will work in the current directory with a feature branch (existing
-behaviour).
-
-**If the user accepts:**
-
-1. Determine the repo root and its parent directory:
-   ```sh
-   repo_root=$(git rev-parse --show-toplevel)
-   repo_name=$(basename "$repo_root")
-   parent_dir=$(dirname "$repo_root")
-   ```
-2. Derive the worktree path and branch name:
-   - Worktree path: `$parent_dir/$repo_name--<name>`
-     (where `<name>` is the feature folder name from Step 2)
-   - Branch: `feature/<name>`
-3. Check the worktree path does not already exist. If it does, warn the user
-   and ask whether to reuse it or abort.
-4. Create the worktree:
-   ```sh
-   git worktree add -b "feature/<name>" "$parent_dir/$repo_name--<name>"
-   ```
-   If the branch already exists (e.g. from a previous attempt), use:
-   ```sh
-   git worktree add "$parent_dir/$repo_name--<name>" "feature/<name>"
-   ```
-5. Update `story.md` to record the worktree. Replace the
-   `> Working directory:` line and add metadata lines immediately after it:
-   ```md
-   > Working directory: <worktree-path>
-   > Worktree: true
-   > Worktree source: <repo_root>
-   > Branch: feature/<name>
-   ```
-6. Tell the user: _"Created worktree at `<worktree-path>` on branch
-   `feature/<name>`. The sessionizer will show it as a separate tmux
-   session."_
 
 ## Step 6 — Generate high-level plan
 
@@ -435,6 +412,75 @@ Read all three files. Then:
 | [brief description] | Applied / Rejected | [why] |
 ```
 
+## Step 8b — Offer worktrees
+
+If the current working directory is a git repository, ask the user:
+
+_"Do you want to use git worktrees for this feature? This creates isolated
+working directories so you can keep working on the main branch while the
+agent (or another session) implements the feature."_
+
+**If the user declines** (or the directory is not a git repo): skip to Step 9.
+The feature will work in the current directories with feature branches
+(existing behaviour).
+
+**If the user accepts:**
+
+Read the finalized `plan.md` and extract every repo listed under **Repos
+Involved**. For each repo (including the current one):
+
+1. Determine the repo root and its parent directory:
+   ```sh
+   repo_root="<repo-path>"   # e.g. ~/Developer/work/my-app
+   repo_name=$(basename "$repo_root")
+   parent_dir=$(dirname "$repo_root")
+   ```
+2. Derive the worktree path and branch name:
+   - Worktree path: `$parent_dir/$repo_name--<name>`
+     (where `<name>` is the feature folder name from Step 2)
+   - Branch: `feature/<name>`
+3. Check the worktree path does not already exist. If it does, warn the user
+   and ask whether to reuse it or abort.
+4. Create the worktree:
+   ```sh
+   git -C "$repo_root" worktree add \
+     -b "feature/<name>" "$parent_dir/$repo_name--<name>"
+   ```
+   If the branch already exists (e.g. from a previous attempt), use:
+   ```sh
+   git -C "$repo_root" worktree add \
+     "$parent_dir/$repo_name--<name>" "feature/<name>"
+   ```
+
+After creating all worktrees, update `story.md`:
+
+1. Replace the `> Working directory:` line with the **primary** worktree
+   path (the worktree for the current repo — the one `tasker.sh`/`ralph.sh`
+   will `cd` into).
+2. Add worktree metadata immediately after:
+   ```md
+   > Working directory: <primary-worktree-path>
+   > Worktree: true
+   > Worktree source: <primary-repo-root>
+   > Branch: feature/<name>
+   ```
+3. If multiple repos have worktrees, add a `## Worktrees` section at the
+   bottom of `story.md` (before `## Notes`):
+   ```md
+   ## Worktrees
+
+   | Repo | Worktree path | Source | Branch |
+   |------|---------------|--------|--------|
+   | <repo-name> | <worktree-path> | <repo-root> | feature/<name> |
+   | <repo-name-2> | <worktree-path-2> | <repo-root-2> | feature/<name> |
+   ```
+
+Tell the user which worktrees were created:
+_"Created worktrees:_
+- _`<repo-name>` → `<worktree-path>`_
+- _`<repo-name-2>` → `<worktree-path-2>`_
+_Each will show as a separate tmux session in the sessionizer."_
+
 ## Step 9 — Confirm and offer next step
 
 Tell the user the feature plan is finished. Show the feature folder path and give
@@ -455,7 +501,7 @@ _"The plan is ready. Choose your implementation path:_
 - _`/ralph` — true Ralph Wiggum loop (same prompt every iteration, agent
   decides what to do)"_
 
-If a worktree was created in Step 5b, also tell the user:
+If worktrees were created in Step 8b, also tell the user:
 
 _"The worktree is at `<worktree-path>`. Open it in a new tmux session with
 `sess`, then start implementation from there:_

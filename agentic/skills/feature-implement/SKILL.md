@@ -66,6 +66,23 @@ For each repo:
 Store the branch name in `story.md` by adding a `> Branch: <branch>` line
 after the `> Working directory:` line (if not already present).
 
+## Step 3b — Trigger filesystem access
+
+To surface permission prompts early (before implementation begins), touch a
+file in every directory the agent will write to:
+
+1. The feature folder (already accessed in Step 2):
+   `touch ~/.claude/features/<name>/.gitkeep`
+2. Each repo that will be modified (from **Repos Involved** in `plan.md`).
+   If worktrees exist, use the worktree paths instead:
+   ```sh
+   touch "<repo-or-worktree-path>/.feature-touch"
+   rm "<repo-or-worktree-path>/.feature-touch"
+   ```
+
+This ensures the user approves directory access once, upfront, rather than
+being prompted mid-implementation.
+
 ## Step 4 — Resume check
 
 Before starting, scan `story.md` for acceptance criteria already marked
@@ -135,6 +152,10 @@ Do this incrementally as you go — not all at once at the end.
 
 ## Step 6 — Tests
 
+Check `story.md` for `> Tests: auto` or `> Tests: manual`.
+
+**If `auto` (or no preference is recorded):**
+
 After implementation is complete, run only the test files written or modified
 during implementation:
 
@@ -144,25 +165,26 @@ during implementation:
    adjacent test directory, etc.).
 3. Do not run the full test suite — limit scope to touched test files only.
 
-**Exception:** For Xcode/iOS projects, automated test runs can get stuck or
-time out. In that case, prompt the user to run the relevant tests and share the
-output instead.
+Once results are available, diagnose any failures and fix them. If a fix
+requires changes beyond the plan's scope, ask before proceeding.
 
-Once results are available (from auto-run or user-reported), diagnose any
-failures and fix them. If a fix requires changes beyond the plan's scope, ask
-before proceeding.
+**If `manual`:**
 
-## Step 7 — Report
+Prompt the user to run the relevant tests. List the test files written or
+modified during Step 5 so they know what to run. Wait for the user to share
+the output. Diagnose any failures and fix them.
 
-When implementation is complete, report:
+## Step 7 — Report and review
+
+When implementation is complete and tests pass, report:
 - Which acceptance criteria are now marked as implemented
 - Which criteria are not yet implemented (if any) and why
 - Test results
 - Any deviations from the plan and why
 
-Then prompt: _"Next step: run `/feature-code-review <name>` to review the
-implemented code, then `/feature-code-fix <name>` to apply any fixes."_
-(replace `<name>` with the actual feature folder name resolved in Step 1).
+Then automatically invoke `/feature-code-review <name>` (replace `<name>` with
+the actual feature folder name resolved in Step 1). Do not wait for the user
+to request the review — start it immediately after reporting.
 
 ## Rules
 

@@ -186,16 +186,17 @@ opencode auto-discovers skills from `~/.claude/skills/` (it scans `~/.claude` fo
 
 #### Git worktrees
 
-`/feature-plan` offers to create a git worktree so the user can keep working on the
-main branch while an agent implements a feature in an isolated directory. Worktrees
-are siblings of the original repo, named `<repo>--<feature-name>` (e.g.
-`my-app--user-avatar-upload`). The sessionizer picks them up as separate fzf entries
-and tmux sessions.
+`/feature-plan` offers to create git worktrees so the user can keep working on
+the main branch while an agent implements a feature in isolated directories.
+Worktrees are siblings of the original repo, named `<repo>--<feature-name>`
+(e.g. `my-app--user-avatar-upload`). The sessionizer picks them up as separate
+fzf entries and tmux sessions. When the plan involves multiple repos, a
+worktree is created for each one.
 
 When used, `story.md` records `> Worktree: true`, `> Worktree source:`, and
-`> Branch:`. Downstream skills (`/feature-implement`, `/tasker`, `/ralph`) detect
-these lines and skip branch creation. `/feature-done` cleans up: removes the git
-worktree, deletes the directory, and kills the tmux session.
+`> Branch:`. Downstream skills (`/feature-implement`, `/tasker`, `/ralph`)
+detect these lines and skip branch creation. `/feature-done` cleans up:
+removes the git worktree, deletes the directory, and kills the tmux session.
 
 ### Other files
 
