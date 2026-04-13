@@ -138,10 +138,6 @@ alias releaseBookNotes='f() {
   local marketing=$(grep "MARKETING_VERSION" "$proj" | grep -v "2024" | head -1 | sed "s/.*= \(.*\);/\1/" | tr -d "[:space:]")
   local build=$(grep "CURRENT_PROJECT_VERSION" "$proj" | grep -v "56" | head -1 | sed "s/.*= \(.*\);/\1/" | tr -d "[:space:]")
   local xcode_version="${marketing}.${build}"
-  if [[ "$version" != "$xcode_version" ]]; then
-    echo "Version mismatch: input=$version, Xcode=$xcode_version"
-    return 1
-  fi
   git -C "$HOME/Developer/personal/lilium" tag "v$version" && \
   git -C "$HOME/Developer/personal/lilium" push origin "v$version" && \
   echo "Tagged and pushed v$version"
@@ -152,9 +148,11 @@ export LOKI_ADDR=https://logs-prod-025.grafana.net
 export LOKI_USERNAME=1547415
 export LOKI_PASSWORD=$(cat ~/.config/grafana-loki-token)
 lila-logs() {
-  local limit=100 since=12h severity=""
+  local limit=100 since=12h severity="" others_only=false
   for arg in "$@"; do
-    if [[ "$arg" =~ ^[0-9]+$ ]]; then
+    if [[ "$arg" == "-o" ]]; then
+      others_only=true
+    elif [[ "$arg" =~ ^[0-9]+$ ]]; then
       limit="$arg"; since="336h"
     elif [[ "$arg" =~ ^[0-9]+[hmd]$ ]]; then
       since="$arg"
@@ -166,8 +164,12 @@ lila-logs() {
   if [[ -n "$severity" ]]; then
     sev_pattern=$(echo "$severity" | tr '[:lower:]|' '[:upper:]|')
   fi
-  logcli query '{app="BookNotes"}' --limit="$limit" --since="$since" --quiet \
-    | sed 's/.*{detected_level[^}]*} *//' \
+  local logql='{app="BookNotes"}'
+  if [[ "$others_only" == true ]]; then
+    logql='{app="BookNotes"} !~ `Tobias`'
+  fi
+  logcli query "$logql" --limit="$limit" --since="$since" --quiet \
+    | sed 's/^[^ ]* *{[^}]*} *//' \
     | jq -r --arg sev "$sev_pattern" '
       (if $sev != "" then select(.severity | test("^(\($sev))$")) else . end) |
       def color(s; code): "\u001b[\(code)m\(s)\u001b[0m";
@@ -180,7 +182,9 @@ lila-logs() {
         severity_color,
         .message,
         (if .path then "[\(.method) \(.path)]" else empty end),
-        (if .identifier then "(\(.identifier))" else empty end),
+        (if .statusCode then "\(.statusCode) \(.durationMs)ms" else empty end),
+        (if .query then "q:" + (.query | tostring) else empty end),
+        (if .body then "body:" + (.body | tostring) else empty end),
         (if .err.message then color("err: \(.err.message)"; "31") else empty end)
       ] | join("  ")'
 }
