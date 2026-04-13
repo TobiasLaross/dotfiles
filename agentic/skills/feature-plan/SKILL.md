@@ -412,19 +412,15 @@ Read all three files. Then:
 | [brief description] | Applied / Rejected | [why] |
 ```
 
-## Step 8b — Offer worktrees
+## Step 8b — Create worktrees
 
-If the current working directory is a git repository, ask the user:
+If the current working directory is not a git repository, skip to Step 9.
 
-_"Do you want to use git worktrees for this feature? This creates isolated
-working directories so you can keep working on the main branch while the
-agent (or another session) implements the feature."_
+If the user's initial prompt explicitly requested **no worktrees**, skip to
+Step 9. The feature will work in the current directories with feature
+branches.
 
-**If the user declines** (or the directory is not a git repo): skip to Step 9.
-The feature will work in the current directories with feature branches
-(existing behaviour).
-
-**If the user accepts:**
+Otherwise, create worktrees for all repos involved in the feature.
 
 Read the finalized `plan.md` and extract every repo listed under **Repos
 Involved**. For each repo (including the current one):
@@ -503,7 +499,7 @@ _"The plan is ready. Choose your implementation path:_
 
 If worktrees were created in Step 8b, also tell the user:
 
-_"The worktree is at `<worktree-path>`. Open it in a new tmux session with
+_"Worktrees are ready. Open the primary worktree in a new tmux session with
 `sess`, then start implementation from there:_
 
 ```

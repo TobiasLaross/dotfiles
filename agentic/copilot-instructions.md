@@ -127,10 +127,9 @@ reads this table to clean up all worktrees.
 #### Lifecycle
 
 - `/feature-plan` **creates** worktrees after the plan is finalized
-  (Step 8b). It asks the user whether to use worktrees. If declined, the
-  feature falls back to working in the original repo directories with
-  feature branches (existing behaviour). When the plan involves multiple
-  repos, a worktree is created for each one.
+  (Step 8b). Worktrees are created by default for all repos involved in the
+  feature. To skip worktree creation, the user must explicitly request no
+  worktrees in the initial prompt.
 - `/feature-implement`, `/tasker`, and `/ralph` detect `> Worktree: true` in
   `story.md` and **skip branch creation** — the worktree is already on the
   correct branch.

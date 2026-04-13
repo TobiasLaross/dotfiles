@@ -36,6 +36,43 @@ Create the folder (create `~/.claude/bugs/` if it does not exist yet):
 ~/.claude/bugs/<short-name>/
 ```
 
+Touch the folder to trigger filesystem access approval early:
+```sh
+mkdir -p ~/.claude/bugs/<short-name>
+touch ~/.claude/bugs/<short-name>/.gitkeep
+```
+
+## Step 1b — Create worktree
+
+If the current working directory is a git repository and the user's initial
+prompt did not explicitly request **no worktree**, create a worktree:
+
+1. Determine the repo root and its parent directory:
+   ```sh
+   repo_root=$(git rev-parse --show-toplevel)
+   repo_name=$(basename "$repo_root")
+   parent_dir=$(dirname "$repo_root")
+   ```
+2. Derive the worktree path:
+   - Worktree path: `$parent_dir/$repo_name--<short-name>`
+3. Create the worktree:
+   ```sh
+   git worktree add \
+     -b "<branch-name>" "$parent_dir/$repo_name--<short-name>"
+   ```
+   If the branch already exists, use:
+   ```sh
+   git worktree add \
+     "$parent_dir/$repo_name--<short-name>" "<branch-name>"
+   ```
+4. Touch a file in the worktree to trigger access approval:
+   ```sh
+   touch "$parent_dir/$repo_name--<short-name>/.feature-touch"
+   rm "$parent_dir/$repo_name--<short-name>/.feature-touch"
+   ```
+
+If the directory is not a git repo, skip worktree creation.
+
 Write `~/.claude/bugs/<short-name>/bug.md`:
 
 ```md
@@ -45,6 +82,9 @@ Write `~/.claude/bugs/<short-name>/bug.md`:
 **Ticket:** <ticket or "none">
 **Branch:** <branch name>
 **Reported:** <today's date>
+**Working directory:** <worktree path, or original repo if no worktree>
+**Worktree:** <true or false>
+**Worktree source:** <original repo path, or omit if no worktree>
 
 ## Repo detection notes
 
@@ -53,7 +93,8 @@ Write `~/.claude/bugs/<short-name>/bug.md`:
 
 ## Step 2 — Gather context
 
-Before spawning subagents, collect the following in the current working directory:
+Before spawning subagents, collect the following from the working directory
+(the worktree path if one was created, otherwise the original repo):
 
 - **Repo name:** Derive from the working directory path (basename or last component before `/src`).
 - **Repo context:** Check `~/.claude/repo-context/<repo-name>.md`. If it exists, read the purpose,
@@ -81,7 +122,8 @@ You are investigating a bug to identify its probable root causes.
 
 Bug file: ~/.claude/bugs/<short-name>/bug.md
 
-Read that file first to understand the bug description.
+Read that file first to understand the bug description. Use the **Working
+directory** field to determine which directory to work in.
 
 Repo context: [REPO_CONTEXT — paste the full content, or "Not available"]
 Tech stack: [TECH_STACK]
@@ -178,11 +220,13 @@ Write your findings to ~/.claude/bugs/<short-name>/investigation.md:
 **Subagent B — Failing test writer:**
 
 ```
-You are writing a failing test (or tests) that will verify when a bug has been fixed.
+You are writing a failing test (or tests) that will verify when a bug has
+been fixed.
 
 Bug file: ~/.claude/bugs/<short-name>/bug.md
 
-Read that file to understand the bug.
+Read that file to understand the bug. Use the **Working directory** field
+to determine which directory to work in.
 
 ## Context gathering
 
@@ -258,7 +302,9 @@ Bug:           ~/.claude/bugs/<short-name>/bug.md
 Investigation: ~/.claude/bugs/<short-name>/investigation.md
 Failing tests: ~/.claude/bugs/<short-name>/failing-test.md
 
-Read all three files. Then read the code at the locations identified in the investigation.
+Read all three files. Use the **Working directory** field in bug.md to
+determine which directory to work in. Then read the code at the locations
+identified in the investigation.
 
 ## Fix
 
@@ -370,6 +416,7 @@ Then present the consolidated summary to the user:
 
 **Branch:** `<branch name>`
 **Bug folder:** `~/.claude/bugs/<short-name>/`
+**Working directory:** `<worktree or repo path>`
 
 Apply any CRITICAL or HIGH findings before opening a PR.
 Review findings are saved to ~/.claude/bugs/<short-name>/review-findings.md
@@ -377,7 +424,13 @@ Review findings are saved to ~/.claude/bugs/<short-name>/review-findings.md
 
 ## Rules
 
-- Do not implement the fix in Step 3 — Step 3 subagents investigate and write tests only
+- Do not implement the fix in Step 3 — Step 3 subagents investigate and
+  write tests only
 - The fix in Step 5 must be minimal — no refactoring beyond what is necessary
 - All files are written under `~/.claude/bugs/<short-name>/`
-- Completed bugs may be moved to `~/.claude/bugs/done/<short-name>/` once the PR is merged
+- Completed bugs may be moved to `~/.claude/bugs/done/<short-name>/` once the
+  PR is merged
+- Worktree naming convention: `<repo>--<short-name>` as a sibling of the
+  original repo directory
+- Worktree cleanup is the user's responsibility after the PR is merged — run
+  `git worktree remove <path>` from the source repo and kill the tmux session
