@@ -146,7 +146,7 @@ alias releaseBookNotes='f() {
 # --- Grafana Loki (logcli) ---
 export LOKI_ADDR=https://logs-prod-025.grafana.net
 export LOKI_USERNAME=1547415
-export LOKI_PASSWORD=$(cat ~/.config/grafana-loki-token)
+export LOKI_PASSWORD=$([ -f ~/.config/grafana-loki-token ] && cat ~/.config/grafana-loki-token)
 lila-logs() {
   local limit=100 since=12h severity="" others_only=false
   for arg in "$@"; do
