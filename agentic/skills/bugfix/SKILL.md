@@ -110,25 +110,43 @@ Write `~/.claude/bugs/<short-name>/bug.md`:
 
 ## Step 2 — Gather context
 
-Before spawning subagents, collect the following from the working directory
-(the worktree path if one was created, otherwise the original repo):
+Before spawning subagents, collect the following from the working
+directory (the worktree path if one was created, otherwise the original
+repo):
 
-- **Repo name:** Derive from the working directory path (basename or last
-  component before `/src`).
-- **Repo context:** Check `~/.claude/repo-context/<repo-name>.md`. If it
-  exists, read the purpose, architecture, inter-repo dependencies, and
-  design patterns sections. Store as `REPO_CONTEXT`. If not found, read
-  `README.md` and the main entry points.
-- **Tech stack:** Read `package.json`, `pyproject.toml`, `go.mod`, `Podfile`,
-  `build.gradle`, `Cargo.toml`, or equivalent. Fall back to file extensions.
-  Store as `TECH_STACK`.
-- **Project structure:** Run `git ls-files | head -100`. Store as
-  `PROJECT_STRUCTURE`.
+- **Repo name:** Derive from the working directory path (basename or
+  last component before `/src`).
+- **Repo context:** Check `~/.claude/repo-context/<repo-name>.md`.
+  - **If it exists:** read it. This is **authoritative** for general
+    repo structure, architecture, tech stack, test infrastructure,
+    error handling conventions, and inter-repo dependencies. Store
+    as `REPO_CONTEXT`. Skip the Tech stack step below.
+  - **If not found:** create one by spawning a subagent
+    (`subagent_type: explore`, thoroughness: `very thorough`) to
+    explore the codebase and write
+    `~/.claude/repo-context/<repo-name>.md`. Wait for it, then read
+    the result. Store as `REPO_CONTEXT`. Skip the Tech stack step
+    below.
+- **Tech stack (only if no repo-context):** Read `package.json`,
+  `pyproject.toml`, `go.mod`, `Podfile`, `build.gradle`,
+  `Cargo.toml`, or equivalent. Fall back to file extensions. Store
+  as `TECH_STACK`. This is a fallback — the repo-context file
+  already contains language, stack, and test setup information.
+- **Keyword pre-filtering:** Extract 3-6 key terms from the bug
+  description (error messages, function names, module names, symptoms).
+  Run targeted greps for each keyword in the working directory using
+  the Grep tool directly (not a subagent). Collect the matched file
+  paths and deduplicate. Store as `STARTING_POINTS`.
 - **Work repos:** If the working directory contains `/work/`, list all
-  directories in `~/Developer/work/` to understand what other repos might
-  be involved.
+  directories in `~/Developer/work/` to understand what other repos
+  might be involved.
 
 Store all of this. You will inject it into the investigation subagent.
+
+> **Note:** Do NOT run `git ls-files | head -100` for project
+> structure — the repo-context file already covers this. Only fall
+> back to `git ls-files` if no repo-context file exists and you could
+> not create one.
 
 ## Step 3 — Spawn investigation and test subagents in parallel
 
@@ -144,12 +162,28 @@ You are investigating a bug to identify its probable root causes.
 
 Bug file: ~/.claude/bugs/<short-name>/bug.md
 
-Read that file first to understand the bug description. Use the **Working
-directory** field to determine which directory to work in.
+Read that file first to understand the bug description. Use the
+**Working directory** field to determine which directory to work in.
 
-Repo context: [REPO_CONTEXT — paste the full content, or "Not available"]
-Tech stack: [TECH_STACK]
-Project structure: [PROJECT_STRUCTURE]
+Repo context: [REPO_CONTEXT — paste the full content, or "Not
+available"]
+Tech stack: [TECH_STACK — only if no repo-context file existed.
+Otherwise omit — tech stack is already in the repo context above.]
+
+## Starting points (from keyword search)
+
+These files matched keywords from the bug description. Start here:
+[STARTING_POINTS — list each file with its matched keyword]
+
+Read these files first. Only explore beyond them if you cannot trace
+the execution path from these files alone.
+
+## Repo-context trust
+
+The repo context above is authoritative for general repo structure,
+architecture, test infrastructure, and error handling conventions.
+Do NOT re-explore these general topics. Focus exclusively on tracing
+the bug-specific execution path.
 
 ## Phase 1 — Map the observable failure
 
@@ -208,6 +242,16 @@ For the top 1–2 candidates, do an additional validation pass:
 - If the repo context describes canonical patterns for this area, check
   whether the buggy code deviates from them
 
+## Constraints
+
+- Complete your investigation in **15 tool calls or fewer**.
+  Prioritize reading files from the starting points list.
+- When you need to read multiple independent files, read them in a
+  single **parallel batch** rather than sequentially.
+- If you search for a pattern or concept and find zero matches after
+  2 attempts (e.g. a broader grep and a glob), **stop**. Report it
+  as "not found in codebase" and move on.
+
 ## Output
 
 Write your findings to ~/.claude/bugs/<short-name>/investigation.md:
@@ -263,15 +307,17 @@ field to determine which directory to work in.
 
 ## Context gathering
 
-1. Identify the current repo and tech stack: read package.json,
-   pyproject.toml, go.mod, Podfile, build.gradle, Cargo.toml, or
-   equivalent.
-2. Run `git ls-files | head -100` to understand the project structure.
-3. Find existing test files to understand the project's testing
-   conventions — location, naming patterns, frameworks used (e.g.
-   XCTest, Jest, pytest, go test).
-4. If the working directory contains /work/, check
-   ~/.claude/repo-context/<repo-name>.md for testing patterns.
+1. Check ~/.claude/repo-context/<repo-name>.md (derive repo name from
+   the working directory). If it exists, treat it as **authoritative**
+   for tech stack, test infrastructure, testing conventions, and
+   framework choices. Skip steps 2 and 3 — go straight to Test
+   writing.
+2. (Only if no repo-context file exists) Identify the current repo
+   and tech stack: read package.json, pyproject.toml, go.mod,
+   Podfile, build.gradle, Cargo.toml, or equivalent.
+3. (Only if no repo-context file exists) Find existing test files to
+   understand the project's testing conventions — location, naming
+   patterns, frameworks used (e.g. XCTest, Jest, pytest, go test).
 
 ## Test writing
 

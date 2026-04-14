@@ -1,12 +1,19 @@
 ---
 name: repo-context
-description: Scans all repos in ~/Developer/work/ and ~/Developer/personal/, then creates or updates a context file per repo at ~/.claude/repo-context/<repo-name>.md. Use when the user runs /repo-context.
+description: >-
+  Scans all repos in ~/Developer/work/ and ~/Developer/personal/,
+  then creates or updates a context file per repo at
+  ~/.claude/repo-context/<repo-name>.md. Use when the user runs
+  /repo-context.
 argument-hint: [optional: repo name or path to refresh a single repo]
 ---
 
 # Repo Context Workflow
 
-The user has invoked `/repo-context`. Your job is to scan all Git repositories across the two developer directories (or specific repo if provided as argument) and produce or refresh a context file for each one.
+The user has invoked `/repo-context`. Your job is to scan all Git
+repositories across the two developer directories (or a specific
+repo if provided as argument) and produce or refresh a context file
+for each one.
 
 Context files live at: `~/.claude/repo-context/<repo-name>.md`
 
@@ -48,17 +55,24 @@ ls ~/.claude/repo-context/ 2>/dev/null
 ```
 
 - If the user supplied an argument: always process the matching repo (refresh it), regardless of whether a context file exists.
-- If no argument was supplied: **skip** any repo whose context file already exists (`~/.claude/repo-context/<repo-name>.md`). Only queue repos with no existing file.
+- If no argument was supplied: **skip** any repo whose context file
+  already exists (`~/.claude/repo-context/<repo-name>.md`). Only
+  queue repos with no existing file.
 
 Tell the user upfront: how many repos were found, how many already have context (skipped), and how many will be processed now.
 
 If all repos already have context and no argument was given, refresh all context files.
 
-Split the remaining repo list into chunks of up to **10 repos**. For each chunk, launch all subagents **in parallel** (in a single message with multiple Agent tool calls, all with `run_in_background: true`).
+Split the remaining repo list into chunks of up to **10 repos**.
+For each chunk, launch all subagents **in parallel** (in a single
+message with multiple Agent tool calls, all with
+`run_in_background: true`).
 
 Wait for each batch to complete before starting the next batch.
 
-For each repo, spawn a `general-purpose` subagent with the prompt template below. Substitute the actual values for `REPO_NAME`, `REPO_PATH`, and `CONTEXT_FILE`.
+For each repo, spawn a `general-purpose` subagent with the prompt
+template below. Substitute the actual values for `REPO_NAME`,
+`REPO_PATH`, and `CONTEXT_FILE`.
 
 ---
 
@@ -79,32 +93,74 @@ Check whether the context file already exists:
 
   cat "<CONTEXT_FILE>" 2>/dev/null
 
-If it exists, read it carefully. You will update it — keeping what is still accurate, correcting what is wrong or outdated, and filling in anything missing.
+If it exists, read it carefully. You will update it — keeping what
+is still accurate, correcting what is wrong or outdated, and
+filling in anything missing.
 
 ## Phase 2 — Understand the repo
 
 Work through the following, spending more time where there is more signal:
 
 1. **Identity** — Read README.md (or README, README.rst, docs/README.md). If absent, check the repo root for any `.md` files.
-2. **Language & build system** — Detect from: package.json, go.mod, go.sum, Podfile, Podfile.lock, build.gradle, pom.xml, Cargo.toml, pyproject.toml, setup.py, requirements.txt, Makefile, .xcode*, *.xcworkspace, *.xcodeproj.
+2. **Language & build system** — Detect from: package.json, go.mod,
+    go.sum, Podfile, Podfile.lock, build.gradle, pom.xml,
+    Cargo.toml, pyproject.toml, setup.py, requirements.txt,
+    Makefile, .xcode*, *.xcworkspace, *.xcodeproj.
 3. **Entry points** — Find main files, server start-up, CLI entry points, app delegates, etc.
-4. **Architecture** — Read 10–20 key source files to understand the major layers, modules, or services inside the repo. Focus on structure, not line-by-line detail.
-5. **Dependencies on other internal repos** — Search for references to sibling repo names found in ~/Developer/work/ and ~/Developer/personal/ inside: package.json (dependencies/devDependencies), go.mod (replace directives or module imports), Podfile (local path pods), import statements, or any workspace/monorepo config.
-6. **External service communication** — Grep for patterns that reveal how this service talks to the outside world:
+4. **Architecture** — Read 10–20 key source files to understand the
+    major layers, modules, or services inside the repo. Focus on
+    structure, not line-by-line detail.
+5. **Test setup** — Locate test directories and test files. Identify:
+    - Test framework(s) (e.g. XCTest, Swift Testing, Jest, pytest,
+      go test, JUnit)
+    - Command to run **all** tests (e.g. `npm test`,
+      `swift test`, `go test ./...`)
+    - Command to run a **specific test file** or test case (e.g.
+      `npx jest path/to/file.test.ts`,
+      `swift test --filter MyTests`,
+      `go test ./pkg/foo/...`)
+    - File naming conventions (e.g. `*_test.go`, `*.spec.ts`,
+      `*Tests.swift`)
+    - Notable test utilities, helpers, or fixtures
+    If multiple test frameworks coexist, determine which is
+    canonical for new tests.
+6. **Dependencies on other internal repos** — Search for references
+    to sibling repo names found in ~/Developer/work/ and
+    ~/Developer/personal/ inside: package.json
+    (dependencies/devDependencies), go.mod (replace directives or
+    module imports), Podfile (local path pods), import statements,
+    or any workspace/monorepo config.
+7. **External service communication** — Grep for patterns that reveal how this service talks to the outside world:
    - REST: `http.Get`, `fetch(`, `axios`, `URLSession`, `Alamofire`, `httpClient`, `baseURL`, `.get(`, `.post(`
    - gRPC: `.proto` files, `grpc`, `protobuf`, `connectrpc`
    - GraphQL: `gql`, `graphql`, `Apollo`
    - WebSocket: `websocket`, `ws://`, `wss://`
    - Message queues: `kafka`, `rabbitmq`, `nats`, `pubsub`, `SQS`, `SNS`
    - Databases: connection strings, ORM configs, migration files
-   For each hit, record what it communicates with (endpoint, topic, service name) if discernible.
-7. **Design patterns** — Identify architectural and code-level patterns in use. For each area of the codebase (e.g. data layer, networking, UI, domain logic), note which pattern is used. If multiple conflicting patterns exist (e.g. both callbacks and async/await for networking, or both MVVM and MVC for UI), determine which is newer by checking git log dates (`git log --diff-filter=A --follow --format="%ad %f" -- <file>`) on representative files from each pattern, or by reading CHANGELOG/PR descriptions if available. Record the verdict: which pattern is canonical for new code.
-8. **Environment / config** — Scan `.env.example`, `config/`, `*.yml`, `*.yaml`, `*.toml` for service names, base URLs, and feature flags that reveal integrations.
-9. **CI/CD & deployment** — Glance at `.github/workflows/`, `Dockerfile`, `docker-compose.yml`, `k8s/`, `*.tf` to understand how the service is built and deployed.
+   For each hit, record what it communicates with (endpoint, topic,
+   service name) if discernible.
+8. **Design patterns** — Identify architectural and code-level
+    patterns in use. For each area of the codebase (e.g. data layer,
+    networking, UI, domain logic), note which pattern is used. If
+    multiple conflicting patterns exist (e.g. both callbacks and
+    async/await for networking, or both MVVM and MVC for UI),
+    determine which is newer by checking git log dates
+    (`git log --diff-filter=A --follow --format="%ad %f" -- <file>`)
+    on representative files from each pattern, or by reading
+    CHANGELOG/PR descriptions if available. Record the verdict: which
+    pattern is canonical for new code.
+9. **Environment / config** — Scan `.env.example`, `config/`,
+    `*.yml`, `*.yaml`, `*.toml` for service names, base URLs, and
+    feature flags that reveal integrations.
+10. **CI/CD & deployment** — Glance at `.github/workflows/`,
+    `Dockerfile`, `docker-compose.yml`, `k8s/`, `*.tf` to understand
+    how the service is built and deployed.
 
 ## Phase 3 — Write the context file
 
-Write (or overwrite) `<CONTEXT_FILE>` with the following structure. Be concise but complete — this file is read by Claude, not humans, so prefer dense, accurate prose over padding.
+Write (or overwrite) `<CONTEXT_FILE>` with the following structure.
+Be concise but complete — this file is read by Claude, not humans,
+so prefer dense, accurate prose over padding.
 
 ---
 
@@ -126,6 +182,16 @@ Brief description of the internal structure: layers, major packages/modules, key
 ## Entry points
 How is the repo started, invoked, or consumed? (CLI command, server binary, library import, mobile app target, etc.)
 
+## Test setup
+- **Framework(s):** [e.g. Jest, pytest, XCTest, Swift Testing]
+- **Run all tests:** `<command>`
+- **Run specific file/case:** `<command with placeholder>`
+- **Test directory:** [e.g. `tests/`, `__tests__/`, inline]
+- **File naming:** [e.g. `*.test.ts`, `*_test.go`, `*Tests.swift`]
+- **Utilities/fixtures:** [notable helpers, or "none"]
+If multiple test frameworks are used, note which is canonical
+for new tests.
+
 ## Internal repo dependencies
 List sibling repos from ~/Developer/work/ or ~/Developer/personal/ that this repo depends on, with a one-line reason each.
 - none (if none found)
@@ -145,7 +211,11 @@ Describe how this service communicates with the outside world. For each protocol
 Omit sections that do not apply.
 
 ## Design patterns
-For each major area of the codebase, state the pattern(s) in use. If there are conflicts (old and new approaches coexisting), name both and state which is canonical for new code — with a brief reason (e.g. "async/await supersedes callbacks, introduced in v2 migrations starting 2024").
+For each major area of the codebase, state the pattern(s) in use.
+If there are conflicts (old and new approaches coexisting), name
+both and state which is canonical for new code — with a brief
+reason (e.g. "async/await supersedes callbacks, introduced in v2
+migrations starting 2024").
 
 Format:
 - **<Area>**: <pattern(s)>. [If conflict: use <canonical pattern> for new code — <reason>.]

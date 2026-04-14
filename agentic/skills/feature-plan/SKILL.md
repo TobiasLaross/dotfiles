@@ -77,40 +77,107 @@ edge cases, constraints, and non-obvious requirements.
 
 ### 3a — Gather codebase context
 
-Spawn a **foreground** subagent (`subagent_type: general`):
+This step has three phases: repo-context lookup, keyword pre-filtering,
+and (optionally) a focused subagent.
+
+#### Phase 1 — Repo-context lookup
+
+Identify the repo name from the working directory. Check whether
+`~/.claude/repo-context/<repo-name>.md` exists.
+
+- **If it exists:** read it. This file is **authoritative** for general
+  repo structure, architecture, tech stack, test setup, error handling
+  conventions, and inter-repo dependencies. Do NOT re-explore these
+  general topics — they are already covered.
+- **If it does NOT exist:** create one by spawning a subagent
+  (`subagent_type: explore`, thoroughness: `very thorough`):
+
+  ```
+  Explore the codebase at <working directory> and create a repo-context
+  file at ~/.claude/repo-context/<repo-name>.md. Include: purpose,
+  architecture overview, key directories, error handling conventions,
+  test infrastructure, and notable patterns. Make it generally useful —
+  not feature-specific.
+  ```
+
+  Wait for it to finish, then read the resulting file.
+
+If the directory is under `/work/`, also list `~/Developer/work/` and
+read context files at `~/.claude/repo-context/` for related repos.
+
+#### Phase 2 — Keyword pre-filtering
+
+Extract 3-6 key nouns and verbs from the confirmed user story (e.g.
+"context menu," "record sound," "privacy mode," "upload avatar"). Run
+targeted greps for each keyword in the working directory. Use the Grep
+tool directly (not a subagent) — this takes seconds.
+
+Collect the matched file paths and deduplicate them. These are the
+**starting points** for feature-specific exploration.
+
+#### Phase 3 — Decision gate
+
+**If a repo-context file exists AND the keyword greps returned matches
+in 5 or fewer files:** skip the subagent. Read those files directly
+using the Read tool (in parallel when independent). Combine the
+repo-context summary with what you learn from those files — this is
+your codebase context for Step 3b. Proceed to Step 3b.
+
+**Otherwise** (no repo-context file existed before Phase 1, or keyword
+greps returned matches in more than 5 files): spawn a focused subagent
+(`subagent_type: general`):
 
 ```
-You are gathering context for a feature discovery session.
+You are gathering feature-specific context for a discovery session.
 
 User story: <the confirmed user story>
 Working directory: <current working directory>
 
-## Repo detection
+## Repo context (already gathered)
 
-Identify the current repo from the working directory name.
-If ~/.claude/repo-context/<repo-name>.md exists, read it.
-If the directory is under /work/, also list ~/Developer/work/ and read context
-files at ~/.claude/repo-context/ for related repos.
+<paste the repo-context summary — do NOT re-explore general structure,
+architecture, test infrastructure, or error handling conventions>
 
-If NO repo-context file exists for this repo, create one at
-~/.claude/repo-context/<repo-name>.md by exploring the codebase. Include:
-purpose, architecture overview, key directories, error handling conventions,
-test infrastructure, and notable patterns. This file will be used by future
-features too, so make it generally useful — not feature-specific.
+## Starting points (from keyword search)
+
+These files matched keywords from the user story. Start here:
+- <path/to/FileA> (matched "<keyword>")
+- <path/to/FileB> (matched "<keyword>")
+[list all matched files]
+
+Read these files first. Only explore beyond them if you cannot answer
+the questions below from these files alone.
 
 ## What to gather
 
-Explore the codebase enough to understand:
-1. Where in the codebase this feature would live (modules, packages, layers)
-2. Existing patterns that are relevant (how similar things are currently done)
+Focus exclusively on feature-specific code paths:
+1. Where in the codebase this feature would live (modules, packages,
+   layers)
+2. Existing patterns that are relevant (how similar things are
+   currently done)
 3. Dependencies this feature would touch or need
-4. Existing tests and test infrastructure
-5. Any constraints (API contracts, shared types, config schemas)
-6. Error handling conventions (how errors are surfaced, logged, and propagated)
+4. Any constraints (API contracts, shared types, config schemas)
 
-Write a brief context summary (not full code) to stdout. Focus on what would
-help someone ask smart questions about the feature. Be concise — bullet points,
-not paragraphs.
+General topics (repo structure, test infrastructure, error handling
+conventions) are already covered by the repo-context above. Do not
+re-explore them.
+
+## Constraints
+
+- Complete your exploration in **12 tool calls or fewer**. Prioritize
+  reading files from the starting points list.
+- When you need to read multiple independent files, read them in a
+  single **parallel batch** rather than sequentially.
+- If you search for a pattern or concept and find zero matches after
+  2 attempts (e.g. a broader grep and a glob), **stop**. Report it
+  as "not found in codebase" and move on — the orchestrator will ask
+  the user for clarification.
+- Do NOT re-read files already listed in the starting points unless
+  you need to see a specific section not covered by the initial read.
+
+Write a brief context summary (not full code) to stdout. Focus on
+what would help someone ask smart questions about the feature. Be
+concise — bullet points, not paragraphs.
 ```
 
 ### 3b — Generate discovery questions
