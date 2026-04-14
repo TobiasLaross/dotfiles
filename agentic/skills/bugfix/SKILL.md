@@ -17,18 +17,23 @@ Parse `$ARGUMENTS` to extract:
 
 1. **Ticket number** — the first token if it is either:
    - A plain integer (e.g. `42`, `1234`)
-   - A Jira-style ticket (one or more uppercase letters, a hyphen, then digits — e.g. `SER-1234`, `PROJ-42`)
-   If the first token matches either form, store it as `<ticket>`. Otherwise `<ticket>` is empty and the
-   entire argument string is the description.
+   - A Jira-style ticket (one or more uppercase letters, a hyphen, then
+     digits — e.g. `SER-1234`, `PROJ-42`)
+   If the first token matches either form, store it as `<ticket>`. Otherwise
+   `<ticket>` is empty and the entire argument string is the description.
 
-2. **Description** — everything after the ticket number (or the full `$ARGUMENTS` if no ticket was found).
+2. **Description** — everything after the ticket number (or the full
+   `$ARGUMENTS` if no ticket was found).
 
-3. **Short name** — derive a kebab-case slug from the description: 2–4 lowercase words, no special characters
-   (e.g. `nil-pointer-on-login`, `missing-auth-header`). This becomes the folder name.
+3. **Short name** — derive a kebab-case slug from the description: 2–4
+   lowercase words, no special characters (e.g. `nil-pointer-on-login`,
+   `missing-auth-header`). This becomes the folder name.
 
 4. **Branch name**:
-   - With ticket: `bugfix/<ticket>_<short-name>` (e.g. `bugfix/42_nil-pointer-on-login`)
-   - Without ticket: `bugfix/<short-name>` (e.g. `bugfix/nil-pointer-on-login`)
+   - With ticket: `bugfix/<ticket>_<short-name>`
+     (e.g. `bugfix/42_nil-pointer-on-login`)
+   - Without ticket: `bugfix/<short-name>`
+     (e.g. `bugfix/nil-pointer-on-login`)
 
 Create the folder (create `~/.claude/bugs/` if it does not exist yet):
 
@@ -73,18 +78,30 @@ prompt did not explicitly request **no worktree**, create a worktree:
 
 If the directory is not a git repo, skip worktree creation.
 
+## Step 1c — Test preference
+
+Ask the user:
+
+_"Should tests be run automatically by the agent, or do you want to run
+them manually and share the output?"_
+
+Store the answer as `auto` or `manual`.
+
+## Step 1d — Write bug.md
+
 Write `~/.claude/bugs/<short-name>/bug.md`:
 
 ```md
 # <Short descriptive title>
 
-**Description:** <description>
-**Ticket:** <ticket or "none">
-**Branch:** <branch name>
-**Reported:** <today's date>
-**Working directory:** <worktree path, or original repo if no worktree>
-**Worktree:** <true or false>
-**Worktree source:** <original repo path, or omit if no worktree>
+> Description: <description>
+> Ticket: <ticket or "none">
+> Branch: <branch name>
+> Reported: <today's date>
+> Working directory: <worktree path, or original repo if no worktree>
+> Tests: <auto or manual>
+> Worktree: <true or false>
+> Worktree source: <original repo path, or omit if no worktree>
 
 ## Repo detection notes
 
@@ -96,21 +113,26 @@ Write `~/.claude/bugs/<short-name>/bug.md`:
 Before spawning subagents, collect the following from the working directory
 (the worktree path if one was created, otherwise the original repo):
 
-- **Repo name:** Derive from the working directory path (basename or last component before `/src`).
-- **Repo context:** Check `~/.claude/repo-context/<repo-name>.md`. If it exists, read the purpose,
-  architecture, inter-repo dependencies, and design patterns sections. Store as `REPO_CONTEXT`.
-  If not found, read `README.md` and the main entry points.
-- **Tech stack:** Read `package.json`, `pyproject.toml`, `go.mod`, `Podfile`, `build.gradle`,
-  `Cargo.toml`, or equivalent. Fall back to file extensions. Store as `TECH_STACK`.
-- **Project structure:** Run `git ls-files | head -100`. Store as `PROJECT_STRUCTURE`.
-- **Work repos:** If the working directory contains `/work/`, list all directories in
-  `~/Developer/work/` to understand what other repos might be involved.
+- **Repo name:** Derive from the working directory path (basename or last
+  component before `/src`).
+- **Repo context:** Check `~/.claude/repo-context/<repo-name>.md`. If it
+  exists, read the purpose, architecture, inter-repo dependencies, and
+  design patterns sections. Store as `REPO_CONTEXT`. If not found, read
+  `README.md` and the main entry points.
+- **Tech stack:** Read `package.json`, `pyproject.toml`, `go.mod`, `Podfile`,
+  `build.gradle`, `Cargo.toml`, or equivalent. Fall back to file extensions.
+  Store as `TECH_STACK`.
+- **Project structure:** Run `git ls-files | head -100`. Store as
+  `PROJECT_STRUCTURE`.
+- **Work repos:** If the working directory contains `/work/`, list all
+  directories in `~/Developer/work/` to understand what other repos might
+  be involved.
 
 Store all of this. You will inject it into the investigation subagent.
 
 ## Step 3 — Spawn investigation and test subagents in parallel
 
-Spawn **2 subagents in the same response** (`subagent_type: general-purpose`) and
+Spawn **2 subagents in the same response** (`subagent_type: general`) and
 **wait for both to finish** before continuing.
 
 ---
@@ -132,50 +154,59 @@ Project structure: [PROJECT_STRUCTURE]
 ## Phase 1 — Map the observable failure
 
 Before reading any code, write down precisely:
-- What is the observable symptom? (error message, wrong value, crash, hang, missing behaviour)
-- Under what conditions does it occur? (specific input, user action, system state, race condition)
+- What is the observable symptom? (error message, wrong value, crash,
+  hang, missing behaviour)
+- Under what conditions does it occur? (specific input, user action,
+  system state, race condition)
 - What is the expected behaviour vs the actual behaviour?
 - Is this always reproducible, or intermittent?
 
 ## Phase 2 — Trace the execution path
 
-Follow the code from the triggering entry point (API handler, UI event, cron job, etc.)
-through to the failure site. Use Grep and Glob to locate the relevant files.
+Follow the code from the triggering entry point (API handler, UI event,
+cron job, etc.) through to the failure site. Use Grep and Glob to locate
+the relevant files.
 
 For each step in the chain, note:
 - File path and line range
 - What the code does at that step
 - Whether the step looks correct
 
-Continue until you reach the site where the behaviour diverges from expectation.
-If the bug spans multiple repos, follow the call chain across repo boundaries using
-the "External communication" and "Internal repo dependencies" sections of the repo-context.
+Continue until you reach the site where the behaviour diverges from
+expectation. If the bug spans multiple repos, follow the call chain
+across repo boundaries using the "External communication" and "Internal
+repo dependencies" sections of the repo-context.
 
 ## Phase 3 — Generate root cause hypotheses
 
-Based on Phase 2, identify the **probable root causes** — not just symptoms.
-For each candidate:
+Based on Phase 2, identify the **probable root causes** — not just
+symptoms. For each candidate:
 - **Title**: short descriptive name
 - **Location**: `file:line-range`
-- **Mechanism**: the specific sequence of events that produces the observed symptom —
-  be precise (e.g. "when X is nil, Y dereferences it at line 42, causing a nil pointer panic"
-  rather than "possible nil pointer issue")
+- **Mechanism**: the specific sequence of events that produces the
+  observed symptom — be precise (e.g. "when X is nil, Y dereferences
+  it at line 42, causing a nil pointer panic" rather than "possible
+  nil pointer issue")
 - **Confidence**: HIGH / MEDIUM / LOW
-- **Evidence**: the exact code or pattern you found that supports this hypothesis
-  (quote the relevant lines if short enough, otherwise describe them precisely)
-- **Trigger conditions**: what inputs or system state are needed to hit this path
+- **Evidence**: the exact code or pattern you found that supports this
+  hypothesis (quote the relevant lines if short enough, otherwise
+  describe them precisely)
+- **Trigger conditions**: what inputs or system state are needed to
+  hit this path
 
 List at least one candidate, at most five. Rank by confidence.
 
 ## Phase 4 — Validate top hypotheses
 
 For the top 1–2 candidates, do an additional validation pass:
-- Search for any existing guard clauses, nil checks, or error handling that might already
-  prevent the bug — if found, lower the confidence or remove the candidate
-- Look for test files that cover this path — if existing tests should catch this bug
-  but don't, note why (e.g. test uses a mock that hides the issue)
-- If the repo context describes canonical patterns for this area, check whether the
-  buggy code deviates from them
+- Search for any existing guard clauses, nil checks, or error handling
+  that might already prevent the bug — if found, lower the confidence
+  or remove the candidate
+- Look for test files that cover this path — if existing tests should
+  catch this bug but don't, note why (e.g. test uses a mock that hides
+  the issue)
+- If the repo context describes canonical patterns for this area, check
+  whether the buggy code deviates from them
 
 ## Output
 
@@ -195,7 +226,8 @@ Write your findings to ~/.claude/bugs/<short-name>/investigation.md:
 - **Frequency:** [always / intermittent / under specific load]
 
 ## Execution path
-[Brief trace from entry point to failure site — file:line for each key step]
+[Brief trace from entry point to failure site — file:line for each
+key step]
 
 ## Probable root causes
 
@@ -211,7 +243,8 @@ Write your findings to ~/.claude/bugs/<short-name>/investigation.md:
 [Results of Phase 4 — any guards or tests found that affect confidence]
 
 ## Recommended fix direction
-[1–2 sentences pointing at the most likely fix, naming the specific location]
+[1–2 sentences pointing at the most likely fix, naming the specific
+location]
 ```
 ```
 
@@ -220,37 +253,42 @@ Write your findings to ~/.claude/bugs/<short-name>/investigation.md:
 **Subagent B — Failing test writer:**
 
 ```
-You are writing a failing test (or tests) that will verify when a bug has
-been fixed.
+You are writing a failing test (or tests) that will verify when a bug
+has been fixed.
 
 Bug file: ~/.claude/bugs/<short-name>/bug.md
 
-Read that file to understand the bug. Use the **Working directory** field
-to determine which directory to work in.
+Read that file to understand the bug. Use the **Working directory**
+field to determine which directory to work in.
 
 ## Context gathering
 
-1. Identify the current repo and tech stack: read package.json, pyproject.toml, go.mod,
-   Podfile, build.gradle, Cargo.toml, or equivalent.
+1. Identify the current repo and tech stack: read package.json,
+   pyproject.toml, go.mod, Podfile, build.gradle, Cargo.toml, or
+   equivalent.
 2. Run `git ls-files | head -100` to understand the project structure.
-3. Find existing test files to understand the project's testing conventions — location,
-   naming patterns, frameworks used (e.g. XCTest, Jest, pytest, go test).
-4. If the working directory contains /work/, check ~/.claude/repo-context/<repo-name>.md
-   for testing patterns.
+3. Find existing test files to understand the project's testing
+   conventions — location, naming patterns, frameworks used (e.g.
+   XCTest, Jest, pytest, go test).
+4. If the working directory contains /work/, check
+   ~/.claude/repo-context/<repo-name>.md for testing patterns.
 
 ## Test writing
 
-Write one primary failing test that directly verifies the bugfix. The test must:
+Write one primary failing test that directly verifies the bugfix. The
+test must:
 - Fail now (before the fix)
 - Pass once the bug is correctly fixed
 - Be as isolated and focused as possible
 - Follow the project's existing test conventions exactly
 
-You may also add up to 3 additional tests if they cover clearly related missing test cases
-(e.g. edge cases of the same code path). Mark the primary test clearly.
+You may also add up to 3 additional tests if they cover clearly related
+missing test cases (e.g. edge cases of the same code path). Mark the
+primary test clearly.
 
-Add the tests to the appropriate test file(s) in the codebase. If no suitable test file
-exists, create one following the project's conventions.
+Add the tests to the appropriate test file(s) in the codebase. If no
+suitable test file exists, create one following the project's
+conventions.
 
 Do not implement any fix — only tests.
 
@@ -278,22 +316,37 @@ Write a summary to ~/.claude/bugs/<short-name>/failing-test.md:
 
 ---
 
-## Step 4 — Verify failing tests automatically
+## Step 4 — Verify failing tests
 
-After both subagents have finished, run the exact command from the "How to run" section of
-`~/.claude/bugs/<short-name>/failing-test.md` to confirm the tests fail before any fix is applied.
+After both subagents have finished, check `bug.md` for `> Tests: auto` or
+`> Tests: manual`.
 
-- If the tests **fail as expected** → report the root cause candidates and test locations
-  to the user, then proceed automatically to Step 5.
+**If `auto` (or no preference is recorded):**
+
+Run the exact command from the "How to run" section of
+`~/.claude/bugs/<short-name>/failing-test.md` to confirm the tests fail
+before any fix is applied.
+
+**If `manual`:**
+
+Prompt the user to run the tests. Show the exact command from the
+"How to run" section of `failing-test.md`. Wait for the user to share
+the output.
+
+**Then evaluate the result:**
+
+- If the tests **fail as expected** → report the root cause candidates
+  and test locations to the user, then proceed automatically to Step 5.
 - If the tests **unexpectedly pass** → stop and report:
-  "The failing tests passed before any fix — the bug may already be fixed, or the tests may
-  not be targeting the right code path. Review failing-test.md before proceeding."
+  _"The failing tests passed before any fix — the bug may already be
+  fixed, or the tests may not be targeting the right code path. Review
+  failing-test.md before proceeding."_
   Do not continue to Step 5.
 
 ## Step 5 — Spawn fix subagent
 
-Spawn a single **foreground** subagent (`subagent_type: general-purpose`) and **wait for it
-to finish**.
+Spawn a single **foreground** subagent (`subagent_type: general`) and
+**wait for it to finish**.
 
 ```
 You are implementing a bugfix.
@@ -303,30 +356,37 @@ Investigation: ~/.claude/bugs/<short-name>/investigation.md
 Failing tests: ~/.claude/bugs/<short-name>/failing-test.md
 
 Read all three files. Use the **Working directory** field in bug.md to
-determine which directory to work in. Then read the code at the locations
-identified in the investigation.
+determine which directory to work in. Then read the code at the
+locations identified in the investigation.
 
 ## Fix
 
 Implement the minimal fix that:
 1. Makes the primary failing test pass
 2. Does not break any existing tests
-3. Addresses the root cause identified in the investigation (prefer the HIGH-confidence
-   candidate unless there is a clear reason not to)
+3. Addresses the root cause identified in the investigation (prefer the
+   HIGH-confidence candidate unless there is a clear reason not to)
 4. Follows the existing code conventions in the file(s) you edit
 
-Do not refactor beyond what is necessary to fix the bug. Do not add features. Do not change
-unrelated code.
+Do not refactor beyond what is necessary to fix the bug. Do not add
+features. Do not change unrelated code.
+Do not create commits — only make the changes.
 
 ## Verification
 
-After making changes, re-read the affected code and the test to confirm the fix is logically
-correct. Then run tests automatically:
+After making changes, re-read the affected code and the test to confirm
+the fix is logically correct.
 
-1. Run the exact command from the "How to run" section of failing-test.md (the focused
-   command targeting only the written test files).
+Check bug.md for `> Tests:`. If `auto` (or not specified):
+
+1. Run the exact command from the "How to run" section of
+   failing-test.md (the focused command targeting only the written
+   test files).
 2. If you modified any other test files during the fix, run those too.
-3. Do not run the full test suite — limit scope to the touched test files only.
+3. Do not run the full test suite — limit scope to the touched test
+   files only.
+
+If `manual`: skip running tests — the user will run them.
 
 Report pass/fail in fix.md.
 
@@ -352,25 +412,41 @@ Write a summary to ~/.claude/bugs/<short-name>/fix.md:
 ```
 ```
 
+## Step 5b — Verify fix (manual tests only)
+
+If `> Tests: manual` in `bug.md`, prompt the user to run the tests now.
+Show the exact command from `failing-test.md`. Wait for the user to share
+the output.
+
+- If tests **pass** → proceed to Step 6.
+- If tests **fail** → diagnose and fix. If the failure is caused by the
+  fix, correct it and ask the user to re-run. If unrelated, note it and
+  proceed.
+
+If tests are `auto`, the fix subagent already ran them — proceed to
+Step 6.
+
 ## Step 6 — Delegate to /review-code
 
-After the fix subagent has finished, invoke the `/review-code` skill. All bug context
-(bug.md, investigation.md, fix.md, failing-test.md) and the changed files are already
-in the conversation — `/review-code` will use them without re-collecting.
+After the fix is verified, invoke the `/review-code` skill. All bug
+context (bug.md, investigation.md, fix.md, failing-test.md) and the
+changed files are already in the conversation — `/review-code` will use
+them without re-collecting.
 
 The review launches 3 sub-agents in parallel:
-1. **Cold Review** — reviews the fix with no context, catching issues visible to
-   fresh eyes
-2. **Contextual Review** — reviews with full bug context (bug.md, investigation.md,
-   fix.md, failing-test.md)
-3. **Pattern Consistency** — verifies the fix follows existing codebase patterns
+1. **Cold Review** — reviews the fix with no context, catching issues
+   visible to fresh eyes
+2. **Contextual Review** — reviews with full bug context (bug.md,
+   investigation.md, fix.md, failing-test.md)
+3. **Pattern Consistency** — verifies the fix follows existing codebase
+   patterns
 
 Wait for `/review-code` to complete and present its findings.
 
-## Step 7 — Write review-findings.md and present summary
+## Step 7 — Write review-fixes.md
 
 After the review completes, collect the findings and write
-`~/.claude/bugs/<short-name>/review-findings.md`:
+`~/.claude/bugs/<short-name>/review-fixes.md`:
 
 ```md
 # Review Findings
@@ -381,12 +457,14 @@ After the review completes, collect the findings and write
 ## Findings
 
 ### F01 — <Short title>
-- **Source:** Cold Review / Contextual Review / Pattern Consistency (<severity>)
+- **Source:** Cold Review / Contextual Review / Pattern Consistency
+  (<severity>)
 - **Finding:** <1-2 sentence description>
 - **Files:** `path/to/file.ext:line-range`
 - **Suggested fix:** <brief description of what to change>
 
-[Repeat for each finding worth acting on — skip informational observations]
+[Repeat for each finding worth acting on — skip informational
+observations]
 
 ## No Action Needed
 
@@ -395,42 +473,152 @@ After the review completes, collect the findings and write
 | [brief description] | Cold Review | LOW | [why no action needed] |
 ```
 
-> **CRITICAL WARNING:** If any CRITICAL finding exists, highlight it prominently
-> at the top of the file before the Findings section.
+> **CRITICAL WARNING:** If any CRITICAL finding exists, highlight it
+> prominently at the top of the file before the Findings section.
 
-Then present the consolidated summary to the user:
+Then present a summary grouped by severity and prompt:
+
+_"Next step: run `/bugfix-fix <short-name>` to apply review fixes, or
+review the findings in
+`~/.claude/bugs/<short-name>/review-fixes.md` first."_
+
+## Step 8 — Triage findings with the user
+
+Present a summary of all findings grouped by severity:
+
+```
+CRITICAL: N findings
+HIGH: N findings
+LOW: N findings
+```
+
+Ask the user: _"Apply all findings, or would you like to exclude any?"_
+
+If the user wants to exclude some, note which ones. For excluded CRITICAL
+findings, warn explicitly that a known critical risk will remain.
+
+## Step 9 — Batch and apply review fixes
+
+Group accepted findings by file. For each file (or small group of related
+files), spawn a subagent (`subagent_type: general`) to apply all fixes
+for that file in a single pass.
+
+Launch independent file groups in parallel. Files that depend on each
+other (e.g., a function definition and its callers) should be handled by
+the same subagent.
+
+Each subagent receives:
+```
+You are applying code review fixes to specific files.
+
+Bug folder: ~/.claude/bugs/<short-name>/
+Fixes to apply:
+<for each fix assigned to this subagent>
+- F<id>: <finding description>
+  Severity: <severity>
+  Suggested fix: <suggestion>
+</for each>
+
+Files to change: <file paths>
+
+## Instructions
+
+1. Read the relevant files.
+2. Apply all listed fixes in a single coherent pass.
+3. If a fix involves writing a missing test, follow existing test
+   conventions.
+4. Do not change anything beyond what the findings require.
+5. Do not create commits — only make the changes.
+6. Verify your fixes are logically correct before finishing.
+```
+
+## Step 10 — Run tests after review fixes
+
+After all fix subagents complete, check `bug.md` for `> Tests:`.
+
+**If `auto` (or no preference):**
+
+Run only the test files touched during this step:
+
+1. Collect all files modified by the fix subagents.
+2. Filter to test files (files in test directories, or files matching
+   `*.test.*`, `*_test.*`, `*Spec.*`, `*Tests.*` conventions).
+3. If test files were directly modified, run those. If only source files
+   were modified, identify and run the test files most closely associated
+   with the changed source files (same module, adjacent test directory,
+   etc.).
+4. Do not run the full test suite — limit scope to touched test files
+   only.
+
+- If tests pass: proceed to Step 11.
+- If tests fail: diagnose and fix. If the failure is unrelated to the
+  review fixes, note it and proceed. If it's caused by a fix, correct it.
+
+**If `manual`:**
+
+Prompt the user to run the relevant tests. List the test files written or
+modified so they know what to run. Wait for the user to share the output.
+Diagnose any failures and fix them.
+
+## Step 11 — Update review-fixes.md and present summary
+
+Update `~/.claude/bugs/<short-name>/review-fixes.md` to reflect what was
+done. Change the findings section to include status:
 
 ```md
-## Bugfix Review Complete
+### F01 — <Short title>
+- **Source:** <Agent name> (<severity>)
+- **Finding:** <description>
+- **Files:** <file paths>
+- **Status:** Fixed / Excluded
+```
 
-### Cold Review
-[Agent 1 findings, or "No issues found"]
+Then present a changelog:
 
-### Contextual Review
-[Agent 2 findings, or "No issues found"]
+```md
+## Fix Changelog
 
-### Pattern Consistency
-[Agent 3 findings, or "No issues found"]
+| Fix | Finding | Severity | Status |
+|-----|---------|----------|--------|
+| F01 | [brief description] | CRITICAL/HIGH/LOW | Fixed |
+| F02 | [brief description] | LOW | Excluded — [reason] |
 
----
+**Tests:** Passed / Failed (details)
+```
+
+> **CRITICAL WARNING:** If any CRITICAL finding was **Excluded**,
+> highlight it here. The user must consciously acknowledge they are
+> accepting a known critical risk.
+
+Then present the final summary:
+
+```md
+## Bugfix Complete
 
 **Branch:** `<branch name>`
 **Bug folder:** `~/.claude/bugs/<short-name>/`
 **Working directory:** `<worktree or repo path>`
 
-Apply any CRITICAL or HIGH findings before opening a PR.
-Review findings are saved to ~/.claude/bugs/<short-name>/review-findings.md
+All changes are local — no commits have been created.
+Review the changes, then commit and open a PR when ready.
 ```
 
 ## Rules
 
 - Do not implement the fix in Step 3 — Step 3 subagents investigate and
   write tests only
-- The fix in Step 5 must be minimal — no refactoring beyond what is necessary
-- All files are written under `~/.claude/bugs/<short-name>/`
-- Completed bugs may be moved to `~/.claude/bugs/done/<short-name>/` once the
-  PR is merged
-- Worktree naming convention: `<repo>--<short-name>` as a sibling of the
-  original repo directory
-- Worktree cleanup is the user's responsibility after the PR is merged — run
-  `git worktree remove <path>` from the source repo and kill the tmux session
+- The fix in Step 5 must be minimal — no refactoring beyond what is
+  necessary
+- Do not create commits — only make changes to files
+- Do not push to remote
+- Do not open pull requests
+- All metadata files are written under
+  `~/.claude/bugs/<short-name>/`
+- Completed bugs may be moved to
+  `~/.claude/bugs/done/<short-name>/` by the user
+- Worktree naming convention: `<repo>--<short-name>` as a sibling of
+  the original repo directory
+- Worktree cleanup is the user's responsibility — run
+  `git worktree remove <path>` from the source repo and kill the
+  tmux session
+- Lines in all markdown files must not exceed 140 characters
