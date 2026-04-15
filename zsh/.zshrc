@@ -69,10 +69,13 @@ zvm_config() {
   ZVM_NORMAL_MODE_CURSOR=$ZVM_CURSOR_BLOCK
 }
 zvm_after_init() {
-  bindkey -M viins '^[[A' history-beginning-search-backward
-  bindkey -M viins '^[[B' history-beginning-search-forward
-  bindkey -M vicmd '^[[A' history-beginning-search-backward
-  bindkey -M vicmd '^[[B' history-beginning-search-forward
+  autoload -U up-line-or-beginning-search down-line-or-beginning-search
+  zle -N up-line-or-beginning-search
+  zle -N down-line-or-beginning-search
+  bindkey -M viins '^[[A' up-line-or-beginning-search
+  bindkey -M viins '^[[B' down-line-or-beginning-search
+  bindkey -M vicmd '^[[A' up-line-or-beginning-search
+  bindkey -M vicmd '^[[B' down-line-or-beginning-search
 }
 [[ -f /opt/homebrew/opt/zsh-vi-mode/share/zsh-vi-mode/zsh-vi-mode.plugin.zsh ]] && \
   source /opt/homebrew/opt/zsh-vi-mode/share/zsh-vi-mode/zsh-vi-mode.plugin.zsh
