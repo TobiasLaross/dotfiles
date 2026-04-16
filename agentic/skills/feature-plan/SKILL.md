@@ -355,11 +355,45 @@ The criteria are the **only** spec the implementation agent will receive about
 syntax, parameter names, numeric constants, or pseudocode. Stay at the level of
 behavior and intent.
 
-Format each criterion as a checkbox with nested `Implemented` and `Reviewed`
-checkboxes:
+### Criterion shapes
+
+Each criterion takes one of three shapes. Pick the shape that fits — don't force
+a rule into a scenario or vice versa. Use the product's vocabulary in titles,
+Given/When/Then lines, and examples (e.g. "library", "feed", "book") rather
+than generic terms ("list", "item").
+
+**Scenario-style** — for a single observable behavior. Use explicit
+**Given / When / Then** so preconditions, triggers, and outcomes are all
+stated:
 
 ```md
-- [ ] <criterion text>
+- [ ] **<Short title>**
+  - **Given** <precondition / state>
+  - **When** <user or system trigger>
+  - **Then** <observable outcome in product terms>
+  - [ ] Implemented
+  - [ ] Reviewed
+```
+
+**Rule-style** — for rules, limits, gates, or invariants that apply across
+many cases. A rule must be accompanied by at least one concrete **Example**
+with real data (names, values, states) and an observable result. If the rule
+has a meaningful boundary, add a second example on the other side of it:
+
+```md
+- [ ] **<Short title of the rule>**
+  - **Rule:** <the rule in one sentence>
+  - **Example:** <concrete instance with real data and the observable result>
+  - [ ] Implemented
+  - [ ] Reviewed
+```
+
+**Out-of-scope** — for things the user intentionally excluded. Plain text is
+fine; the nested checkboxes stay for tracking consistency:
+
+```md
+- [ ] **Out of scope: <short title>**
+  - <one-sentence description of what is NOT being built>
   - [ ] Implemented
   - [ ] Reviewed
 ```
@@ -429,22 +463,33 @@ Produce a revised list of acceptance criteria. Apply these checks:
    desktop, offline behavior. Add criteria for any that apply and aren't
    covered.
 
-6. **Ambiguity** — Each criterion must be testable without interpretation.
+6. **Shape and examples** — Each criterion must fit one of the three shapes
+   (scenario, rule, out-of-scope) defined in Step 4:
+   - Scenario-style: Given, When, and Then are all explicit and concrete. If
+     any of the three is missing or vague, rewrite so all three are present.
+   - Rule-style: the rule carries at least one concrete Example with real
+     data and an observable result. Add an example if missing. If the rule
+     has a meaningful boundary, add a second example on the other side.
+   - Out-of-scope: short, plain-text description is fine.
+   Convert between shapes if the current shape doesn't fit — don't force a
+   rule into a scenario or the reverse.
+
+7. **Ambiguity** — Each criterion must be testable without interpretation.
    Rewrite anything ambiguous, vague, or open to multiple readings. Replace
    weasel words ("appropriate", "reasonable", "where possible") with concrete
    conditions.
 
-7. **Implementation leakage** — Criteria must describe behavior, not
+8. **Implementation leakage** — Criteria must describe behavior, not
    implementation. Strip any file paths, API names, syntax, parameter names,
    numeric constants, or pseudocode. Restate at the level of intent.
 
-8. **Out-of-scope** — Discovery sometimes surfaces things the user
+9. **Out-of-scope** — Discovery sometimes surfaces things the user
    intentionally excluded. Capture those as explicit out-of-scope criteria so
    the implementation agent does not silently add them.
 
-9. **Right-sizing** — Criteria should typically be one or two sentences.
-   Split anything that bundles multiple independent behaviors. Merge
-   trivial criteria that always go together.
+10. **Right-sizing** — Criteria should typically be one or two sentences.
+    Split anything that bundles multiple independent behaviors. Merge
+    trivial criteria that always go together.
 
 ## Output
 
@@ -549,16 +594,22 @@ agent — it needs the "why" behind non-obvious decisions.]
 
 ## Acceptance Criteria
 
-- [ ] <criterion 1>
+- [ ] **<Scenario title>**
+  - **Given** <precondition>
+  - **When** <trigger>
+  - **Then** <observable outcome>
   - [ ] Implemented
   - [ ] Reviewed
-- [ ] <criterion 2>
+- [ ] **<Rule title>**
+  - **Rule:** <one-sentence rule>
+  - **Example:** <concrete instance with real data and observable result>
   - [ ] Implemented
   - [ ] Reviewed
-- [ ] <criterion 3>
+- [ ] **Out of scope: <title>**
+  - <what is not being built>
   - [ ] Implemented
   - [ ] Reviewed
-[add more as needed]
+[add more as needed, using whichever shape fits each criterion]
 
 ## Repos Involved
 

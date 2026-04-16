@@ -480,8 +480,9 @@ changed files are already in the conversation — `/review-code` will use
 them without re-collecting.
 
 The review launches 3 sub-agents in parallel:
-1. **Cold Review** — reviews the fix with no context, catching issues
-   visible to fresh eyes
+1. **Behavior Verification** — confirms the fix exhibits the expected
+   behavior described in fix.md and failing-test.md, and flags any
+   behavior drift or unclaimed behavior introduced by the fix
 2. **Contextual Review** — reviews with full bug context (bug.md,
    investigation.md, fix.md, failing-test.md)
 3. **Pattern Consistency** — verifies the fix follows existing codebase
@@ -503,7 +504,7 @@ After the review completes, collect the findings and write
 ## Findings
 
 ### F01 — <Short title>
-- **Source:** Cold Review / Contextual Review / Pattern Consistency
+- **Source:** Behavior Verification / Contextual Review / Pattern Consistency
   (<severity>)
 - **Finding:** <1-2 sentence description>
 - **Files:** `path/to/file.ext:line-range`
@@ -516,7 +517,7 @@ observations]
 
 | Finding | Agent | Severity | Rationale |
 |---------|-------|----------|-----------|
-| [brief description] | Cold Review | LOW | [why no action needed] |
+| [brief description] | Behavior Verification | LOW | [why no action needed] |
 ```
 
 > **CRITICAL WARNING:** If any CRITICAL finding exists, highlight it

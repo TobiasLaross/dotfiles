@@ -67,13 +67,16 @@ to review and stop.
 
 All context has been gathered in the conversation. The `/review-code` skill will
 use what is already available rather than re-collecting git diffs, file contents,
-and project metadata. It selectively distributes context to each sub-agent — Agent
-1 intentionally receives only the code and tech stack (no requirements, no repo
-context, no feature docs).
+and project metadata. All three sub-agents receive the acceptance criteria from
+`story.md` as their spec; Agent 1 uses them to walk criterion-by-criterion
+coverage, Agent 2 uses them as the requirements frame for a contextual pass, and
+Agent 3 uses them only as backdrop for its pattern-consistency check.
 
 Invoke the `/review-code` skill. It will launch 3 sub-agents in parallel:
-1. **Cold Review** — reviews code with no context, catching issues visible to
-   fresh eyes
+1. **Behavior Verification** — walks the acceptance criteria one by one and
+   confirms each Given/When/Then scenario or rule + example is exhibited by
+   the code, flagging MISSING / PARTIAL coverage, behavior drift, and
+   unclaimed behavior
 2. **Contextual Review** — reviews with full feature context (story and
    repo context)
 3. **Pattern Consistency** — verifies the code follows existing codebase patterns

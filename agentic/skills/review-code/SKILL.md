@@ -1,10 +1,10 @@
 ---
 name: review-code
 description: >-
-  Reviews implemented code from 3 perspectives in parallel — cold read, contextual
-  review, and pattern consistency — then re-reviews the cold findings with full
-  context to adjudicate them. Use when asked to review code, a completed
-  implementation, or when another skill delegates a code review step.
+  Reviews implemented code from 3 perspectives in parallel — behavior verification
+  against the spec, contextual review, and pattern consistency. Use when asked to
+  review code, a completed implementation, or when another skill delegates a code
+  review step.
 argument-hint: "[file paths or description of what was implemented]"
 disable-model-invocation: false
 allowed-tools: Read, Grep, Glob, Bash, Agent
@@ -63,31 +63,84 @@ finish before launching the next. Replace placeholders with actual content from 
 
 ---
 
-### Agent 1 — Cold Review (no context, minimal guidelines)
+### Agent 1 — Behavior Verification (spec vs. code)
 
-This agent reviews the code with fresh eyes. It receives only the code and tech stack —
-no requirements, no repo context, no feature docs. It should catch anything that looks
-wrong, unclear, or concerning to a developer seeing this code for the first time.
+This agent verifies that the implemented code exhibits each acceptance criterion
+(or, for a bugfix, the expected fix behavior). It receives the criteria/spec, the
+full diff, and the code. Its job is to walk the spec one item at a time and
+confirm the behavior is actually present in the code — not just that
+similar-looking code exists.
 
 ```
-You are reviewing code as a fresh pair of eyes. You have no context about the project,
-its requirements, or its history. Review the code purely on its own merits.
+You are verifying that implemented code matches a specification of behavior, one
+item at a time.
 
-Look for anything that concerns you — bugs, unclear logic, poor naming, missing error
-handling, potential crashes, security issues, performance problems, or anything that
-makes you pause. Trust your instincts. Do not over-specify what to look for — just
-review the code honestly and note what stands out.
+You have:
+- The acceptance criteria (or bug-fix behavior) the code is supposed to satisfy.
+- The full diff and the changed files.
+- The filesystem, so you can read surrounding code to confirm integration points.
 
-Keep findings concise. Reference file names and line numbers. Use severity flags
-CRITICAL / HIGH / LOW on each finding.
+For each criterion (or bug-fix expectation), determine:
 
-- CRITICAL: will cause incorrect behaviour, crashes, data loss, or security
-  vulnerabilities
-- HIGH: significant concern that should be addressed
-- LOW: minor improvement or nit
+1. **Present** — the code clearly exhibits the specified Given/When/Then
+   behavior (or, for rule-style criteria, enforces the rule and matches the
+   example). State where in the code (file:line) the behavior is realized.
+2. **Partial** — some parts are implemented but not all (e.g. the happy path
+   works but the error case isn't handled; the rule is enforced but the
+   example outcome is wrong). Explain what's missing.
+3. **Missing** — the criterion is not implemented. Explain what you looked
+   for and where you expected to find it.
+
+Also flag:
+- **Behavior drift** — code that implements something close to but different
+  from what the criterion specifies (wrong observable, wrong message, wrong
+  trigger, wrong boundary).
+- **Unclaimed behavior** — behaviors visible in the diff that no criterion
+  asked for. These may be scope creep or missing criteria; flag either way.
+
+Tests are written ad-hoc in this flow. Do NOT require test-first or any
+particular test style, and the mere absence of a test on a criterion is not a
+finding. Only flag a missing test if the behavior cannot be verified from the
+code alone AND has a nontrivial risk of silent regression.
+
+If no acceptance criteria or spec were provided (direct /review-code with no
+feature), say so up-front and note that criterion coverage cannot be verified.
+Then fall back to reviewing the diff for obvious bugs, unclear logic, missing
+error handling, and anything that looks wrong — report these under "Behavior
+drift" and "Unclaimed behavior" as best fits.
+
+Keep findings concise. Reference file names and line numbers. Use severity
+flags CRITICAL / HIGH / LOW.
+
+- CRITICAL: a criterion is missing, or behavior drift produces a wrong
+  observable outcome
+- HIGH: a criterion is partial, or unclaimed behavior meaningfully changes
+  product surface area
+- LOW: minor mismatch or drift that doesn't affect observable behavior
+
+Output format:
+
+### Criterion coverage
+
+One bullet per criterion, in the order they appear in the spec:
+`[PRESENT|PARTIAL|MISSING] <final severity if not PRESENT> — <criterion title>
+— <file:line or "not found"> — <one-line note>`
+
+### Behavior drift
+
+Bulleted list of drift findings with file:line and severity, or "None".
+
+### Unclaimed behavior
+
+Bulleted list of behaviors the diff adds that no criterion covers, or "None".
 
 Tech stack: [TECH_STACK]
 Files reviewed: [FILE_PATHS]
+Requirements: [REQUIREMENTS]
+
+[REPO_CONTEXT]
+
+[FEATURE_OR_BUG_DOCS]
 
 [CODE]
 ```
@@ -186,61 +239,9 @@ Files reviewed: [FILE_PATHS]
 [CODE]
 ```
 
-## Step 3 — Re-review the cold findings with context
+## Step 3 — Synthesize findings
 
-Cold findings are high-signal but also high-noise: without context the reviewer
-will flag things that are handled elsewhere, required by the spec, or idiomatic in
-this codebase. Once all 3 agents have returned, launch one more Agent call to
-adjudicate Agent 1's findings with the full context Agents 2 and 3 had.
-
-Do this after Step 2 — not in parallel with it — because it needs Agent 1's raw
-findings as input.
-
-```
-You are re-reviewing the findings of a "cold" code reviewer — someone who looked
-at the code with no context about the project, requirements, or codebase patterns.
-You now have the full context that the cold reviewer lacked.
-
-For each cold finding below, decide with the benefit of context whether it is:
-- CONFIRMED: the concern is real. Keep the severity, or sharpen it if context
-  shows it is worse than it first looked. Add a one-line note only if context
-  changes the reasoning.
-- ADJUSTED: the concern is partially valid but the severity should change given
-  context (e.g. downgrade because the edge case cannot occur in practice, or
-  upgrade because context reveals broader impact). State the new severity and
-  why.
-- DISMISSED: the concern is a non-issue given context — handled elsewhere,
-  idiomatic in this codebase, required by the spec, or based on a mistaken
-  assumption the cold reviewer made without context. Briefly explain why.
-
-Be honest — do not rubber-stamp and do not dismiss findings just because they
-feel minor. If you are unsure, keep the finding as CONFIRMED and flag the
-uncertainty in your note.
-
-Return one bullet per cold finding, in the same order they were listed. Format:
-`[CONFIRMED|ADJUSTED|DISMISSED] <final severity> — <file:line> — <one-line note>`
-
-Tech stack: [TECH_STACK]
-Project structure: [PROJECT_STRUCTURE]
-Base branch: [BASE_BRANCH]
-Files reviewed: [FILE_PATHS]
-Requirements: [REQUIREMENTS]
-
-[REPO_CONTEXT]
-
-[FEATURE_OR_BUG_DOCS]
-
-[CODE]
-
-Cold reviewer's raw findings:
-[AGENT_1_FINDINGS]
-```
-
-## Step 4 — Synthesize findings
-
-After Step 3 returns, merge Agent 1's original findings with the adjudications so
-the reader sees one authoritative list of cold findings — each with its adjudicated
-status and final severity. Present everything in this format:
+Once all 3 agents have returned, present the results in this format:
 
 ---
 
@@ -251,11 +252,11 @@ Severity flags:
 - **HIGH:** significant concern — should be fixed before or shortly after merging
 - **LOW:** worth addressing — code quality, minor improvements
 
-### Cold Review (adjudicated)
-[One bullet per Agent 1 finding, merged with the Step 3 adjudication.
-Format: `[CONFIRMED|ADJUSTED|DISMISSED] <final severity> — <file:line> — <finding>
-— <adjudication note>`. Drop DISMISSED items into a collapsed "Dismissed by
-context" sub-list at the bottom so confirmed issues stay prominent.]
+### Behavior Verification
+[Agent 1 output — keep the three sub-sections as returned: criterion coverage
+(one bullet per criterion, in spec order), behavior drift, unclaimed behavior.
+PARTIAL and MISSING entries and any behavior drift are the most load-bearing
+findings and should stay prominent.]
 
 ### Contextual Review
 [Agent 2 findings — bullet points with file:line references and severity flags]
