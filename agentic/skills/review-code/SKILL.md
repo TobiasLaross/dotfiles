@@ -1,9 +1,10 @@
 ---
 name: review-code
 description: >-
-  Reviews implemented code from 3 perspectives in parallel: cold read, contextual review,
-  and pattern consistency. Use when asked to review code, a completed implementation, or
-  when another skill delegates a code review step.
+  Reviews implemented code from 3 perspectives in parallel — cold read, contextual
+  review, and pattern consistency — then re-reviews the cold findings with full
+  context to adjudicate them. Use when asked to review code, a completed
+  implementation, or when another skill delegates a code review step.
 argument-hint: "[file paths or description of what was implemented]"
 disable-model-invocation: false
 allowed-tools: Read, Grep, Glob, Bash, Agent
@@ -185,9 +186,61 @@ Files reviewed: [FILE_PATHS]
 [CODE]
 ```
 
-## Step 3 — Synthesize findings
+## Step 3 — Re-review the cold findings with context
 
-After all 3 agents return their results, present everything in this format:
+Cold findings are high-signal but also high-noise: without context the reviewer
+will flag things that are handled elsewhere, required by the spec, or idiomatic in
+this codebase. Once all 3 agents have returned, launch one more Agent call to
+adjudicate Agent 1's findings with the full context Agents 2 and 3 had.
+
+Do this after Step 2 — not in parallel with it — because it needs Agent 1's raw
+findings as input.
+
+```
+You are re-reviewing the findings of a "cold" code reviewer — someone who looked
+at the code with no context about the project, requirements, or codebase patterns.
+You now have the full context that the cold reviewer lacked.
+
+For each cold finding below, decide with the benefit of context whether it is:
+- CONFIRMED: the concern is real. Keep the severity, or sharpen it if context
+  shows it is worse than it first looked. Add a one-line note only if context
+  changes the reasoning.
+- ADJUSTED: the concern is partially valid but the severity should change given
+  context (e.g. downgrade because the edge case cannot occur in practice, or
+  upgrade because context reveals broader impact). State the new severity and
+  why.
+- DISMISSED: the concern is a non-issue given context — handled elsewhere,
+  idiomatic in this codebase, required by the spec, or based on a mistaken
+  assumption the cold reviewer made without context. Briefly explain why.
+
+Be honest — do not rubber-stamp and do not dismiss findings just because they
+feel minor. If you are unsure, keep the finding as CONFIRMED and flag the
+uncertainty in your note.
+
+Return one bullet per cold finding, in the same order they were listed. Format:
+`[CONFIRMED|ADJUSTED|DISMISSED] <final severity> — <file:line> — <one-line note>`
+
+Tech stack: [TECH_STACK]
+Project structure: [PROJECT_STRUCTURE]
+Base branch: [BASE_BRANCH]
+Files reviewed: [FILE_PATHS]
+Requirements: [REQUIREMENTS]
+
+[REPO_CONTEXT]
+
+[FEATURE_OR_BUG_DOCS]
+
+[CODE]
+
+Cold reviewer's raw findings:
+[AGENT_1_FINDINGS]
+```
+
+## Step 4 — Synthesize findings
+
+After Step 3 returns, merge Agent 1's original findings with the adjudications so
+the reader sees one authoritative list of cold findings — each with its adjudicated
+status and final severity. Present everything in this format:
 
 ---
 
@@ -198,8 +251,11 @@ Severity flags:
 - **HIGH:** significant concern — should be fixed before or shortly after merging
 - **LOW:** worth addressing — code quality, minor improvements
 
-### Cold Review
-[Agent 1 findings — bullet points with file:line references and severity flags]
+### Cold Review (adjudicated)
+[One bullet per Agent 1 finding, merged with the Step 3 adjudication.
+Format: `[CONFIRMED|ADJUSTED|DISMISSED] <final severity> — <file:line> — <finding>
+— <adjudication note>`. Drop DISMISSED items into a collapsed "Dismissed by
+context" sub-list at the bottom so confirmed issues stay prominent.]
 
 ### Contextual Review
 [Agent 2 findings — bullet points with file:line references and severity flags]
