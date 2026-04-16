@@ -180,7 +180,7 @@ what would help someone ask smart questions about the feature. Be
 concise — bullet points, not paragraphs.
 ```
 
-### 3b — Generate discovery questions
+### 3b — Generate discovery questions with recommended answers
 
 Using the codebase context and user story, generate **only the questions needed**
 to fully understand the user's intent. There is no fixed count — ask as few or as
@@ -208,11 +208,40 @@ Bad questions (technical — do NOT ask these):
 Use concrete options where possible: _"Should inactive users see a disabled button
 or no button at all?"_ rather than _"What should happen for inactive users?"_
 
+**For each question, also propose a recommended answer.** The goal is to let the
+user skim and respond only to the ones they disagree with — not to answer every
+question from scratch. Base recommendations on:
+- The user story and original request
+- Codebase context and existing patterns
+- Common product sense for the domain
+- The principle of least surprise
+
+Present questions in this format:
+
+```md
+**Q1.** <Question text>
+**Recommended:** <Proposed answer> — <one-line rationale>
+
+**Q2.** <Question text>
+**Recommended:** <Proposed answer> — <one-line rationale>
+
+...
+```
+
+Then prompt the user:
+
+_"I've proposed recommended answers for each. Reply with only the ones you'd
+change (e.g. 'Q2: ...', 'Q5: ...'). Anything you don't mention I'll take as
+'accept the recommendation'."_
+
 ### 3c — Record and iterate
 
-After each batch of answers:
-- Note the answers (you will use them to write the story)
-- Check if answers revealed new areas to probe — if so, ask follow-up questions
+After each batch of responses:
+- For questions the user didn't override, record the recommended answer as the
+  accepted decision
+- For questions the user overrode, record their answer
+- Check if answers (overrides or accepted recommendations) revealed new areas to
+  probe — if so, ask follow-up questions in the same recommended-answer format
 - Continue until you have a clear picture of intent, scope, and edge cases
 
 Ask: _"Anything else I should know, or are we ready to lock down the acceptance
@@ -479,6 +508,42 @@ Read all three files. Then:
 | [brief description] | Applied / Rejected | [why] |
 ```
 
+## Step 8a — User review of the plan
+
+Before any worktrees are created or implementation begins, the user must review
+the finalized plan. The automated review catches gaps, but the user is the final
+authority on scope, design decisions, and whether the plan reflects what they
+actually want to build.
+
+Read the revised `~/.claude/features/<name>/plan.md` and the
+`~/.claude/features/<name>/plan-review.md`. Present a concise summary to the
+user:
+
+- **Summary** — the 2-4 sentence Summary section from `plan.md`
+- **Design Decisions** — bullet list of the key choices the plan locked in
+- **Implementation Phases** — numbered list (just titles/one-liners, not full
+  detail)
+- **Repos Involved** — repo names only
+- **Open Questions** — verbatim if any, or "None"
+- **Review verdicts** — one line each for the three review sections
+- **Revisions applied vs. rejected** — counts from the `## Revisions` table
+
+Then prompt:
+
+_"The plan is finalized at `~/.claude/features/<name>/plan.md` (full file
+available to read). Approve as-is, or tell me what to change — I'll revise and
+re-show. Nothing downstream (worktrees, implementation) starts until you
+approve."_
+
+If the user requests changes:
+- Apply them directly to `plan.md` (small edits) or spawn a revision subagent
+  (large/structural edits), keeping the same template
+- Append a new row to the `## Revisions` table marked `User-requested`
+- Re-show the summary and prompt for approval again
+- Iterate until the user explicitly approves. No cap on iterations.
+
+Do **not** proceed to Step 8b until the user explicitly approves.
+
 ## Step 8b — Create worktrees
 
 If the current working directory is not a git repository, skip to Step 9.
@@ -586,7 +651,8 @@ _"_
 
 ## Rules
 
-- Never skip user sign-off on story (Step 2) or acceptance criteria (Step 4)
+- Never skip user sign-off on story (Step 2), acceptance criteria (Step 4), or
+  the finalized plan (Step 8a)
 - Discovery (Step 3) must happen before criteria — it shapes what criteria exist
 - Use kebab-case for folder names, lowercase only
 - Active features live directly in `~/.claude/features/`
