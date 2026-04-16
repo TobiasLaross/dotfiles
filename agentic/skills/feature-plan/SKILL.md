@@ -78,10 +78,17 @@ Purpose: understand the full intent behind the feature before writing acceptance
 criteria. The user's initial description is rarely complete — this phase surfaces
 edge cases, constraints, and non-obvious requirements.
 
-### 3a — Gather codebase context
+### 3a — Gather codebase and product context
 
-This step has three phases: repo-context lookup, keyword pre-filtering,
-and (optionally) a focused subagent.
+This step has four phases: repo-context lookup, product-context check,
+keyword pre-filtering, and (optionally) a focused subagent.
+
+A feature lives inside a product, not just a codebase. Before drafting
+discovery questions or acceptance criteria, you must understand both:
+*how* the code is organized **and** *what* the product is, who uses it,
+what concepts it organizes around, and where this feature fits in the
+user's existing experience. Generic questions and weak AC are usually
+caused by skipping the product side.
 
 #### Phase 1 — Repo-context lookup
 
@@ -97,16 +104,64 @@ Identify the repo name from the working directory. Check whether
 
   ```
   Explore the codebase at <working directory> and create a repo-context
-  file at ~/.claude/repo-context/<repo-name>.md. Include: purpose,
-  architecture overview, key directories, error handling conventions,
-  test infrastructure, and notable patterns. Make it generally useful —
-  not feature-specific.
+  file at ~/.claude/repo-context/<repo-name>.md.
+
+  Include both code-side and product-side context:
+
+  Code side:
+  - Architecture overview
+  - Key directories
+  - Error handling conventions
+  - Test infrastructure
+  - Notable patterns
+
+  Product side (essential — do not skip):
+  - What the product is and what it does for its users (one paragraph
+    plain-language summary, not a tech description)
+  - Who the users are (target audience, roles, personas if relevant)
+  - Core user-facing concepts and the vocabulary the product uses for
+    them (e.g. "library", "feed", "post", "playlist" — the nouns and
+    verbs users actually see)
+  - Top-level user flows / entry points (main screens, routes, or
+    commands users interact with)
+  - Notable existing features that shape user expectations
+
+  Make it generally useful — not feature-specific.
   ```
 
   Wait for it to finish, then read the resulting file.
 
 If the directory is under `/work/`, also list `~/Developer/work/` and
 read context files at `~/.claude/repo-context/` for related repos.
+
+#### Phase 1b — Product-context check
+
+Whether or not a repo-context file already existed, verify you can
+answer these about the product before moving on:
+
+1. What does this product do for its users, in one plain-language sentence?
+2. Who are the users (audience / roles)?
+3. What are the core user-facing concepts and the vocabulary used for
+   them in this product?
+4. Where in the user's existing experience does this feature fit
+   (which screen / flow / command)?
+5. Are there existing related features whose patterns or vocabulary
+   this feature should mirror or extend?
+
+If the repo-context file covers all of these well, proceed. If any
+answer is unclear or missing, do supplementary exploration *before*
+the keyword phase — this is cheap and avoids generic discovery
+questions later. Good lightweight sources:
+
+- `README.md` (or equivalent: top-level docs, marketing site copy
+  in the repo, app description in `Info.plist` / `package.json`)
+- The top-level navigation / route definitions / main entry point
+- One or two screens or pages that bracket where this feature will
+  live (read them to absorb vocabulary, not architecture)
+
+Keep this focused — usually 2-5 reads. The goal is product literacy,
+not a deep dive. If you cannot resolve an answer from the codebase,
+record it as a question to surface during 3b rather than guessing.
 
 #### Phase 2 — Keyword pre-filtering
 
@@ -141,6 +196,13 @@ Working directory: <current working directory>
 <paste the repo-context summary — do NOT re-explore general structure,
 architecture, test infrastructure, or error handling conventions>
 
+## Product context (already gathered)
+
+<paste the product summary built in Phase 1b: what the product does,
+who the users are, the core user-facing vocabulary, where this feature
+fits in the user's existing experience, and any related features it
+should mirror or extend>
+
 ## Starting points (from keyword search)
 
 These files matched keywords from the user story. Start here:
@@ -153,17 +215,20 @@ the questions below from these files alone.
 
 ## What to gather
 
-Focus exclusively on feature-specific code paths:
+Focus exclusively on feature-specific context:
 1. Where in the codebase this feature would live (modules, packages,
    layers)
 2. Existing patterns that are relevant (how similar things are
-   currently done)
+   currently done — both code patterns and product patterns / UX
+   conventions)
 3. Dependencies this feature would touch or need
 4. Any constraints (API contracts, shared types, config schemas)
+5. Adjacent product surfaces this feature interacts with (related
+   screens, flows, or commands the user already uses)
 
 General topics (repo structure, test infrastructure, error handling
-conventions) are already covered by the repo-context above. Do not
-re-explore them.
+conventions, product purpose / users / vocabulary) are already
+covered above. Do not re-explore them.
 
 ## Constraints
 
@@ -185,21 +250,33 @@ concise — bullet points, not paragraphs.
 
 ### 3b — Generate discovery questions with recommended answers
 
-Using the codebase context and user story, generate **only the questions needed**
-to fully understand the user's intent. There is no fixed count — ask as few or as
-many as the feature requires. Show up to 10 at a time.
+Using the **product** context, codebase context, and user story, generate **only
+the questions needed** to fully understand the user's intent. There is no fixed
+count — ask as few or as many as the feature requires. Show up to 10 at a time.
+
+The product context (Phase 1b) is what makes questions specific instead of
+generic. Use the product's own vocabulary in the question text. Anchor questions
+to the actual screens, flows, modes, and roles the product has — not to abstract
+patterns. If you find yourself drafting a question that could be asked of any
+app, rewrite it in this product's terms first.
 
 **Only ask product-owner questions** — things the user needs to decide as the person
 who knows *what* the feature should do and *why*. Do NOT ask technical questions.
 The implementation agent will figure out technical details (error handling, patterns,
 architecture, test strategy) from the codebase context and repo conventions.
 
-Good questions (product-owner scope):
-- What should the user see when X happens?
-- Should this work for all users or only admins?
-- Is Y in scope or explicitly out of scope?
-- When you say "notifications", do you mean in-app, email, or both?
-- Should there be a limit on how many items can be added?
+Good questions (product-owner scope, anchored to the product):
+- "What should the user see in the feed when no books match the active filter?"
+- "Should this work in guest/preview mode, or only for signed-in users?"
+- "Is showing the badge on the home tab in scope, or only inside Library?"
+- "When you say 'notifications', do you mean push, in-app banner, or both?"
+- "Should there be a cap on how many books can be added to a list?"
+
+Bad questions (generic — rewrite in product terms first):
+- "What should happen on error?" → "What should the user see in the feed if a
+  book the filter references no longer exists?"
+- "Should this work for all users?" → "Should this apply to guests as well, or
+  only signed-in users?"
 
 Bad questions (technical — do NOT ask these):
 - How should errors be handled?
@@ -215,6 +292,8 @@ or no button at all?"_ rather than _"What should happen for inactive users?"_
 user skim and respond only to the ones they disagree with — not to answer every
 question from scratch. Base recommendations on:
 - The user story and original request
+- Product context (existing flows, vocabulary, related features that already
+  set a precedent)
 - Codebase context and existing patterns
 - Common product sense for the domain
 - The principle of least surprise
@@ -303,6 +382,12 @@ to build, so they must be complete and unambiguous.
 User story:
 <paste the confirmed user story from Step 2>
 
+Product context:
+<paste the product summary from Phase 1b — what the product does, who the
+users are, the core user-facing vocabulary, where this feature fits in the
+user's existing experience, and any related features it should mirror or
+extend>
+
 Discovery decisions:
 <paste a summary of the decisions and constraints from Step 3 — every
 overridden or accepted recommendation, plus any free-form clarifications>
@@ -323,32 +408,41 @@ Produce a revised list of acceptance criteria. Apply these checks:
    has no corresponding criterion, add one or note why it shouldn't be a
    criterion (e.g. it's a constraint on something already covered).
 
-3. **Edge and error cases** — Each criterion that describes a happy path
+3. **Product fit** — Each criterion should fit the product as described in
+   Product context: it uses the product's vocabulary (not generic terms),
+   names the actual screens / flows / modes / roles where the behavior
+   applies, and is consistent with how related existing features behave.
+   Rewrite criteria that read like they could apply to any app. Flag any
+   criterion that conflicts with an existing product behavior — if there's
+   a real conflict, raise it as something to surface to the user rather
+   than silently revising.
+
+4. **Edge and error cases** — Each criterion that describes a happy path
    should have an explicit pair (or sibling criterion) for the failure / empty
    / boundary case unless the failure mode is genuinely irrelevant to this
    feature.
 
-4. **Cross-cutting concerns** — Check whether the feature implicates any of:
+5. **Cross-cutting concerns** — Check whether the feature implicates any of:
    accessibility (VoiceOver, keyboard, focus order), live updates (state
    changes while a related view is open), persistence across sessions /
    devices, permissions / role-gating, internationalization, mobile vs
    desktop, offline behavior. Add criteria for any that apply and aren't
    covered.
 
-5. **Ambiguity** — Each criterion must be testable without interpretation.
+6. **Ambiguity** — Each criterion must be testable without interpretation.
    Rewrite anything ambiguous, vague, or open to multiple readings. Replace
    weasel words ("appropriate", "reasonable", "where possible") with concrete
    conditions.
 
-6. **Implementation leakage** — Criteria must describe behavior, not
+7. **Implementation leakage** — Criteria must describe behavior, not
    implementation. Strip any file paths, API names, syntax, parameter names,
    numeric constants, or pseudocode. Restate at the level of intent.
 
-7. **Out-of-scope** — Discovery sometimes surfaces things the user
+8. **Out-of-scope** — Discovery sometimes surfaces things the user
    intentionally excluded. Capture those as explicit out-of-scope criteria so
    the implementation agent does not silently add them.
 
-8. **Right-sizing** — Criteria should typically be one or two sentences.
+9. **Right-sizing** — Criteria should typically be one or two sentences.
    Split anything that bundles multiple independent behaviors. Merge
    trivial criteria that always go together.
 
