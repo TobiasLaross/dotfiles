@@ -4,36 +4,38 @@
 
 Features are tracked in `~/.claude/features/`. The folder and all files are created by
 `/feature-plan` — do not create feature folders manually. When the user runs the skill,
-it handles naming, folder creation, discovery, planning, and review.
+it handles naming, folder creation, discovery, criteria drafting, and review.
 
 ### Three implementation flows
 
-All flows start with `/feature-plan`, which creates the story, runs discovery Q&A,
-drafts acceptance criteria with user sign-off, and generates a reviewed plan. After
-planning, the user chooses an implementation path:
+All flows start with `/feature-plan`, which creates `story.md` — a single artifact
+containing the user story, discovery decisions, acceptance criteria (reviewed and
+revised by a subagent for full story coverage), repos involved, and any open
+questions. After planning, the user chooses an implementation path:
 
 - **Tasker** (`/feature-plan` → `/tasker`): Autonomous task loop. `/tasker` decomposes
-  the plan into behavior-level tasks and launches `tasker.sh`, which runs `claude -p`
-  in a loop — one task per context window, progress tracked in files. Final iteration
-  reviews the entire diff and adds fix tasks if needed. Resumable at any point. Best
-  for structured autonomous implementation.
+  the acceptance criteria into behavior-level tasks and launches `tasker.sh`, which
+  runs `claude -p` in a loop — one task per context window, progress tracked in
+  files. Final iteration reviews the entire diff and adds fix tasks if needed.
+  Resumable at any point. Best for structured autonomous implementation.
 - **Ralph** (`/feature-plan` → `/ralph`): True Ralph Wiggum loop. Same prompt piped to
   the agent every iteration. The agent sees its previous work through the filesystem
   and decides what to do next. No pre-decomposed tasks. Best for greenfield work where
   the agent should have full autonomy.
 - **Feature flow** (`/feature-plan` → `/feature-implement` → review → fix → done):
-  Interactive implementation in a single session. The agent reads the plan and implements
-  using its own judgment for task ordering. Tracks progress via acceptance criteria
-  checkboxes in `story.md`. Best for hands-on implementation where the user wants to
-  guide decisions.
+  Interactive implementation in a single session. The agent reads `story.md` and
+  implements using its own judgment for task ordering. Tracks progress via
+  acceptance criteria checkboxes in `story.md`. Best for hands-on implementation
+  where the user wants to guide decisions.
 
 ### Shared planning
 
-`/feature-plan` is the single entry point for all flows. It produces:
-- `story.md` — user story, discovery decisions, acceptance criteria
-  (with `Implemented`/`Reviewed` tracking)
-- `plan.md` — reviewed high-level plan with design decisions and implementation phases
-- `plan-review.md` — review findings (for human inspection only)
+`/feature-plan` is the single entry point for all flows. It produces one artifact:
+- `story.md` — user story, discovery decisions, acceptance criteria (with
+  `Implemented`/`Reviewed` tracking), repos involved, and any open questions
+
+There is no separate plan file. Well-formed acceptance criteria carry the full
+design intent of the feature; the implementation agent decides *how* to build them.
 
 ### Feature lifecycle
 

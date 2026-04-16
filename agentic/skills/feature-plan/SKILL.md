@@ -3,9 +3,9 @@ name: feature-plan
 description: >-
   Create a new feature plan. Use this whenever the user wants to start building something
   new — even if they haven't said /feature-plan explicitly. Drafts a user story with
-  acceptance criteria (with Implemented/Reviewed tracking), runs discovery Q&A, generates
-  a high-level plan with automated review, and saves everything under ~/.claude/features/.
-  Both /feature-implement and /ralph read the output directly.
+  acceptance criteria (with Implemented/Reviewed tracking), runs discovery Q&A, has a
+  subagent review and tighten the criteria for full story coverage, and saves everything
+  under ~/.claude/features/. Both /feature-implement and /ralph read the output directly.
 argument-hint: <feature description or existing-name>
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash, Agent, AskUserQuestion
 ---
@@ -14,21 +14,24 @@ allowed-tools: Read, Write, Edit, Grep, Glob, Bash, Agent, AskUserQuestion
 
 The user has invoked `/feature-plan`. Follow this workflow exactly.
 
-This skill creates a thorough feature plan: user story, discovery Q&A, acceptance criteria,
-and a reviewed high-level plan. The output is read directly by both `/feature-implement`
-(interactive implementation) and `/ralph` (autonomous loop). Getting this right matters —
-keep review rigor high.
+This skill creates a single artifact — `story.md` — containing the user story,
+discovery decisions, acceptance criteria, repos involved, and any open questions.
+There is no separate plan: well-formed acceptance criteria carry the full design
+intent of the feature, and the implementation agent (whether `/feature-implement`,
+`/tasker`, or `/ralph`) decides *how* to build them. Getting the criteria right
+matters — keep review rigor high.
 
 ## Step 1 — Resume or start
 
 **If `$ARGUMENTS` matches an existing folder in `~/.claude/features/`:**
-- Read its `story.md` and `plan.md`
+- Read its `story.md`
 - Report status: what exists, what's missing
-- If both `story.md` and `plan.md` exist, ask the user:
-  _"Feature already planned. Continue to implementation with `/feature-implement`
-  or `/ralph`, or replan from scratch?"_
-- If `story.md` exists but `plan.md` is missing, continue from Step 5
-- If only the folder exists (empty or partial), continue from Step 2
+- If `story.md` exists and is complete (user story, discovery, acceptance
+  criteria, repos, open questions), ask the user:
+  _"Feature already planned. Continue to implementation with `/feature-implement`,
+  `/tasker`, or `/ralph`, or replan from scratch?"_
+- If the folder exists but `story.md` is missing or partial, continue from
+  Step 2 (or whichever step the work stopped at)
 
 **If `$ARGUMENTS` matches a folder in `~/.claude/features/done/`:**
 - Tell the user it's archived. Ask whether to reopen (move it back).
@@ -244,41 +247,191 @@ After each batch of responses:
   probe — if so, ask follow-up questions in the same recommended-answer format
 - Continue until you have a clear picture of intent, scope, and edge cases
 
-Ask: _"Anything else I should know, or are we ready to lock down the acceptance
+Ask: _"Anything else I should know, or are we ready to draft the acceptance
 criteria?"_
 
 Do **not** proceed until the user says they're ready.
 
-## Step 4 — Draft acceptance criteria
+## Step 4 — Draft initial acceptance criteria
 
-Using everything from discovery, draft **3-7 acceptance criteria**. Each must be:
+Using everything from discovery, draft an initial set of **acceptance criteria**
+covering the feature. Aim for behavior-level criteria, not implementation steps.
+
+Each criterion must be:
 - **Specific**: unambiguous about what must happen
 - **Testable**: pass/fail verifiable without interpretation
-- **User-visible**: describes observable outcomes, not implementation details
+- **User-visible** (or system-observable): describes outcomes, not internals
 
-Include criteria for edge cases and error scenarios surfaced during discovery —
-not just the happy path.
+Cover:
+- The happy path
+- Edge cases and empty/zero states
+- Error and failure modes surfaced during discovery
+- Cross-cutting concerns when relevant: accessibility, live updates, persistence,
+  permissions, multi-user / multi-device behavior
+- Explicit out-of-scope items (as criteria of the form _"X is out of scope: ..."_
+  when the user surfaced something the team intentionally chose not to handle)
 
-Present in checkbox format. Ask: _"These criteria drive everything downstream —
-plan, implementation, and the final review. Does each one fully define a 'done'
-state? Are any missing, too vague, or out of scope?"_
+The criteria are the **only** spec the implementation agent will receive about
+*what* to build. They do not specify *how*. Avoid file paths, exact APIs,
+syntax, parameter names, numeric constants, or pseudocode. Stay at the level of
+behavior and intent.
 
-Iterate until the user explicitly approves. No cap on iterations — getting
-criteria right is the most important step in the entire flow.
+Format each criterion as a checkbox with nested `Implemented` and `Reviewed`
+checkboxes:
+
+```md
+- [ ] <criterion text>
+  - [ ] Implemented
+  - [ ] Reviewed
+```
+
+Do not show the criteria to the user yet — Step 5 will revise them first.
+
+## Step 5 — Review and tighten the criteria (subagent)
+
+Spawn a **foreground** subagent (`subagent_type: general`) to review the draft
+criteria for coverage of the user story and discovery decisions, and to tighten
+them for clarity. **Wait for it to finish** before continuing.
+
+```
+You are reviewing and revising a draft list of acceptance criteria for a feature.
+The criteria are the ONLY spec the implementation agent will receive about WHAT
+to build, so they must be complete and unambiguous.
+
+## Inputs
+
+User story:
+<paste the confirmed user story from Step 2>
+
+Discovery decisions:
+<paste a summary of the decisions and constraints from Step 3 — every
+overridden or accepted recommendation, plus any free-form clarifications>
+
+Draft acceptance criteria:
+<paste the draft criteria from Step 4 in the checkbox format>
+
+## Your job
+
+Produce a revised list of acceptance criteria. Apply these checks:
+
+1. **Story coverage** — Every meaningful element of the user story (the actor,
+   the goal, the "so that" benefit) is covered by at least one criterion.
+   Identify any gap and add a criterion for it.
+
+2. **Discovery coverage** — Every product-owner decision and constraint from
+   discovery is reflected in at least one criterion. If a discovery decision
+   has no corresponding criterion, add one or note why it shouldn't be a
+   criterion (e.g. it's a constraint on something already covered).
+
+3. **Edge and error cases** — Each criterion that describes a happy path
+   should have an explicit pair (or sibling criterion) for the failure / empty
+   / boundary case unless the failure mode is genuinely irrelevant to this
+   feature.
+
+4. **Cross-cutting concerns** — Check whether the feature implicates any of:
+   accessibility (VoiceOver, keyboard, focus order), live updates (state
+   changes while a related view is open), persistence across sessions /
+   devices, permissions / role-gating, internationalization, mobile vs
+   desktop, offline behavior. Add criteria for any that apply and aren't
+   covered.
+
+5. **Ambiguity** — Each criterion must be testable without interpretation.
+   Rewrite anything ambiguous, vague, or open to multiple readings. Replace
+   weasel words ("appropriate", "reasonable", "where possible") with concrete
+   conditions.
+
+6. **Implementation leakage** — Criteria must describe behavior, not
+   implementation. Strip any file paths, API names, syntax, parameter names,
+   numeric constants, or pseudocode. Restate at the level of intent.
+
+7. **Out-of-scope** — Discovery sometimes surfaces things the user
+   intentionally excluded. Capture those as explicit out-of-scope criteria so
+   the implementation agent does not silently add them.
+
+8. **Right-sizing** — Criteria should typically be one or two sentences.
+   Split anything that bundles multiple independent behaviors. Merge
+   trivial criteria that always go together.
+
+## Output
+
+Return TWO sections:
+
+### Revised criteria
+
+<the full revised list in the checkbox format with nested
+Implemented / Reviewed boxes — this is what will replace the draft>
+
+### Changes made
+
+Bulleted summary of the changes you made and why (added/removed/rewrote/
+merged/split). Keep this short — one bullet per change. The orchestrator
+will show this to the user along with the revised list.
+
+Do not propose alternative versions or hedge — produce the single best
+revised list and the changelog. Do not include a plan, design notes, or
+implementation guidance — only the criteria and the changelog.
+```
+
+When the subagent returns, replace the draft criteria in your working state
+with the revised list. Keep the changelog for the next step.
+
+## Step 6 — Present revised criteria and iterate to approval
+
+Show the user:
+
+1. The revised acceptance criteria (full list, checkbox format)
+2. A short summary of the changes the subagent made (the changelog from Step 5)
+
+Then ask:
+
+_"These criteria drive everything downstream — implementation, review, and
+sign-off. Does each one fully define a 'done' state? Any missing, too vague,
+or out of scope? Reply with edits or 'approved'."_
+
+Iterate until the user explicitly approves. Apply any user edits directly
+(small changes inline; larger restructures may warrant another pass through
+the Step 5 subagent — use judgment). No cap on iterations — getting criteria
+right is the most important step in the entire flow.
 
 Do **not** proceed until the user confirms.
 
-## Step 4b — Test preference
+## Step 7 — Confirm repos, open questions, test preference
 
-Ask the user:
+Once the criteria are approved, gather the remaining metadata needed for
+`story.md`. Present all three together so the user can answer in one pass.
 
-_"Should tests be run automatically by the agent, or do you want to run them
-manually and share the output?"_
+### 7a — Repos involved
 
-Store the answer as `auto` or `manual`. This will be recorded in `story.md`
-and read by downstream skills.
+From the discovery context, identify which repos will need changes. Always
+include the current repo. For `/work/` features, list any related repos that
+the feature touches based on the discovery exploration.
 
-## Step 5 — Create the story file
+### 7b — Open questions
+
+List any unresolved questions surfaced during discovery — ambiguities that
+were deferred, decisions that depend on something not yet known, or items
+the user said to revisit. If none, say so.
+
+### 7c — Test preference
+
+Ask whether tests should be run automatically by the agent (`auto`) or
+the user wants to run them manually and share output (`manual`).
+
+Present in one message, e.g.:
+
+```
+Before I write `story.md`, please confirm:
+
+**Repos involved:** <repo-name> [, <repo-name-2> ...]
+**Open questions:** <list, or "None">
+**Test preference:** auto / manual?
+
+Edit any of these or reply "looks good".
+```
+
+Iterate until the user confirms. Then proceed.
+
+## Step 8 — Create the story file
 
 Create `~/.claude/features/` and `~/.claude/features/<name>/` if needed.
 
@@ -313,249 +466,61 @@ agent — it needs the "why" behind non-obvious decisions.]
   - [ ] Reviewed
 [add more as needed]
 
+## Repos Involved
+
+- **<repo-name>** — <one-line reason>
+[add more as needed; always at least the current repo]
+
+## Open Questions
+
+[Bulleted list of unresolved questions, or "None".]
+
 ## Notes
 
 -
 ```
 
 The nested `Implemented` and `Reviewed` checkboxes under each criterion are the
-tracking mechanism for both flows. `/feature-implement` and `/ralph` mark
+tracking mechanism for all flows. `/feature-implement` and `/ralph` mark
 `Implemented`, `/feature-code-fix` marks `Reviewed`, and `/feature-done` checks
 both.
 
-## Step 6 — Generate high-level plan
+## Step 9 — Final review of the full story
 
-Spawn a **foreground** subagent (`subagent_type: general`) and **wait for it to
-finish** before continuing. Replace `<name>` with the actual folder name.
+Present a concise summary of the written `story.md` and prompt the user for
+final approval before any worktrees are created or implementation begins:
 
-```
-You are creating a high-level plan for a user story.
-
-Story file: ~/.claude/features/<name>/story.md
-
-Read that file to understand the goal, discovery decisions, and acceptance criteria.
-
-The acceptance criteria are the ground truth for what this feature must achieve.
-Treat them as primary design constraints — every section of your plan must be
-traceable to at least one criterion, and no criterion should be left unaddressed.
-
-The Discovery section contains product-owner decisions and constraints that must
-be reflected in the plan.
-
-The implementation agent will read this plan directly and use its own judgment to
-build the feature. Therefore:
-- Implementation Phases should be clear enough that an agent can follow them
-  without further breakdown
-- Design Decisions should be explicit about non-obvious choices so the
-  implementation agent doesn't have to guess
-- Keep it concise but not ambiguous
-
-## Repo detection
-
-Always start by identifying the current repo from the working directory name.
-
-Check whether a context file exists at ~/.claude/repo-context/<repo-name>.md and
-read it if so — this contains purpose, architecture, dependencies, design patterns,
-and inter-repo relationships. Do not re-read the source for this repo if the
-context file covers what you need.
-
-If the current working directory contains /work/, also list all directories in
-~/Developer/work/. Then:
-1. Check which repos have a pre-built context file:
-   `ls ~/.claude/repo-context/ 2>/dev/null`
-2. For repos **with** a context file, read
-   `~/.claude/repo-context/<repo-name>.md`. Do not re-read source for these repos
-   unless the context file says "Unknown" for something critical to the story.
-3. For repos **without** a context file, read enough code to understand what it
-   does — start with README.md, package.json, go.mod, Podfile, or equivalent
-   manifest files.
-
-Based on the story goal and acceptance criteria, identify which repos will need
-changes. Prefer repos listed under "Internal repo dependencies" in context files
-of the current repo when tracing the call chain.
-
-## Plan
-
-Write a plan.md file to ~/.claude/features/<name>/plan.md using exactly this
-template:
-
----
-# Plan: <Feature Title>
-
-> Created: <today's date>
-
-## Summary
-[What needs to be built — 2-4 sentences]
-
-## Design Decisions
-[Key architectural choices and why. Be explicit — the implementation agent reads
-this directly.]
-
-## Implementation Phases
-[Ordered steps — numbered list. Each phase should be clear enough to implement
-without further breakdown. Include which files or modules are affected where it's
-not obvious.]
-
-## Repos Involved
-[Every repo that will need changes, each with a short reason why. Always includes
-at least the current repo.]
-
-## Open Questions
-[Ambiguities or decisions that need resolution before implementation starts.
-Leave blank if none.]
----
-
-Keep it concise. Do not implement anything. Lines must not exceed 140 characters.
-```
-
-## Step 7 — Review the plan
-
-After the planning subagent has finished and `plan.md` exists, spawn **1 subagent**
-(`subagent_type: general`) and **wait for it to finish** before continuing.
-
-```
-You are reviewing a high-level feature plan. You have access to the filesystem.
-
-Story: ~/.claude/features/<name>/story.md
-Plan:  ~/.claude/features/<name>/plan.md
-
-Read both files.
-
-The implementation agent reads this plan directly, so gaps here become
-implementation gaps. Review with that in mind.
-
-## 1. Story & Acceptance Criteria Coverage
-
-- Does the plan fully address the user's goal and each acceptance criterion
-  stated in the story?
-- Are there missing cases, overlooked user needs, or gaps between what the story
-  asks for and what the plan proposes to build?
-- Is the scope appropriate — neither too narrow (misses the goal) nor too broad
-  (solves more than asked)?
-
-Output a **Verdict** (Approved / Needs changes) followed by specific gaps or
-suggestions.
-
-## 2. Repo & Dependency Coverage
-
-- Read the plan's "Repos Involved" section to see which repos are already listed.
-- For those repos only, check ~/Developer/work|personal/ and read their context
-  files at ~/.claude/repo-context/<repo-name>.md if they exist.
-- Are all necessary repos listed? Are any listed repos unnecessary?
-- Are inter-repo dependencies (API contracts, shared types, event flows)
-  correctly identified?
-
-Output a **Verdict** (Approved / Needs changes / N/A).
-
-## 3. Implementation Phase Clarity
-
-The Implementation Phases must be clear enough for an agent to follow directly.
-For each phase:
-- Is it actionable without further decomposition?
-- Are affected files or modules identified where non-obvious?
-- Are dependencies between phases clear?
-
-Output a **Verdict** (Approved / Needs changes) followed by specific concerns.
-```
-
-After the reviewer returns, write its output to
-`~/.claude/features/<name>/plan-review.md`:
-
-```md
-# Plan Review
-
-> Reviewed: <today's date>
-
-## Story & Acceptance Criteria Coverage
-[Verdict and findings]
-
-## Repo & Dependency Coverage
-[Verdict and findings, or "N/A — not a /work/ context"]
-
-## Implementation Phase Clarity
-[Verdict and findings]
-
-## Suggested Changes
-[Consolidated, deduplicated list of actionable changes]
-```
-
-## Step 8 — Fix the plan
-
-Spawn a **foreground** subagent and **wait for it to finish** before continuing.
-
-```
-You are revising a high-level feature plan based on a review.
-
-Story:  ~/.claude/features/<name>/story.md
-Plan:   ~/.claude/features/<name>/plan.md
-Review: ~/.claude/features/<name>/plan-review.md
-
-Read all three files. Then:
-
-1. For each item under "Suggested Changes" in the review, decide whether it is
-   clearly correct and improves the plan — meaning it closes a genuine gap or
-   fixes an error. Apply those changes. Skip anything speculative, stylistic,
-   or that contradicts the story goal.
-2. Rewrite ~/.claude/features/<name>/plan.md with accepted changes applied. Keep
-   the same template structure. Update the header to add
-   `> Last revised: <today's date>` below the Created line.
-   Lines must not exceed 140 characters.
-3. Append a `## Revisions` section at the bottom of plan.md with a changelog
-   table:
-
-| Suggestion | Decision | Rationale |
-|------------|----------|-----------|
-| [brief description] | Applied / Rejected | [why] |
-```
-
-## Step 8a — User review of the plan
-
-Before any worktrees are created or implementation begins, the user must review
-the finalized plan. The automated review catches gaps, but the user is the final
-authority on scope, design decisions, and whether the plan reflects what they
-actually want to build.
-
-Read the revised `~/.claude/features/<name>/plan.md` and the
-`~/.claude/features/<name>/plan-review.md`. Present a concise summary to the
-user:
-
-- **Summary** — the 2-4 sentence Summary section from `plan.md`
-- **Design Decisions** — bullet list of the key choices the plan locked in
-- **Implementation Phases** — numbered list (just titles/one-liners, not full
-  detail)
+- **User story** — the one-line "As a / I want / so that"
+- **Acceptance Criteria** — count only (e.g. "8 criteria")
 - **Repos Involved** — repo names only
 - **Open Questions** — verbatim if any, or "None"
-- **Review verdicts** — one line each for the three review sections
-- **Revisions applied vs. rejected** — counts from the `## Revisions` table
+- **Tests** — auto / manual
 
 Then prompt:
 
-_"The plan is finalized at `~/.claude/features/<name>/plan.md` (full file
-available to read). Approve as-is, or tell me what to change — I'll revise and
-re-show. Nothing downstream (worktrees, implementation) starts until you
-approve."_
+_"`story.md` is at `~/.claude/features/<name>/story.md` (full file available to
+read). Approve as-is, or tell me what to change — I'll revise and re-show.
+Nothing downstream (worktrees, implementation) starts until you approve."_
 
 If the user requests changes:
-- Apply them directly to `plan.md` (small edits) or spawn a revision subagent
-  (large/structural edits), keeping the same template
-- Append a new row to the `## Revisions` table marked `User-requested`
+- Apply them directly to `story.md`
 - Re-show the summary and prompt for approval again
-- Iterate until the user explicitly approves. No cap on iterations.
+- Iterate until the user explicitly approves
 
-Do **not** proceed to Step 8b until the user explicitly approves.
+Do **not** proceed to Step 10 until the user explicitly approves.
 
-## Step 8b — Create worktrees
+## Step 10 — Create worktrees
 
-If the current working directory is not a git repository, skip to Step 9.
+If the current working directory is not a git repository, skip to Step 11.
 
 If the user's initial prompt explicitly requested **no worktrees**, skip to
-Step 9. The feature will work in the current directories with feature
+Step 11. The feature will work in the current directories with feature
 branches.
 
 Otherwise, create worktrees for all repos involved in the feature.
 
-Read the finalized `plan.md` and extract every repo listed under **Repos
-Involved**. For each repo (including the current one):
+Read `story.md` and extract every repo listed under **Repos Involved**. For
+each repo (including the current one):
 
 1. Determine the repo root and its parent directory:
    ```sh
@@ -609,27 +574,21 @@ _"Created worktrees:_
 - _`<repo-name-2>` → `<worktree-path-2>`_
 _Each will show as a separate tmux session in the sessionizer."_
 
-## Step 9 — Confirm and offer next step
+## Step 11 — Confirm and offer next step
 
-Tell the user the feature plan is finished. Show the feature folder path and give
-a one-line summary of what was planned.
-
-Include a brief review summary:
-- Story & Acceptance Criteria Coverage verdict
-- Repo & Dependency Coverage verdict (or N/A)
-- Implementation Phase Clarity verdict
-- Number of suggestions applied vs. rejected
+Tell the user the feature is planned. Show the feature folder path and give
+a one-line summary of what was planned (criterion count, repos, test mode).
 
 Then prompt:
 
-_"The plan is ready. Choose your implementation path:_
+_"The feature is ready. Choose your implementation path:_
 - _`/feature-implement` — interactive implementation in this session_
 - _`/tasker` — autonomous task loop (one task per context window, runs until
   done)_
 - _`/ralph` — true Ralph Wiggum loop (same prompt every iteration, agent
   decides what to do)"_
 
-If worktrees were created in Step 8b, also tell the user:
+If worktrees were created in Step 10, also tell the user:
 
 _"Worktrees are ready. Open the primary worktree in a new tmux session with
 `sess`, then start implementation from there:_
@@ -651,16 +610,16 @@ _"_
 
 ## Rules
 
-- Never skip user sign-off on story (Step 2), acceptance criteria (Step 4), or
-  the finalized plan (Step 8a)
+- Never skip user sign-off on the story (Step 2), the acceptance criteria
+  (Step 6), the repos / open questions / test preference (Step 7), or the
+  finalized story (Step 9)
 - Discovery (Step 3) must happen before criteria — it shapes what criteria exist
+- The Step 5 subagent revises the draft criteria; it does not just review them.
+  Replace the draft with the subagent's revised list before showing the user
 - Use kebab-case for folder names, lowercase only
 - Active features live directly in `~/.claude/features/`
 - Completed features are moved to `~/.claude/features/done/<name>/`
 - All related md files for a feature go in that feature's folder
-- The `## Revisions` section appended to `plan.md` is the downstream-visible
-  record of review changes; `plan-review.md` is for human inspection only and
-  is not read by downstream skills
 - Worktree naming convention: `<repo>--<feature-name>` as a sibling of the
   original repo directory. The `--` delimiter is required — downstream cleanup
   depends on it

@@ -1,10 +1,11 @@
 ---
 name: feature-implement
 description: >-
-  Implement a feature directly from its story and high-level plan. Use whenever the user is
-  ready to start coding — even if they just say "start building", "let's go", or "implement
-  it". Reads story.md and plan.md, implements the feature using its own judgment for task
-  ordering, writes tests ad-hoc, and marks acceptance criteria as implemented.
+  Implement a feature directly from its story. Use whenever the user is ready to start
+  coding — even if they just say "start building", "let's go", or "implement it". Reads
+  story.md (user story, discovery, acceptance criteria, repos, open questions),
+  implements the feature using its own judgment for task ordering, writes tests ad-hoc,
+  and marks acceptance criteria as implemented.
 argument-hint: [feature-name]
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash, Agent
 ---
@@ -13,9 +14,12 @@ allowed-tools: Read, Write, Edit, Grep, Glob, Bash, Agent
 
 The user has invoked `/feature-implement`. Follow this workflow exactly.
 
-There are no pre-defined tasks, waves, or subagent assignments. You read the story and
-high-level plan, then implement the feature using your own judgment for ordering and
-approach.
+There are no pre-defined tasks, waves, or subagent assignments. You read `story.md`
+(the only artifact `/feature-plan` produces) and implement the feature using your own
+judgment for ordering and approach. Acceptance criteria define *what* to build;
+discovery captures the *why*; repos and open questions tell you where and what's
+unresolved. Everything else — file layout, code structure, test decomposition — is
+yours to decide.
 
 ## Step 1 — Resolve the feature
 
@@ -32,17 +36,16 @@ approach.
 
 ## Step 2 — Read feature files
 
-Read all `.md` files in `~/.claude/features/<name>/`. Expect at minimum:
-- `story.md` — the user story with acceptance criteria and discovery decisions
-  (the source of truth)
-- `plan.md` — the high-level plan with design decisions and implementation phases
+Read `~/.claude/features/<name>/story.md` — it is the only required artifact and
+contains: user story, discovery decisions, acceptance criteria (with
+`Implemented`/`Reviewed` tracking), repos involved, and any open questions.
 
-If `story.md` or `plan.md` is missing, tell the user and suggest running
-`/feature-plan` first.
+If `story.md` is missing, tell the user and suggest running `/feature-plan`
+first.
 
 ## Step 3 — Detect repos, branches, and context
 
-From `plan.md`, identify:
+From `story.md`, identify:
 - Which repos need changes (check the **Repos Involved** section)
 - Determine appropriate branch names (convention: `feature/<name>`)
 
@@ -73,7 +76,7 @@ file in every directory the agent will write to:
 
 1. The feature folder (already accessed in Step 2):
    `touch ~/.claude/features/<name>/.gitkeep`
-2. Each repo that will be modified (from **Repos Involved** in `plan.md`).
+2. Each repo that will be modified (from **Repos Involved** in `story.md`).
    If worktrees exist, use the worktree paths instead:
    ```sh
    touch "<repo-or-worktree-path>/.feature-touch"
@@ -92,42 +95,47 @@ criterion 3.").
 
 ## Step 5 — Implement the feature
 
-Read the **Implementation Phases** and **Design Decisions** sections from
-`plan.md`. Also read the **Discovery** section from `story.md` for
-product-owner decisions and constraints. Use them as your guide, but you have
-full discretion over:
+Read `story.md` end-to-end. The **Acceptance Criteria** define *what* you must
+build (the spec), **Discovery** captures the product-owner *why* and any
+non-obvious constraints, **Repos Involved** lists which codebases are in scope,
+and **Open Questions** flags anything still unresolved. You have full discretion
+over:
 - How to decompose the work into concrete coding steps
-- What order to implement things in
+- What order to implement criteria in
 - How to handle cross-cutting concerns
+- File layout, code structure, abstractions
 
 ### Implementation guidelines
 
-1. **Follow the plan's design decisions.** If the plan says "use a middleware
-   approach" or "store in Redis", do that. Don't second-guess reviewed
-   decisions.
+1. **Treat the acceptance criteria as the spec.** Every criterion must be
+   satisfied. Discovery decisions are constraints on *how* the criteria are
+   met (e.g. "duplicates are rejected via a clear error message" — discovery
+   may say what "clear" means in this product). Don't add behavior the
+   criteria don't ask for.
 
-2. **Follow the plan's implementation phases in order.** The phases define a
-   logical progression. You may split a phase into sub-steps or combine small
-   phases, but don't reorder them unless there's a technical reason (and note
-   the deviation).
+2. **Pick an implementation order that builds confidence early.** A reasonable
+   default is the simplest end-to-end behavior first, then layer in edge
+   cases and out-of-scope guards. Group closely related criteria when it
+   reduces churn.
 
 3. **Write tests as you go.** There is no pre-defined test plan. Write tests
-   alongside implementation, guided by the acceptance criteria. At minimum:
+   alongside implementation, driven by the acceptance criteria. At minimum:
    - Unit tests for non-trivial business logic
    - Integration tests for API endpoints or cross-module interactions
    - Follow existing test conventions in the repo (detect from repo-context or
      by reading existing test files)
 
 4. **Check the acceptance criteria frequently.** They are the source of truth
-   for what "done" means. After completing each implementation phase, check
-   which criteria you've satisfied.
+   for what "done" means. Mark criteria implemented incrementally as you
+   satisfy them.
 
-5. **Handle open questions.** If `plan.md` has an **Open Questions** section
-   with unresolved items that affect what you're implementing, ask the user
-   before proceeding.
+5. **Handle open questions.** If `story.md` has unresolved items in **Open
+   Questions** that affect what you're implementing, ask the user before
+   proceeding on the affected area.
 
-6. **Cross-repo work.** If the plan involves multiple repos, implement changes
-   in dependency order — upstream repos first, then downstream consumers.
+6. **Cross-repo work.** If multiple repos are listed under **Repos Involved**,
+   implement in dependency order — upstream repos first, then downstream
+   consumers.
 
 ### Progress tracking
 
@@ -188,12 +196,14 @@ to request the review — start it immediately after reporting.
 
 ## Rules
 
-- Follow the plan's design decisions — they have been reviewed and approved
-- If the plan has open questions, ask the user before implementing the affected
-  areas
-- If you discover something the plan got wrong (e.g., a file path changed, a
-  function was renamed, an API works differently than assumed), fix it and note
-  the deviation
+- The acceptance criteria are the spec — every criterion must be satisfied,
+  and behavior outside the criteria should not be added
+- Discovery decisions in `story.md` are constraints on how criteria are met;
+  respect them
+- If `story.md` has open questions that affect the area you're working on,
+  ask the user before implementing it
+- If you discover something the story got wrong (e.g., a discovery
+  assumption that turns out to be inaccurate), fix it and note the deviation
 - Do not create commits unless the user asks — just make the changes
 - Do not push to remote unless the user asks
 - Mark acceptance criteria as implemented incrementally, not in a batch at the

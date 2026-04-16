@@ -39,10 +39,9 @@ the user to `/feature-plan` first.
 
 ## Step 2 — Verify prerequisites
 
-Read `~/.claude/features/<name>/story.md` and `~/.claude/features/<name>/plan.md`.
+Read `~/.claude/features/<name>/story.md`.
 
 - If `story.md` is missing, tell the user to run `/feature-plan` first and stop.
-- If `plan.md` is missing, tell the user to run `/feature-plan` first and stop.
 - If `PROMPT.md` already exists and `progress.md` exists:
   - Read `progress.md`
   - Report status: how many iterations completed, what was last done
@@ -57,7 +56,7 @@ every directory the autonomous agent will write to:
 
 1. The feature folder:
    `touch ~/.claude/features/<name>/.gitkeep`
-2. Each repo that will be modified (from **Repos Involved** in `plan.md`).
+2. Each repo that will be modified (from **Repos Involved** in `story.md`).
    If worktrees exist (check `> Worktree: true` and the `## Worktrees`
    table in `story.md`), use the worktree paths:
    ```sh
@@ -108,8 +107,8 @@ This is the core of the Ralph Wiggum technique: one prompt, piped every iteratio
 The agent sees its own previous work through the filesystem (progress.md, git log,
 the codebase itself) and decides what to work on.
 
-Read `story.md` and `plan.md` in full. Using their content plus the detected test
-command and base branch, write `~/.claude/features/<name>/PROMPT.md`:
+Read `story.md` in full. Using its content plus the detected test command and
+base branch, write `~/.claude/features/<name>/PROMPT.md`:
 
 ````md
 # Feature: <title from story.md>
@@ -119,13 +118,9 @@ with this same prompt. You see your own previous work through the filesystem.
 
 ## Specs
 
-<Inline the FULL content of story.md here — including discovery, acceptance
-criteria, and notes. The agent needs the complete specs every iteration.>
-
-## Plan
-
-<Inline the FULL content of plan.md here — including design decisions and
-implementation phases.>
+<Inline the FULL content of story.md here — including the user story,
+discovery, acceptance criteria, repos involved, open questions, and notes.
+The agent needs the complete specs every iteration.>
 
 ## Progress
 
@@ -146,8 +141,9 @@ context window.
 
 ### How to pick what to work on
 
-- If `progress.md` doesn't exist or is empty, start with the first
-  implementation phase from the plan
+- If `progress.md` doesn't exist or is empty, start with the simplest
+  end-to-end behavior that proves the feature works (typically the first
+  acceptance criterion's happy path)
 - If previous work exists, continue where it left off
 - If tests are failing from a previous iteration, fix them first
 - If all acceptance criteria are implemented, go to **Final Review**
@@ -233,10 +229,10 @@ When all acceptance criteria have `- [x] Implemented`:
 
 Replace `<name>` with the actual folder name, `<test-command>` with the
 detected command (or `UNKNOWN`), and `<base-branch>` with the detected base
-branch. Inline story.md and plan.md content directly — do not use file
-references for specs (the agent gets a fresh context each iteration and the
-prompt is piped via stdin, so it cannot read files referenced in the prompt
-before execution begins).
+branch. Inline story.md content directly — do not use a file reference for
+the specs (the agent gets a fresh context each iteration and the prompt is
+piped via stdin, so it cannot read files referenced in the prompt before
+execution begins).
 
 ## Step 5 — Initialize progress file and ensure branch
 
@@ -313,6 +309,6 @@ is resumable. Tell the user: _"Loop timed out in the tool runner. Run
 - Active features live directly in `~/.claude/features/`
 - Completed features are moved to `~/.claude/features/done/<name>/`
 - All related md files for a feature go in that feature's folder
-- PROMPT.md must inline the full specs — do not use file references for the
-  story or plan content within the prompt template
+- PROMPT.md must inline the full specs — do not use a file reference for the
+  story content within the prompt template
 - Lines in all markdown files must not exceed 140 characters

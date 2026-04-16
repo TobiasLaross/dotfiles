@@ -1,10 +1,10 @@
 ---
 name: tasker
 description: >-
-  Set up and launch an autonomous task loop for a planned feature. Decomposes the plan
-  into tasks, generates the loop prompt, and launches the shell loop. Requires
-  /feature-plan to have been run first. Use whenever the user wants autonomous
-  implementation — even if they just say "use tasker" or "tasker loop".
+  Set up and launch an autonomous task loop for a planned feature. Decomposes the
+  acceptance criteria in story.md into tasks, generates the loop prompt, and launches
+  the shell loop. Requires /feature-plan to have been run first. Use whenever the user
+  wants autonomous implementation — even if they just say "use tasker" or "tasker loop".
 argument-hint: <feature-name>
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash, Agent, AskUserQuestion
 ---
@@ -14,9 +14,9 @@ allowed-tools: Read, Write, Edit, Grep, Glob, Bash, Agent, AskUserQuestion
 The user has invoked `/tasker`. Follow this workflow exactly.
 
 This skill takes an already-planned feature (created by `/feature-plan`) and sets it up
-for autonomous implementation via a shell loop. It decomposes the plan into tasks,
-generates the loop prompt file, and launches `tasker.sh`. If the feature hasn't been
-planned yet, it directs the user to `/feature-plan` first.
+for autonomous implementation via a shell loop. It decomposes `story.md`'s acceptance
+criteria into tasks, generates the loop prompt file, and launches `tasker.sh`. If the
+feature hasn't been planned yet, it directs the user to `/feature-plan` first.
 
 ## Step 1 — Resolve the feature
 
@@ -36,10 +36,9 @@ planned yet, it directs the user to `/feature-plan` first.
 
 ## Step 2 — Verify prerequisites
 
-Read `~/.claude/features/<name>/story.md` and `~/.claude/features/<name>/plan.md`.
+Read `~/.claude/features/<name>/story.md`.
 
 - If `story.md` is missing, tell the user to run `/feature-plan` first and stop.
-- If `plan.md` is missing, tell the user to run `/feature-plan` first and stop.
 - If `TASKER.md` already exists and `tasks.md` exists:
   - Read `tasks.md` and `progress.md` (if present)
   - Report status: how many tasks done, what's next
@@ -54,7 +53,7 @@ every directory the autonomous agent will write to:
 
 1. The feature folder:
    `touch ~/.claude/features/<name>/.gitkeep`
-2. Each repo that will be modified (from **Repos Involved** in `plan.md`).
+2. Each repo that will be modified (from **Repos Involved** in `story.md`).
    If worktrees exist (check `> Worktree: true` and the `## Worktrees`
    table in `story.md`), use the worktree paths:
    ```sh
@@ -71,27 +70,31 @@ You are decomposing a user story into implementation tasks for an autonomous
 agent.
 
 Read: ~/.claude/features/<name>/story.md
-Read: ~/.claude/features/<name>/plan.md
 
-Pay close attention to the Discovery section in story.md — it contains design
-decisions and constraints that must be reflected in the tasks.
+The acceptance criteria in story.md are the spec — every task must trace back
+to one or more criteria, and every criterion must be covered by some task.
 
-Pay close attention to the Implementation Phases in plan.md — they define the
-logical order of work.
+Pay close attention to the Discovery section — it contains product-owner
+decisions and constraints that the tasks must respect (the *why* and *how*
+behind the criteria).
+
+Note any Open Questions — if a question affects scope, the corresponding
+task should include a step to ask the user before implementing.
 
 ## Repo detection
 
 Identify the current repo from the working directory: <working-directory>
+The Repos Involved section in story.md lists which codebases are in scope.
 If ~/.claude/repo-context/<repo-name>.md exists, read it for architecture
-context. If the directory is under /work/, also check ~/Developer/work/ for
-related repos and read their context files at ~/.claude/repo-context/.
+context. For multi-repo features, also read context files for the other
+repos listed.
 
 ## Task decomposition
 
-Break the acceptance criteria and implementation phases into an ordered list of
-**behavior-level** tasks. Each task describes an observable outcome — what the
-system should do — not implementation steps like "create a file" or "add a
-method". The agent decides *how* to implement each task.
+Break the acceptance criteria into an ordered list of **behavior-level** tasks.
+Each task describes an observable outcome — what the system should do — not
+implementation steps like "create a file" or "add a method". The agent decides
+*how* to implement each task.
 
 Each task must be:
 - **Behavior-scoped**: describes a user-visible or system-observable outcome
@@ -182,7 +185,6 @@ unchecked task, then stop. Do not combine tasks. Do not skip ahead.
 ## Files
 
 - Story & criteria: ~/.claude/features/<name>/story.md
-- Plan: ~/.claude/features/<name>/plan.md
 - Task list: ~/.claude/features/<name>/tasks.md
 - Progress log: ~/.claude/features/<name>/progress.md
 - Test output: ~/.claude/features/<name>/test-output.log
@@ -195,8 +197,8 @@ unchecked task, then stop. Do not combine tasks. Do not skip ahead.
 3. If a task is marked in-progress (`- [~]`), resume that task
 4. If ALL tasks are checked off, go to **Final Review**
 
-Read `story.md` and `plan.md` only when you need to understand intent or design
-decisions for the current task. Do not read them upfront every iteration.
+Read `story.md` only when you need to understand intent or discovery decisions
+for the current task. Do not read it upfront every iteration.
 
 ## Implement
 

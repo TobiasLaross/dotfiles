@@ -46,7 +46,7 @@ by the calling skill or conversation context.
 - **Repo context:** Detect the repo name from the working directory path. Check whether
   `~/.claude/repo-context/<repo-name>.md` exists. If it does, read it in full.
 - **Feature/scope docs:** If this review is for a feature, read the relevant `.md` files
-  from the feature folder (story.md, plan.md — whatever exists). If this is a bugfix,
+  from the feature folder (story.md and any others present). If this is a bugfix,
   read the bug folder files (bug.md, investigation.md, fix.md, failing-test.md).
 - **Requirements:** Extract the original task, feature description, or acceptance criteria
   from the conversation context or feature docs.

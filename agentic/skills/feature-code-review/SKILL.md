@@ -30,9 +30,10 @@ test quality against what was written ad-hoc during implementation.
 
 ## Step 2 — Read feature files
 
-Read all `.md` files in `~/.claude/features/<name>/`. Expect at minimum:
-- `story.md` — the user story with acceptance criteria (used as **original requirements**)
-- `plan.md` — the high-level plan with design decisions
+Read `~/.claude/features/<name>/story.md` — the user story, discovery decisions,
+acceptance criteria (used as the **original requirements**), repos involved, and
+any open questions. Also read any other `.md` files in the feature folder if
+they exist (e.g. `review-fixes.md` from a prior review).
 
 ## Step 3 — Gather code context
 
@@ -46,8 +47,8 @@ Collect the following before delegating to the review skill:
   fails (no remote or branch not found), fall back to `git merge-base HEAD HEAD~10
   2>/dev/null`. Store as `MERGE_BASE`. If still empty, use `HEAD~1`.
 - **Changed files:** Run `git diff $MERGE_BASE --name-only` to get files changed
-  relative to the base. If no changes are found, check `plan.md` for file paths or
-  modules mentioned in the Implementation Phases and use those instead.
+  relative to the base. If no changes are found, ask the user which files to
+  review and stop.
 - **Full diff:** Run `git diff $MERGE_BASE` to get the complete diff against the base.
 - **File contents:** Read all changed source and test files in full using the Read tool.
 - **Tech stack:** Read `package.json`, `pyproject.toml`, `build.gradle`, `*.csproj`,
@@ -56,10 +57,11 @@ Collect the following before delegating to the review skill:
 - **Repo context:** Detect the repo name from the working directory. Check whether
   `~/.claude/repo-context/<repo-name>.md` exists. If it does, read it in full.
 
-If `plan.md` references multiple repos, repeat this for each repo directory.
+If `story.md` lists multiple repos under **Repos Involved**, repeat this for each
+repo directory.
 
-If no changed files can be identified from git or the plan, ask the user to specify
-which files to review and stop.
+If no changed files can be identified from git, ask the user to specify which files
+to review and stop.
 
 ## Step 4 — Delegate to /review-code
 
@@ -72,7 +74,7 @@ context, no feature docs).
 Invoke the `/review-code` skill. It will launch 3 sub-agents in parallel:
 1. **Cold Review** — reviews code with no context, catching issues visible to
    fresh eyes
-2. **Contextual Review** — reviews with full feature context (story, plan,
+2. **Contextual Review** — reviews with full feature context (story and
    repo context)
 3. **Pattern Consistency** — verifies the code follows existing codebase patterns
 

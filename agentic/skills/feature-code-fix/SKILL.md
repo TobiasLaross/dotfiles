@@ -33,8 +33,8 @@ This flow marks acceptance criteria as reviewed in `story.md`.
 Read `~/.claude/features/<name>/review-fixes.md`. If it does not exist, tell
 the user to run `/feature-code-review <name>` first and stop.
 
-Also read `~/.claude/features/<name>/story.md` and
-`~/.claude/features/<name>/plan.md` for context.
+Also read `~/.claude/features/<name>/story.md` for context (user story,
+discovery decisions, and acceptance criteria).
 
 ## Step 3 — Triage findings with the user
 

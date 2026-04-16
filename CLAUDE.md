@@ -158,9 +158,9 @@ opencode auto-discovers skills from `~/.claude/skills/` (it scans `~/.claude` fo
 
 | Skill | Description |
 |-------|-------------|
-| `/feature-plan` | Discovery Q&A, draft story + plan — shared entry point for all three flows |
-| `/feature-implement` | Implement directly from story + plan (interactive) |
-| `/tasker` | Decompose plan into tasks, launch autonomous task loop |
+| `/feature-plan` | Discovery Q&A, draft story with subagent-reviewed acceptance criteria — shared entry point for all three flows |
+| `/feature-implement` | Implement directly from story.md (interactive) |
+| `/tasker` | Decompose acceptance criteria into tasks, launch autonomous task loop |
 | `/ralph` | True Ralph Wiggum loop (same prompt every iteration, agent decides what to do) |
 | `/feature-code-review` | Review implemented feature code, delegates to /review-code |
 | `/feature-code-fix` | Apply fixes from review findings, mark criteria as reviewed |
@@ -175,7 +175,7 @@ opencode auto-discovers skills from `~/.claude/skills/` (it scans `~/.claude` fo
 `swiftui-skill`, `swift-testing-skill` — also symlinked into `~/.claude/skills/`.
 
 **Global instructions** (`agentic/CLAUDE.md`) define:
-- Shared planning via `/feature-plan` (discovery, story, plan, review)
+- Shared planning via `/feature-plan` (discovery, story with subagent-reviewed acceptance criteria)
 - Three implementation flows: tasker (autonomous task loop), ralph (autonomous Ralph
   Wiggum loop), and feature (interactive)
 - Feature lifecycle under `~/.claude/features/` (active → `done/`)
@@ -190,7 +190,7 @@ opencode auto-discovers skills from `~/.claude/skills/` (it scans `~/.claude` fo
 the main branch while an agent implements a feature in isolated directories.
 Worktrees are siblings of the original repo, named `<repo>--<feature-name>`
 (e.g. `my-app--user-avatar-upload`). The sessionizer picks them up as separate
-fzf entries and tmux sessions. When the plan involves multiple repos, a
+fzf entries and tmux sessions. When the feature involves multiple repos, a
 worktree is created for each one.
 
 When used, `story.md` records `> Worktree: true`, `> Worktree source:`, and
