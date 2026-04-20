@@ -15,16 +15,18 @@ allowed-tools: Read, Write, Edit, Grep, Glob, Bash, Agent, AskUserQuestion, Skil
 
 The user has invoked `/feature-auto`. This is the hands-off end-to-end flow.
 
-The only manual checkpoints are the `/feature-plan` sign-offs:
+The only manual checkpoints are the two early `/feature-plan` sign-offs
+that shape the feature's intent:
 
 1. User story confirmation (`/feature-plan` Step 2)
 2. Discovery Q&A (`/feature-plan` Step 3)
-3. Acceptance criteria approval (`/feature-plan` Step 6)
-4. Repos + open-questions confirmation (`/feature-plan` Step 7a/b)
-5. Final story approval (`/feature-plan` Step 9)
 
-Everything after the plan is approved — implementation, code review, fixes,
-lint, full test runs, coverage top-up, commits, and PR creation — is handled
+**Everything after Q&A is autonomous** — including the acceptance-criteria
+draft + review, repos / open-questions capture, and the final story
+write-out. The subagent-revised criteria from Step 5 are auto-approved; the
+repos and open questions from discovery are written directly to `story.md`;
+the final story review is skipped. Implementation, code review, fixes,
+lint, full test runs, coverage top-up, commits, and PR creation are handled
 by subagents **orchestrated from this session**. Worktrees are created by
 `/feature-plan`; subagents operate on the worktree paths via absolute paths.
 The orchestrator does not change its cwd, and no secondary `claude -p`
@@ -39,14 +41,14 @@ PRs merge.
 Tell the user up-front what `/feature-auto` does and what is manual:
 
 ```
-Starting /feature-auto. Manual checkpoints only at /feature-plan stage:
+Starting /feature-auto. Manual checkpoints are only two early gates:
   - Confirm user story
   - Answer discovery questions
-  - Approve acceptance criteria
-  - Confirm repos and open questions
-  - Final story approval
 
-After that, subagents from this session handle:
+Everything after Q&A is autonomous:
+  - Acceptance criteria drafted + subagent-reviewed + auto-approved
+  - Repos, open questions, and final story written to story.md without re-prompts
+  - Worktrees created for every repo involved
   - Implementation (ad-hoc tests, AC marked Implemented incrementally,
     non-obvious decisions appended to design.md)
   - Review + fix loop (up to 3 rounds; every finding auto-applied —
@@ -61,13 +63,22 @@ the PRs merge.
 ## Step 2 — Plan via `/feature-plan`
 
 Invoke the `/feature-plan` skill with `$ARGUMENTS`. Follow every step in
-`agentic/skills/feature-plan/SKILL.md` **with these two overrides**:
+`agentic/skills/feature-plan/SKILL.md` **with these overrides — all post-Q&A
+sign-offs are bypassed**:
 
+- **Step 6 (acceptance-criteria approval):** do **not** prompt the user to
+  approve the revised criteria. The Step 5 subagent's revised list is
+  treated as approved. Still show the revised criteria and the Step 5
+  changelog to the user as an informational update so they can spot
+  anything obviously wrong — but proceed without waiting for a reply.
+- **Step 7a/b (repos + open-questions confirmation):** do **not** ask the
+  user to confirm. Derive the repos and open questions from discovery and
+  write them directly into `story.md`.
 - **Step 7c (test preference):** do **not** ask. Test preference for
-  `/feature-auto` is always `auto`. When presenting the Step 7 summary,
-  show `Test preference: auto (fixed by /feature-auto)` and skip the
-  question — include only repos and open-questions in the confirmation
-  prompt. Record `> Tests: auto` in `story.md` directly.
+  `/feature-auto` is always `auto`. Record `> Tests: auto` in `story.md`
+  directly.
+- **Step 9 (final story approval):** do **not** prompt for final approval.
+  Write `story.md` and proceed straight to Step 10 (worktree creation).
 - **Step 11 (offer implementation path):** do **not** prompt the user to
   pick `/feature-implement` / `/tasker` / `/ralph`. After worktrees are
   created (Step 10), proceed directly to Step 3 below.
@@ -292,9 +303,9 @@ Tell the user:
 
 ## Rules
 
-- The only manual moments in `/feature-auto` are the five `/feature-plan`
-  sign-offs (story, Q&A, AC, repos/open-Q, final story). Everything
-  else is autonomous.
+- The only manual moments in `/feature-auto` are the two early
+  `/feature-plan` sign-offs: user story confirmation (Step 2) and
+  discovery Q&A (Step 3). The rest of the flow runs autonomously.
 - Every subagent operates on worktree paths via absolute paths; the
   orchestrator never changes its own cwd.
 - Every subagent reads `design.md` before working and appends
