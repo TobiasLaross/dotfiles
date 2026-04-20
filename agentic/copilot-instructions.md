@@ -43,7 +43,7 @@ Features are tracked in `~/.claude/features/`. The folder and all files are crea
 `/feature-plan` — do not create feature folders manually. When the user runs the skill,
 it handles naming, folder creation, discovery, criteria drafting, and review.
 
-### Three implementation flows
+### Four implementation flows
 
 All flows start with `/feature-plan`, which creates `story.md` and seeds
 `design.md`. `story.md` contains the user story, discovery decisions,
@@ -68,6 +68,14 @@ the user chooses an implementation path:
   implements using its own judgment for task ordering. Tracks progress via
   acceptance criteria checkboxes in `story.md`. Best for hands-on implementation
   where the user wants to guide decisions.
+- **Auto** (`/feature-auto`): End-to-end autonomous flow orchestrated from the
+  current session. Runs `/feature-plan` for the interactive story + Q&A, then
+  subagents handle implementation, the review/fix loop (until no criterion has
+  `Action Required` checked, capped at 3 rounds), linters, the full test suite
+  with coverage top-up (≥95% on feature files), and PR creation for every repo
+  involved. Does **not** invoke `/feature-done` — the user archives after the
+  PRs merge. Best when the user wants a hands-off plan-to-PR flow and is happy
+  to delegate review triage.
 
 ### Shared planning
 

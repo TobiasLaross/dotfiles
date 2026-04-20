@@ -158,10 +158,11 @@ opencode auto-discovers skills from `~/.claude/skills/` (it scans `~/.claude` fo
 
 | Skill | Description |
 |-------|-------------|
-| `/feature-plan` | Discovery Q&A, draft story with subagent-reviewed acceptance criteria — shared entry point for all three flows |
+| `/feature-plan` | Discovery Q&A, draft story with subagent-reviewed acceptance criteria — shared entry point for all four flows |
 | `/feature-implement` | Implement directly from story.md (interactive) |
 | `/tasker` | Decompose acceptance criteria into tasks, launch autonomous task loop |
 | `/ralph` | True Ralph Wiggum loop (same prompt every iteration, agent decides what to do) |
+| `/feature-auto` | End-to-end autonomous flow: plan (interactive story + Q&A) → implement → review/fix → lint/tests/coverage → PRs. Skips `/feature-done`. |
 | `/feature-code-review` | Review implemented feature code, delegates to /review-code |
 | `/feature-code-fix` | Apply fixes from review findings, mark criteria as reviewed |
 | `/feature-done` | Verify criteria complete, move to `done/` |
@@ -176,8 +177,9 @@ opencode auto-discovers skills from `~/.claude/skills/` (it scans `~/.claude` fo
 
 **Global instructions** (`agentic/CLAUDE.md`) define:
 - Shared planning via `/feature-plan` (discovery, story with subagent-reviewed acceptance criteria)
-- Three implementation flows: tasker (autonomous task loop), ralph (autonomous Ralph
-  Wiggum loop), and feature (interactive)
+- Four implementation flows: tasker (autonomous task loop), ralph (autonomous Ralph
+  Wiggum loop), feature (interactive), and auto (plan-to-PR orchestrated from the
+  current session, skips `/feature-done`)
 - Feature lifecycle under `~/.claude/features/` (active → `done/`)
 - Tasker and Ralph loop files live alongside feature files in `~/.claude/features/<name>/`
 - Git worktrees for feature isolation (optional, offered during `/feature-plan`)
