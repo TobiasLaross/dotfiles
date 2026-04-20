@@ -35,12 +35,22 @@ Read `~/.claude/features/<name>/story.md`. Check each acceptance criterion:
    under it. List any that don't.
 2. **All criteria reviewed:** Every implemented criterion must have
    `- [x] Reviewed` under it. List any that don't — this checkbox is marked by
-   `/feature-code-fix` once the review cycle completes.
-3. **Review file present:** Check that `~/.claude/features/<name>/review-fixes.md`
+   the `/feature-code-review` Behavior Verification sub-agent while it walks
+   the criteria.
+3. **No criteria with Action Required open:** No criterion may still have
+   `- [x] Action Required` checked. That box means the review found something
+   that needed a code change; `/feature-code-fix` unchecks it once the fix
+   lands. If any criterion still has it checked, the feature is not complete.
+4. **Review file present:** Check that `~/.claude/features/<name>/review-fixes.md`
    exists. If it doesn't, warn that `/feature-code-review` hasn't been run.
+5. **Design file present:** Check that `~/.claude/features/<name>/design.md`
+   exists. It should have been seeded by `/feature-plan`. If it's missing,
+   note it — it's not a blocker, but flag it so the user knows the handoff
+   artifact was skipped.
 
-If any criteria are not implemented or the review is missing, report what's
-outstanding and ask the user how to proceed:
+If any criteria are not implemented, not reviewed, still have Action Required
+checked, or the review is missing, report what's outstanding and ask the user
+how to proceed:
 - Continue anyway (force move)
 - Go back and finish (abort)
 
@@ -49,13 +59,14 @@ Do not proceed unless the user explicitly confirms.
 ## Step 3 — Mark top-level criteria
 
 Before moving, mark each fully completed criterion's top-level checkbox. For every
-criterion where both `- [x] Implemented` and `- [x] Reviewed` are checked, change
-the top-level `- [ ]` to `- [x]`:
+criterion where `- [x] Implemented` and `- [x] Reviewed` are checked **and**
+`Action Required` is **unchecked**, change the top-level `- [ ]` to `- [x]`:
 
 ```md
 - [x] <criterion text>
   - [x] Implemented
   - [x] Reviewed
+  - [ ] Action Required
 ```
 
 This gives a clean final state in `story.md` where all criteria are visibly complete.
@@ -122,7 +133,8 @@ Tell the user:
 ## Rules
 
 - Never move a feature without checking acceptance criteria status first
-- Always ask for confirmation if any criteria are incomplete
+- Always ask for confirmation if any criteria are incomplete, unreviewed, or
+  still have Action Required checked
 - Do not delete any files — only move the folder
 - Worktree cleanup must happen after the feature folder is moved, not before
 - Never delete the worktree source repo — only the worktree directory itself

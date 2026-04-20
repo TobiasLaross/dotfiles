@@ -185,6 +185,7 @@ unchecked task, then stop. Do not combine tasks. Do not skip ahead.
 ## Files
 
 - Story & criteria: ~/.claude/features/<name>/story.md
+- Design decisions: ~/.claude/features/<name>/design.md
 - Task list: ~/.claude/features/<name>/tasks.md
 - Progress log: ~/.claude/features/<name>/progress.md
 - Test output: ~/.claude/features/<name>/test-output.log
@@ -194,8 +195,11 @@ unchecked task, then stop. Do not combine tasks. Do not skip ahead.
 1. Read `tasks.md` — find the first unchecked task (`- [ ]`)
 2. Read `progress.md` (if it exists) — understand what previous iterations did.
    Use a subagent for this to preserve your primary context window.
-3. If a task is marked in-progress (`- [~]`), resume that task
-4. If ALL tasks are checked off, go to **Final Review**
+3. Read `design.md` (via subagent) — see what implementation decisions earlier
+   iterations already made. Treat existing entries as binding unless you have
+   a concrete new reason to revisit one.
+4. If a task is marked in-progress (`- [~]`), resume that task
+5. If ALL tasks are checked off, go to **Final Review**
 
 Read `story.md` only when you need to understand intent or discovery decisions
 for the current task. Do not read it upfront every iteration.
@@ -223,8 +227,14 @@ for the current task. Do not read it upfront every iteration.
 
 1. Mark task done in `tasks.md`: change `- [~]` to `- [x]`
 2. Mark any acceptance criteria satisfied in `story.md`:
-   Change `- [ ] Implemented` to `- [x] Implemented` for matched criteria
-3. Append to `progress.md`:
+   Change `- [ ] Implemented` to `- [x] Implemented` for matched criteria.
+   Leave `Reviewed` and `Action Required` alone — those belong to the review
+   flow.
+3. If this iteration made any non-obvious implementation decision (chose an
+   architectural pattern, picked a library, rejected an alternative for a
+   concrete reason), append an entry to `design.md` using the entry format
+   at the bottom of that file. Keep entries short. Skip trivial decisions.
+4. Append to `progress.md`:
    ```
    ## Iteration — <date-time>
    - **Task:** <task description>
@@ -232,7 +242,7 @@ for the current task. Do not read it upfront every iteration.
    - **Tests:** <pass/fail summary>
    - **Notes:** <any deviations or issues>
    ```
-4. Create a git commit with a short message describing what you did.
+5. Create a git commit with a short message describing what you did.
    Use format: `<Capitalized past-tense verb> <what changed>`
 
 ## Final Review

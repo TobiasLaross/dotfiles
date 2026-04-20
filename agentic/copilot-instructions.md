@@ -45,10 +45,14 @@ it handles naming, folder creation, discovery, criteria drafting, and review.
 
 ### Three implementation flows
 
-All flows start with `/feature-plan`, which creates `story.md` — a single artifact
-containing the user story, discovery decisions, acceptance criteria (reviewed and
-revised by a subagent for full story coverage), repos involved, and any open
-questions. After planning, the user chooses an implementation path:
+All flows start with `/feature-plan`, which creates `story.md` and seeds
+`design.md`. `story.md` contains the user story, discovery decisions,
+acceptance criteria (reviewed and revised by a subagent for full story
+coverage), repos involved, and any open questions. `design.md` is a living
+log of implementation-level design decisions (architecture, chosen patterns,
+rejected alternatives with rationale) and is appended to by the
+implementation, review, and fix flows as decisions get made. After planning,
+the user chooses an implementation path:
 
 - **Tasker** (`/feature-plan` → `/tasker`): Autonomous task loop. `/tasker` decomposes
   the acceptance criteria into behavior-level tasks and launches `tasker.sh`, which
@@ -67,12 +71,38 @@ questions. After planning, the user chooses an implementation path:
 
 ### Shared planning
 
-`/feature-plan` is the single entry point for all flows. It produces one artifact:
+`/feature-plan` is the single entry point for all flows. It produces two
+artifacts:
 - `story.md` — user story, discovery decisions, acceptance criteria (with
-  `Implemented`/`Reviewed` tracking), repos involved, and any open questions
+  `Implemented`/`Reviewed`/`Action Required` tracking), repos involved, and
+  any open questions
+- `design.md` — a living log of implementation-level design decisions
+  (seeded empty by `/feature-plan`). Any flow that makes a non-obvious
+  implementation choice appends an entry here so a future session can pick
+  up without reverse-engineering the code. Product-level decisions stay in
+  `story.md` under Discovery; `design.md` is for the *how*.
 
 There is no separate plan file. Well-formed acceptance criteria carry the full
 design intent of the feature; the implementation agent decides *how* to build them.
+
+### Checkbox semantics
+
+Each acceptance criterion in `story.md` has three nested checkboxes, each
+owned by a different flow:
+
+- **Implemented** — checked by `/feature-implement`, `/tasker`, or `/ralph`
+  when the behavior is in the code.
+- **Reviewed** — checked by the `/feature-code-review` Behavior Verification
+  sub-agent per criterion it covers.
+- **Action Required** — also checked by the same review sub-agent *at the
+  same time as Reviewed* whenever that criterion has findings requiring a
+  code change (PARTIAL/MISSING coverage, or HIGH/CRITICAL behavior drift).
+  `/feature-code-fix` unchecks it once the findings for that criterion are
+  resolved. `/feature-done` refuses to archive while any criterion still
+  has Action Required checked.
+
+A criterion is "truly done" only when `Implemented` and `Reviewed` are
+checked and `Action Required` is unchecked.
 
 ### Feature lifecycle
 
@@ -166,3 +196,15 @@ only when context files are missing or insufficient.
 
 When writing markdown files, make sure that lines are not longer than 140 characters
 without trailing white-spaces.
+
+### JavaScript / TypeScript style
+
+Prefer native optional chaining (`?.`) and nullish coalescing (`??`) over lodash
+helpers like `_.get`, `_.has`, and similar. Exceptions:
+
+- If the surrounding function or file already uses lodash to read the same params
+  or values, keep using lodash in the new code for consistency within that scope.
+- Removing an existing lodash call in favor of optional chaining is fine only
+  when it is a like-for-like replacement of the same function (e.g. `_.get(obj,
+  'a.b')` → `obj?.a?.b`). Do not swap out lodash functions that have no direct
+  native equivalent (e.g. `_.isEqual`, `_.cloneDeep`, `_.groupBy`).

@@ -3,9 +3,11 @@ name: feature-implement
 description: >-
   Implement a feature directly from its story. Use whenever the user is ready to start
   coding — even if they just say "start building", "let's go", or "implement it". Reads
-  story.md (user story, discovery, acceptance criteria, repos, open questions),
-  implements the feature using its own judgment for task ordering, writes tests ad-hoc,
-  and marks acceptance criteria as implemented.
+  story.md (user story, discovery, acceptance criteria, repos, open questions) and
+  design.md (prior implementation decisions), implements the feature using its own
+  judgment for task ordering, writes tests ad-hoc, marks acceptance criteria as
+  implemented, and appends to design.md whenever a non-obvious implementation decision
+  is made.
 argument-hint: [feature-name]
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash, Agent
 ---
@@ -36,12 +38,22 @@ yours to decide.
 
 ## Step 2 — Read feature files
 
-Read `~/.claude/features/<name>/story.md` — it is the only required artifact and
-contains: user story, discovery decisions, acceptance criteria (with
-`Implemented`/`Reviewed` tracking), repos involved, and any open questions.
+Read `~/.claude/features/<name>/story.md` — it is the primary required artifact
+and contains: user story, discovery decisions, acceptance criteria (with
+`Implemented`/`Reviewed`/`Action Required` tracking), repos involved, and any
+open questions.
+
+Also read `~/.claude/features/<name>/design.md` if it exists — it contains any
+implementation-level design decisions made by earlier sessions (architecture,
+chosen patterns, rejected alternatives). Treat existing decisions there as
+binding unless a concrete new reason emerges to revisit one; if you do revisit
+a decision, append a new entry that notes which earlier entry it supersedes
+(do not edit the older entry).
 
 If `story.md` is missing, tell the user and suggest running `/feature-plan`
-first.
+first. If `design.md` is missing but `story.md` exists, create `design.md` from
+the template in `/feature-plan` Step 8b before proceeding — it is the handoff
+artifact for future sessions.
 
 ## Step 3 — Detect repos, branches, and context
 
@@ -137,6 +149,17 @@ over:
    implement in dependency order — upstream repos first, then downstream
    consumers.
 
+7. **Log design decisions.** Whenever you make a non-obvious implementation
+   decision — choosing an architectural pattern, picking a library, deciding
+   on a data shape, rejecting an alternative for a concrete reason — append
+   an entry to `~/.claude/features/<name>/design.md` using the format at the
+   bottom of the file. Do this **as the decision is made**, not at the end.
+   Keep entries short (a few sentences each). Skip trivial decisions — the
+   goal is to explain choices a future session could not easily reconstruct
+   from the code alone. Typical good entries: "chose X over Y because Z",
+   "modeled N as M because existing code already treats it that way",
+   "rejected caching because the data changes per request".
+
 ### Progress tracking
 
 After completing work that satisfies an acceptance criterion, mark it in
@@ -147,6 +170,7 @@ Change:
 - [ ] <criterion text>
   - [ ] Implemented
   - [ ] Reviewed
+  - [ ] Action Required
 ```
 
 To:
@@ -154,9 +178,12 @@ To:
 - [ ] <criterion text>
   - [x] Implemented
   - [ ] Reviewed
+  - [ ] Action Required
 ```
 
-Do this incrementally as you go — not all at once at the end.
+Only touch the `Implemented` checkbox. `Reviewed` and `Action Required` are
+owned by the review flow — leave them unchecked. Do this incrementally as you
+go — not all at once at the end.
 
 ## Step 6 — Tests
 
@@ -208,3 +235,7 @@ to request the review — start it immediately after reporting.
 - Do not push to remote unless the user asks
 - Mark acceptance criteria as implemented incrementally, not in a batch at the
   end
+- Only touch the `Implemented` checkbox in `story.md` — `Reviewed` and
+  `Action Required` are owned by the review flow
+- Append non-obvious design decisions to `design.md` as they are made, using
+  the entry format at the bottom of that file

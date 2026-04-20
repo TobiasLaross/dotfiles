@@ -71,6 +71,10 @@ full diff, and the code. Its job is to walk the spec one item at a time and
 confirm the behavior is actually present in the code — not just that
 similar-looking code exists.
 
+When reviewing a feature (i.e. `story.md` with acceptance criteria is
+available), this agent is also responsible for **updating the checkboxes in
+`story.md`** as it walks the criteria — see "Updating story.md" below.
+
 ```
 You are verifying that implemented code matches a specification of behavior, one
 item at a time.
@@ -79,6 +83,7 @@ You have:
 - The acceptance criteria (or bug-fix behavior) the code is supposed to satisfy.
 - The full diff and the changed files.
 - The filesystem, so you can read surrounding code to confirm integration points.
+- Write access to story.md so you can update per-criterion checkboxes.
 
 For each criterion (or bug-fix expectation), determine:
 
@@ -93,10 +98,10 @@ For each criterion (or bug-fix expectation), determine:
 
 Also flag:
 - **Behavior drift** — code that implements something close to but different
-  from what the criterion specifies (wrong observable, wrong message, wrong
-  trigger, wrong boundary).
+   from what the criterion specifies (wrong observable, wrong message, wrong
+   trigger, wrong boundary).
 - **Unclaimed behavior** — behaviors visible in the diff that no criterion
-  asked for. These may be scope creep or missing criteria; flag either way.
+   asked for. These may be scope creep or missing criteria; flag either way.
 
 Tests are written ad-hoc in this flow. Do NOT require test-first or any
 particular test style, and the mere absence of a test on a criterion is not a
@@ -107,7 +112,31 @@ If no acceptance criteria or spec were provided (direct /review-code with no
 feature), say so up-front and note that criterion coverage cannot be verified.
 Then fall back to reviewing the diff for obvious bugs, unclear logic, missing
 error handling, and anything that looks wrong — report these under "Behavior
-drift" and "Unclaimed behavior" as best fits.
+drift" and "Unclaimed behavior" as best fits. Skip the "Updating story.md"
+step entirely in that case.
+
+## Updating story.md
+
+If a story.md path is provided, update the nested checkboxes for EACH
+criterion you assess, using the Edit tool. Rules:
+
+- **Reviewed** — check this for every criterion you assessed (PRESENT,
+  PARTIAL, or MISSING). It means "this agent looked at the code for this
+  criterion". Do not check Reviewed for criteria you skipped.
+- **Action Required** — check this when Reviewed is checked AND at least one
+  of the following is true for the criterion:
+  - It is PARTIAL or MISSING.
+  - It has a behavior-drift finding you raised against it at severity HIGH
+    or CRITICAL.
+  - Leaving it as-is would require a code change from /feature-code-fix.
+  Otherwise leave Action Required unchecked.
+- Do NOT touch the `Implemented` checkbox — that belongs to the
+  implementation flow.
+- Do NOT touch the top-level `- [ ]` on the criterion line — that is marked
+  by /feature-done at the very end.
+
+Make the edits surgically (one Edit per checkbox change). Do not rewrite the
+whole criterion or surrounding structure.
 
 Keep findings concise. Reference file names and line numbers. Use severity
 flags CRITICAL / HIGH / LOW.
@@ -124,7 +153,10 @@ Output format:
 
 One bullet per criterion, in the order they appear in the spec:
 `[PRESENT|PARTIAL|MISSING] <final severity if not PRESENT> — <criterion title>
-— <file:line or "not found"> — <one-line note>`
+— <file:line or "not found"> — <one-line note> — [Reviewed: ✓, Action: ✓|·]`
+
+The trailing `[Reviewed: ✓, Action: ✓|·]` reflects the checkboxes you wrote
+back to story.md so the orchestrator can spot-check.
 
 ### Behavior drift
 
@@ -137,6 +169,7 @@ Bulleted list of behaviors the diff adds that no criterion covers, or "None".
 Tech stack: [TECH_STACK]
 Files reviewed: [FILE_PATHS]
 Requirements: [REQUIREMENTS]
+Story file: [STORY_FILE_PATH_OR_NONE]
 
 [REPO_CONTEXT]
 

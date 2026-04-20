@@ -3,9 +3,10 @@ name: feature-plan
 description: >-
   Create a new feature plan. Use this whenever the user wants to start building something
   new — even if they haven't said /feature-plan explicitly. Drafts a user story with
-  acceptance criteria (with Implemented/Reviewed tracking), runs discovery Q&A, has a
-  subagent review and tighten the criteria for full story coverage, and saves everything
-  under ~/.claude/features/. Both /feature-implement and /ralph read the output directly.
+  acceptance criteria (with Implemented/Reviewed/Action Required tracking), runs discovery
+  Q&A, has a subagent review and tighten the criteria for full story coverage, seeds an
+  empty design.md for implementation-level decisions, and saves everything under
+  ~/.claude/features/. Both /feature-implement and /ralph read the output directly.
 argument-hint: <feature description or existing-name>
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash, Agent, AskUserQuestion
 ---
@@ -14,12 +15,21 @@ allowed-tools: Read, Write, Edit, Grep, Glob, Bash, Agent, AskUserQuestion
 
 The user has invoked `/feature-plan`. Follow this workflow exactly.
 
-This skill creates a single artifact — `story.md` — containing the user story,
-discovery decisions, acceptance criteria, repos involved, and any open questions.
-There is no separate plan: well-formed acceptance criteria carry the full design
-intent of the feature, and the implementation agent (whether `/feature-implement`,
-`/tasker`, or `/ralph`) decides *how* to build them. Getting the criteria right
-matters — keep review rigor high.
+This skill creates two artifacts:
+
+- `story.md` — the user story, discovery decisions, acceptance criteria, repos
+  involved, and any open questions. Well-formed acceptance criteria carry the
+  full design intent of *what* to build; the implementation agent decides
+  *how* to build them. Getting the criteria right matters — keep review rigor
+  high.
+- `design.md` — a living log of **implementation-level** design decisions
+  (architecture, chosen patterns, libraries, rejected alternatives and why).
+  Seeded empty by this skill; appended to by the implementation and review
+  flows as decisions get made. This file exists so a future session can pick
+  up the feature and understand *why* things were built the way they were
+  without having to reverse-engineer the codebase.
+
+There is no separate plan file — criteria live in `story.md`.
 
 ## Step 1 — Resume or start
 
@@ -373,7 +383,52 @@ stated:
   - **Then** <observable outcome in product terms>
   - [ ] Implemented
   - [ ] Reviewed
+  - [ ] Action Required
 ```
+
+**Rule-style** — for rules, limits, gates, or invariants that apply across
+many cases. A rule must be accompanied by at least one concrete **Example**
+with real data (names, values, states) and an observable result. If the rule
+has a meaningful boundary, add a second example on the other side of it:
+
+```md
+- [ ] **<Short title of the rule>**
+  - **Rule:** <the rule in one sentence>
+  - **Example:** <concrete instance with real data and the observable result>
+  - [ ] Implemented
+  - [ ] Reviewed
+  - [ ] Action Required
+```
+
+**Out-of-scope** — for things the user intentionally excluded. Plain text is
+fine; the nested checkboxes stay for tracking consistency:
+
+```md
+- [ ] **Out of scope: <title>**
+  - <one-sentence description of what is NOT being built>
+  - [ ] Implemented
+  - [ ] Reviewed
+  - [ ] Action Required
+```
+
+### Checkbox semantics
+
+Each criterion has three nested checkboxes, each owned by a different flow:
+
+- **Implemented** — marked by `/feature-implement`, `/tasker`, or `/ralph`
+  once the behavior is in the code.
+- **Reviewed** — marked by the `/feature-code-review` sub-agent (specifically
+  the Behavior Verification agent, which walks criteria one-by-one) once the
+  criterion has been assessed against the code.
+- **Action Required** — *also* checked by the review agent when Reviewed is
+  checked **and** the review surfaced findings that need code changes for
+  that criterion. It flags "reviewed but not resolved". `/feature-code-fix`
+  unchecks this box once the findings for that criterion are fixed.
+  `/feature-done` refuses to archive while any criterion has Action Required
+  still checked.
+
+A criterion is only "truly done" when Implemented is checked, Reviewed is
+checked, and Action Required is **unchecked**.
 
 **Rule-style** — for rules, limits, gates, or invariants that apply across
 many cases. A rule must be accompanied by at least one concrete **Example**
@@ -471,8 +526,10 @@ Produce a revised list of acceptance criteria. Apply these checks:
      data and an observable result. Add an example if missing. If the rule
      has a meaningful boundary, add a second example on the other side.
    - Out-of-scope: short, plain-text description is fine.
-   Convert between shapes if the current shape doesn't fit — don't force a
-   rule into a scenario or the reverse.
+   Every criterion (all three shapes) must have the three nested checkboxes:
+   `Implemented`, `Reviewed`, and `Action Required`. Convert between shapes
+   if the current shape doesn't fit — don't force a rule into a scenario or
+   the reverse.
 
 7. **Ambiguity** — Each criterion must be testable without interpretation.
    Rewrite anything ambiguous, vague, or open to multiple readings. Replace
@@ -498,7 +555,8 @@ Return TWO sections:
 ### Revised criteria
 
 <the full revised list in the checkbox format with nested
-Implemented / Reviewed boxes — this is what will replace the draft>
+Implemented / Reviewed / Action Required boxes — this is what will replace
+the draft>
 
 ### Changes made
 
@@ -600,15 +658,18 @@ agent — it needs the "why" behind non-obvious decisions.]
   - **Then** <observable outcome>
   - [ ] Implemented
   - [ ] Reviewed
+  - [ ] Action Required
 - [ ] **<Rule title>**
   - **Rule:** <one-sentence rule>
   - **Example:** <concrete instance with real data and observable result>
   - [ ] Implemented
   - [ ] Reviewed
+  - [ ] Action Required
 - [ ] **Out of scope: <title>**
   - <what is not being built>
   - [ ] Implemented
   - [ ] Reviewed
+  - [ ] Action Required
 [add more as needed, using whichever shape fits each criterion]
 
 ## Repos Involved
@@ -625,10 +686,62 @@ agent — it needs the "why" behind non-obvious decisions.]
 -
 ```
 
-The nested `Implemented` and `Reviewed` checkboxes under each criterion are the
-tracking mechanism for all flows. `/feature-implement` and `/ralph` mark
-`Implemented`, `/feature-code-fix` marks `Reviewed`, and `/feature-done` checks
-both.
+The nested `Implemented`, `Reviewed`, and `Action Required` checkboxes under
+each criterion are the tracking mechanism for all flows.
+`/feature-implement`, `/tasker`, and `/ralph` mark `Implemented`.
+`/feature-code-review` sub-agents mark `Reviewed` and — when the criterion
+has open findings — also mark `Action Required`. `/feature-code-fix` unchecks
+`Action Required` once findings for that criterion are resolved.
+`/feature-done` requires that every criterion has Implemented and Reviewed
+checked **and** Action Required unchecked before archiving.
+
+### 8b — Seed design.md
+
+Create `~/.claude/features/<name>/design.md` with the following template.
+This file is a living log of implementation-level design decisions and will
+be appended to by the implementation, review, and fix flows. Seed it empty
+(no decisions yet) but include a short usage note so any agent that opens
+the file knows how to contribute:
+
+```md
+# Design Decisions — <feature title>
+
+> Feature: <name>
+> Created: <today's date>
+
+This file logs **implementation-level** design decisions made during this
+feature (architecture, chosen patterns, libraries, data structures, and
+rejected alternatives with rationale). It is intended to help a future
+session get up to speed on *why* things were built the way they were,
+without reverse-engineering the codebase.
+
+Product-level decisions live in `story.md` under **Discovery**. This file is
+for the *how*, not the *what*.
+
+## How to update this file
+
+Any agent working on this feature should append a new entry here whenever it
+makes a non-obvious implementation decision. Do not edit existing entries —
+append new ones. Keep entries short (a few sentences is usually enough).
+If a later decision supersedes an earlier one, add a new entry and note
+which earlier entry it supersedes.
+
+Entry format:
+
+### <Date> — <Short decision title>
+
+- **Context:** <what situation forced a decision>
+- **Decision:** <what was chosen>
+- **Rationale:** <why, in 1-3 sentences>
+- **Alternatives considered:** <bullet list of options considered and why
+  they were rejected, or "None">
+- **Source:** <which flow / skill made the decision, e.g. "feature-implement",
+  "tasker iteration 3", "feature-code-fix F04">
+
+## Decisions
+
+<!-- Append new entries below. Nothing here yet. -->
+```
 
 ## Step 9 — Final review of the full story
 
@@ -644,8 +757,10 @@ final approval before any worktrees are created or implementation begins:
 Then prompt:
 
 _"`story.md` is at `~/.claude/features/<name>/story.md` (full file available to
-read). Approve as-is, or tell me what to change — I'll revise and re-show.
-Nothing downstream (worktrees, implementation) starts until you approve."_
+read). `design.md` is seeded alongside it for implementation-level decisions —
+downstream flows will append to it. Approve as-is, or tell me what to change —
+I'll revise and re-show. Nothing downstream (worktrees, implementation) starts
+until you approve."_
 
 If the user requests changes:
 - Apply them directly to `story.md`

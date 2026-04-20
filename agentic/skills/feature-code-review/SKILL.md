@@ -32,8 +32,10 @@ test quality against what was written ad-hoc during implementation.
 
 Read `~/.claude/features/<name>/story.md` — the user story, discovery decisions,
 acceptance criteria (used as the **original requirements**), repos involved, and
-any open questions. Also read any other `.md` files in the feature folder if
-they exist (e.g. `review-fixes.md` from a prior review).
+any open questions. Also read `~/.claude/features/<name>/design.md` if it
+exists — it contains the implementation-level decisions the review should
+weigh against. Also read any other `.md` files in the feature folder if they
+exist (e.g. `review-fixes.md` from a prior review).
 
 ## Step 3 — Gather code context
 
@@ -76,12 +78,19 @@ Invoke the `/review-code` skill. It will launch 3 sub-agents in parallel:
 1. **Behavior Verification** — walks the acceptance criteria one by one and
    confirms each Given/When/Then scenario or rule + example is exhibited by
    the code, flagging MISSING / PARTIAL coverage, behavior drift, and
-   unclaimed behavior
-2. **Contextual Review** — reviews with full feature context (story and
-   repo context)
+   unclaimed behavior. This agent **also updates `story.md`** for each
+   criterion it covers: checks `Reviewed`, and checks `Action Required` when
+   the criterion has findings that need code changes. See `/review-code` for
+   the exact rules.
+2. **Contextual Review** — reviews with full feature context (story, design,
+   and repo context)
 3. **Pattern Consistency** — verifies the code follows existing codebase patterns
 
-Wait for `/review-code` to complete and present its findings.
+Wait for `/review-code` to complete and present its findings. After it
+completes, verify that every criterion now has `- [x] Reviewed` (Agent 1 is
+responsible for this) and that criteria with findings also have
+`- [x] Action Required`. If any criterion is missing `Reviewed`, fix it
+yourself here before moving to Step 5.
 
 ## Step 5 — Write review-fixes.md
 
@@ -98,6 +107,7 @@ After the review completes, take the synthesized findings and write them to
 
 ### F01 — <Short title describing the finding>
 - **Source:** <Agent name> (<severity>)
+- **Criterion:** <short criterion title this finding relates to, or "General">
 - **Finding:** <1-2 sentence description>
 - **Files:** <file paths that need changes>
 - **Suggested fix:** <brief description of what to change>
@@ -110,6 +120,10 @@ After the review completes, take the synthesized findings and write them to
 |---------|-------|----------|-----------|
 | [brief description] | Agent N | LOW | [why no action needed] |
 ```
+
+The `Criterion` line lets `/feature-code-fix` know which `Action Required`
+checkbox to uncheck once the finding is resolved. Use `General` for findings
+that are not tied to a specific criterion (e.g. cross-cutting style issues).
 
 > **CRITICAL WARNING:** If any CRITICAL finding exists, highlight it prominently
 > at the top of the file.

@@ -128,16 +128,25 @@ Read `~/.claude/features/<name>/progress.md` to understand what previous
 iterations accomplished. Use a subagent for this to preserve your primary
 context window.
 
+## Design decisions
+
+Read `~/.claude/features/<name>/design.md` (via subagent) to see what
+implementation decisions earlier iterations already made. Treat existing
+entries as binding unless you have a concrete new reason to revisit one.
+If you do revisit one, append a new entry noting which earlier entry it
+supersedes — do not edit the older entry.
+
 ## Your Job
 
 1. Read `progress.md` (via subagent) to see what's been done
-2. Look at the acceptance criteria — find what's not yet implemented
-3. Look at the codebase — verify what actually exists (don't assume anything
+2. Read `design.md` (via subagent) to see prior design decisions
+3. Look at the acceptance criteria — find what's not yet implemented
+4. Look at the codebase — verify what actually exists (don't assume anything
    is or isn't implemented; always check)
-4. Pick the ONE most important thing to work on next
-5. Implement it, write tests, verify they pass
-6. Commit your work
-7. Update progress and stop
+5. Pick the ONE most important thing to work on next
+6. Implement it, write tests, verify they pass
+7. Commit your work
+8. Update progress and stop
 
 ### How to pick what to work on
 
@@ -172,8 +181,15 @@ context window.
 
 1. Mark any acceptance criteria you satisfied in the story section above by
    updating `~/.claude/features/<name>/story.md`:
-   Change `- [ ] Implemented` to `- [x] Implemented` for matched criteria
-2. Append to `~/.claude/features/<name>/progress.md`:
+   Change `- [ ] Implemented` to `- [x] Implemented` for matched criteria.
+   Leave `Reviewed` and `Action Required` alone — those belong to the review
+   flow.
+2. If this iteration made any non-obvious implementation decision (chose an
+   architectural pattern, picked a library, rejected an alternative for a
+   concrete reason), append an entry to
+   `~/.claude/features/<name>/design.md` using the entry format at the
+   bottom of that file. Keep entries short. Skip trivial decisions.
+3. Append to `~/.claude/features/<name>/progress.md`:
    ```
    ## Iteration — <date-time>
    - **What I did:** <brief description of the work>
@@ -181,9 +197,9 @@ context window.
    - **Tests:** <pass/fail summary>
    - **Remaining:** <what's still unimplemented, or "Final review needed">
    ```
-3. Create a git commit with a short message describing what you did.
+4. Create a git commit with a short message describing what you did.
    Use format: `<Capitalized past-tense verb> <what changed>`
-4. **Stop.** Do not start a second piece of work. One thing per iteration.
+5. **Stop.** Do not start a second piece of work. One thing per iteration.
 
 ## Final Review
 
