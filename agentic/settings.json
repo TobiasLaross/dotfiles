@@ -20,11 +20,11 @@
       "WebFetch",
       "WebSearch"
     ],
+    "defaultMode": "auto",
     "additionalDirectories": [
       "~/Developer/work",
       "~/Developer/personal"
-    ],
-    "defaultMode": "auto"
+    ]
   },
   "model": "opus",
   "enabledPlugins": {

@@ -134,3 +134,36 @@ function memtop() {
     done
     tput cnorm
 }
+
+# Build Lilium from the current directory (or the main repo) and install+launch
+# it on Tobias's iPhone 17 Pro. Two UUIDs per device:
+#   - provisioning UDID (xcodebuild): 00008150-00124D500108401C
+#   - CoreDevice UUID (devicectl):    911101B1-0BE6-5943-A15E-E2F78F289A00
+lilaDevice() {
+  local proj
+  if [[ -f "./Lilium.xcodeproj/project.pbxproj" ]]; then
+    proj="$(pwd)/Lilium.xcodeproj"
+  else
+    proj="$HOME/Developer/personal/lilium/Lilium.xcodeproj"
+  fi
+  local provisioning_udid="00008150-00124D500108401C"
+  local coredevice_uuid="911101B1-0BE6-5943-A15E-E2F78F289A00"
+  local bundle_id="se.laross.lila"
+
+  echo "Building $proj for Tobias's iPhone 17 Pro…"
+  xcodebuild -project "$proj" -scheme Lilium -configuration Debug \
+    -destination "id=$provisioning_udid" -allowProvisioningUpdates build || return $?
+
+  local app_path
+  app_path=$(ls -td "$HOME"/Library/Developer/Xcode/DerivedData/Lilium-*/Build/Products/Debug-iphoneos/Lilium.app 2>/dev/null | head -1)
+  if [[ -z "$app_path" ]]; then
+    echo "Could not locate built Lilium.app"
+    return 1
+  fi
+
+  echo "Installing $app_path…"
+  xcrun devicectl device install app --device "$coredevice_uuid" "$app_path" || return $?
+
+  echo "Launching $bundle_id…"
+  xcrun devicectl device process launch --device "$coredevice_uuid" "$bundle_id"
+}
