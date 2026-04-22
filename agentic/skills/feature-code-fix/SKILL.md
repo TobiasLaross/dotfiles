@@ -14,12 +14,12 @@ allowed-tools: Read, Write, Edit, Grep, Glob, Bash, Agent
 
 The user has invoked `/feature-code-fix`. Follow this workflow exactly.
 
-This skill triages review findings **with the user** in the main session, then
-delegates the actual execution — applying fixes, running tests, updating the
-`Action Required` checkbox in `story.md`, and updating `review-fixes.md` — to a
-single subagent. Triage is interactive (questions for the user), execution is
-autonomous (no user input needed). Splitting them lets the main session stay
-clean and the subagent run to completion without interruption.
+This skill delegates the entire execution phase — judging findings, applying
+fixes, running tests, updating the `Action Required` checkbox in `story.md`,
+and updating `review-fixes.md` — to a single foreground subagent. The
+subagent decides which findings warrant a code change and which do not,
+recording its rationale in `review-fixes.md` so every finding has an
+auditable outcome.
 
 ## Step 1 — Resolve the feature
 
@@ -43,9 +43,9 @@ Also read `~/.claude/features/<name>/story.md` and `design.md` for context
 (user story, discovery decisions, acceptance criteria, and any prior
 implementation decisions).
 
-## Step 3 — Triage findings with the user
+## Step 3 — Delegate execution to a single subagent
 
-Present a summary of all findings grouped by severity:
+Present a brief summary of findings grouped by severity:
 
 ```
 CRITICAL: N findings
@@ -53,77 +53,100 @@ HIGH: N findings
 LOW: N findings
 ```
 
-Ask the user: _"Apply all findings, or would you like to exclude any?"_
+Tell the user the fix subagent will now judge and apply findings
+automatically, and that they can interrupt if they want to force a
+specific finding to be skipped.
 
-If the user wants to exclude some, note which ones. For excluded CRITICAL
-findings, warn explicitly that a known critical risk will remain. Record the
-final accept/exclude decision for each finding — you will pass this to the
-execution subagent.
+Do not pre-filter findings. The fix subagent reads every finding from
+`review-fixes.md` itself, weighs each against the full feature context
+(story.md, design.md, acceptance criteria), and decides which warrant a
+code change, which are already satisfied, and which should be rejected as
+incorrect or out-of-scope. If the user has proactively asked to force-skip
+specific findings, pass those in the prompt as `forced-skip` so the
+subagent leaves them alone and marks them Excluded.
 
-Triage is the **only** interactive step in this flow. Once the user confirms
-the triage outcome, everything else runs inside the subagent.
-
-## Step 4 — Delegate execution to a single subagent
-
-Spawn one foreground subagent (`subagent_type: general`) and wait for it to
-finish. The subagent owns the entire execution phase: applying fixes,
-running tests, updating `story.md` (Action Required checkboxes), and
-updating `review-fixes.md` with per-finding status. The main session does
-not split work across per-file sub-subagents — one agent sees the whole
-picture and applies the fixes coherently.
+Spawn one foreground subagent (`subagent_type: general`) and wait for it
+to finish. The subagent owns the entire execution phase: judging each
+finding, applying the fixes it accepts, running tests, updating story.md
+(Action Required checkboxes), and updating review-fixes.md with
+per-finding status. One agent sees the whole picture and applies the
+fixes coherently, rather than splitting work across per-file sub-subagents.
 
 Prompt:
 
 ```
-You are executing a batch of approved code-review fixes for a feature.
+You are triaging and applying code-review findings for a feature.
 
 Feature folder: ~/.claude/features/<name>/
 
 ## Inputs
 
-Accepted findings (apply these):
-<for each accepted finding>
-- F<id>: <finding description>
-  Severity: <severity>
-  Criterion: <short criterion title this finding relates to, or "General">
-  Files: <file paths>
-  Suggested fix: <suggestion>
+All findings (you decide which to apply) — read them from review-fixes.md.
+
+Forced-skip findings (the user explicitly told the orchestrator not to
+touch these — do not apply, mark as Excluded with the user's reason):
+<for each forced-skip finding>
+- F<id>: <finding description> — reason: <user's reason>
 </for each>
 
-Excluded findings (do NOT apply, but still update status):
-<for each excluded finding>
-- F<id>: <finding description> — reason: <user's reason, or "user declined">
-</for each>
-
-Feature files you should read as needed:
-- story.md — acceptance criteria with per-criterion Action Required boxes
+Feature files you MUST read before judging findings:
+- story.md — user story, discovery decisions, acceptance criteria with
+  per-criterion Action Required boxes
 - design.md — prior implementation decisions (append a new entry here if
-  you make a non-obvious choice while applying a fix)
+  you make a non-obvious choice while applying or rejecting a fix)
 - review-fixes.md — the finding list you are updating
 
 ## Execution
 
-1. **Read the files you need.** Start with the source files mentioned by
-   the accepted findings. Read enough surrounding context to apply each fix
-   correctly.
+1. **Read all context first.** Read story.md, design.md, and
+   review-fixes.md in full. Then read the source files referenced by the
+   findings. Do not start editing until you understand the acceptance
+   criteria and the reasoning behind prior design decisions.
 
-2. **Apply fixes.** Work through the accepted findings and change the code
-   to address each one. Group related findings in the same file into a
-   single coherent edit pass — do not make multiple passes over the same
-   file if one pass will do. If two findings conflict, prefer the higher
-   severity one and note the conflict in review-fixes.md.
+2. **Judge each finding.** For every finding (except forced-skip ones),
+   decide independently whether to apply it. A finding should be applied
+   when it identifies a real defect, regression, missing acceptance
+   criterion coverage, or meaningful quality issue. A finding should be
+   Rejected when it is:
+   - Incorrect (misreads the code, based on a faulty assumption, or
+     contradicted by the story, design, or existing tests)
+   - Already satisfied by the current code (the reviewer missed something)
+   - Out of scope for this feature (unrelated refactor, speculative
+     hardening, stylistic preference that fights existing conventions,
+     work that belongs in a separate feature)
+   - In direct conflict with a higher-severity finding you are applying
+   - Demanding behavior the story and acceptance criteria explicitly do
+     not call for, or that a recorded design.md decision rejected
 
-3. **Respect scope.** Do not change anything beyond what the findings
-   require. If a fix requires writing a missing test, follow existing test
-   conventions in the repo.
+   Use the feature context, not just the finding text, to make the call.
+   Severity is a signal, not a mandate — a LOW finding with a real defect
+   still gets applied; a CRITICAL finding based on a misread does not.
 
-4. **Log non-obvious decisions.** If applying a fix forces a design
-   choice (e.g. choosing between two valid fixes, introducing a new
-   abstraction, rejecting the suggested fix for a concrete reason), append
-   an entry to design.md using the entry format at the bottom of that file.
-   Tag the entry's Source as "feature-code-fix F<id>".
+   CRITICAL: Every finding you do not apply MUST be marked Rejected (or
+   Excluded if forced-skip) with a concrete rationale. Silently skipping
+   a finding is not allowed — if it is not Fixed, explain why in
+   review-fixes.md.
 
-5. **Run tests.** After all edits land, run only the test files touched
+3. **Apply accepted fixes.** Work through the findings you chose to apply
+   and change the code to address each one. Group related findings in the
+   same file into a single coherent edit pass — do not make multiple
+   passes over the same file if one pass will do. If two accepted
+   findings conflict, prefer the higher-severity one and note the
+   conflict in review-fixes.md.
+
+4. **Respect scope.** Do not change anything beyond what the accepted
+   findings require. If a fix requires writing a missing test, follow
+   existing test conventions in the repo.
+
+5. **Log non-obvious decisions.** If applying — or rejecting — a fix
+   forces a design choice (e.g. choosing between two valid fixes,
+   introducing a new abstraction, rejecting a HIGH/CRITICAL finding),
+   append an entry to design.md using the entry format at the bottom of
+   that file. Tag the entry's Source as "feature-code-fix F<id>".
+   Rejections of HIGH or CRITICAL findings MUST be logged in design.md so
+   a future session can see the reasoning.
+
+6. **Run tests.** After all edits land, run only the test files touched
    during this step:
    - Collect all files modified.
    - Filter to test files (files in test directories, or matching *.test.*,
@@ -138,20 +161,23 @@ Feature files you should read as needed:
    the failure in review-fixes.md under the relevant finding's status and
    move on.
 
-6. **Update story.md — uncheck Action Required.** For each acceptance
-   criterion that had findings in this batch, if **all** of its accepted
-   findings are now Fixed (tests passed), uncheck its Action Required box:
-   change `- [x] Action Required` to `- [ ] Action Required`. If any
-   accepted finding for a criterion is Excluded or still Failing, leave
-   Action Required checked. Group findings by the `Criterion:` field from
+7. **Update story.md — uncheck Action Required.** For each acceptance
+   criterion that had findings in this batch, if **all** of its findings
+   are now Fixed (tests passed), uncheck its Action Required box: change
+   `- [x] Action Required` to `- [ ] Action Required`. If any finding for
+   a criterion is Rejected, Excluded, or still Failing, leave Action
+   Required checked — /feature-done will block until the user reviews
+   the rejection. Group findings by the `Criterion:` field from
    review-fixes.md — "General" findings do not map to a single criterion
    and do not affect any Action Required box.
 
    Do NOT touch the `Implemented` or `Reviewed` checkboxes. Do NOT touch
    the top-level checkbox on the criterion line.
 
-7. **Update review-fixes.md.** For every finding (accepted AND excluded),
-   add a Status line. Use one of: Fixed, Excluded, Failed.
+8. **Update review-fixes.md.** For every finding, add a Status line with
+   the decision you made. Use one of: Fixed, Rejected, Excluded, Failed.
+   Rejected and Excluded MUST include a rationale. Failed MUST include
+   what went wrong.
 
    ```md
    ### F01 — <Short title>
@@ -159,7 +185,10 @@ Feature files you should read as needed:
    - **Criterion:** <criterion title or "General">
    - **Finding:** <description>
    - **Files:** <file paths>
-   - **Status:** Fixed / Excluded — <reason if excluded> / Failed — <why>
+   - **Status:** Fixed
+                 / Rejected — <why the finding does not apply>
+                 / Excluded — <user's forced-skip reason>
+                 / Failed — <what went wrong>
    ```
 
 ## Output
@@ -167,8 +196,11 @@ Feature files you should read as needed:
 Return a concise report to the orchestrator containing:
 - A changelog table (one row per finding) with columns: F-id, brief
   description, severity, status.
+- For every Rejected finding, a one-line rationale so the user can
+  challenge the call if they disagree.
 - The list of acceptance criteria whose Action Required box was unchecked.
-- The list of criteria that still have Action Required checked and why.
+- The list of criteria that still have Action Required checked and why
+  (Fixed-but-failing, Rejected, or Excluded).
 - Test summary (pass/fail counts, any lingering failures).
 - A note if any design.md entries were appended.
 
@@ -178,7 +210,7 @@ review-fixes.md already capture that.
 
 Wait for the subagent to finish.
 
-## Step 5 — Present changelog
+## Step 4 — Present changelog
 
 Using the subagent's report, present:
 
@@ -188,7 +220,8 @@ Using the subagent's report, present:
 | Fix | Finding | Severity | Status |
 |-----|---------|----------|--------|
 | F01 | [brief description] | CRITICAL/HIGH/LOW | Fixed |
-| F02 | [brief description] | LOW | Excluded — [reason] |
+| F02 | [brief description] | HIGH | Rejected — [subagent rationale] |
+| F03 | [brief description] | LOW | Excluded — [user reason] |
 
 **Criteria closed (Action Required unchecked):** <list, or "None">
 **Criteria still open (Action Required still checked):** <list, or "None">
@@ -196,9 +229,12 @@ Using the subagent's report, present:
 **Design notes:** <any design.md entries appended, or "None">
 ```
 
-> **CRITICAL WARNING:** If any CRITICAL finding was **Excluded**, highlight it
-> here. The user must consciously acknowledge they are accepting a known critical
-> risk.
+> **CRITICAL WARNING:** If any CRITICAL or HIGH finding was **Rejected**
+> or **Excluded**, highlight it here with the rationale. The user must
+> consciously acknowledge they are accepting a known risk, or challenge
+> the subagent's rejection if they disagree. If the user challenges a
+> rejection, re-run `/feature-code-fix <name>` with that finding listed
+> as forced-apply context in the follow-up prompt.
 
 Then prompt: _"Next step: run `/feature-done <name>` to mark this feature as
 complete and move it to done. If any criterion still has Action Required
@@ -207,14 +243,17 @@ with the actual feature folder name).
 
 ## Rules
 
-- Triage (accept/exclude) is the only step that takes user input — after that,
-  execution runs autonomously in a single subagent
+- The fix subagent judges every finding itself — the orchestrator does not
+  pre-filter. Silently skipping a finding is forbidden; every non-Fixed
+  finding must be Rejected, Excluded, or Failed with a written rationale
 - The subagent is responsible for applying fixes, running tests, updating
   story.md's Action Required checkboxes, and updating review-fixes.md
 - Never touch the `Implemented` or `Reviewed` checkboxes — those are owned by
   the implementation and review flows respectively
 - A criterion's Action Required box may only be unchecked when all its
-  accepted findings are Fixed; if any are Excluded or Failed, leave it
+  findings are Fixed; if any are Rejected, Excluded, or Failed, leave it
   checked so /feature-done can block on it
-- Append to design.md whenever a fix forces a non-obvious design choice
+- Rejections of HIGH or CRITICAL findings must be logged in design.md
+- Append to design.md whenever a fix (or rejection) forces a non-obvious
+  design choice
 - Lines in all markdown files must not exceed 140 characters
