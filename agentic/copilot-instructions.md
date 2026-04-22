@@ -34,7 +34,6 @@ tools:
     - Bash(tar:*)
     - Bash(unzip:*)
 ---
-
 # Global Claude Instructions
 
 ## Feature Tracking
@@ -43,7 +42,7 @@ Features are tracked in `~/.claude/features/`. The folder and all files are crea
 `/feature-plan` — do not create feature folders manually. When the user runs the skill,
 it handles naming, folder creation, discovery, criteria drafting, and review.
 
-### Four implementation flows
+### Three implementation flows
 
 All flows start with `/feature-plan`, which creates `story.md` and seeds
 `design.md`. `story.md` contains the user story, discovery decisions,
@@ -54,11 +53,6 @@ rejected alternatives with rationale) and is appended to by the
 implementation, review, and fix flows as decisions get made. After planning,
 the user chooses an implementation path:
 
-- **Tasker** (`/feature-plan` → `/tasker`): Autonomous task loop. `/tasker` decomposes
-  the acceptance criteria into behavior-level tasks and launches `tasker.sh`, which
-  runs `claude -p` in a loop — one task per context window, progress tracked in
-  files. Final iteration reviews the entire diff and adds fix tasks if needed.
-  Resumable at any point. Best for structured autonomous implementation.
 - **Ralph** (`/feature-plan` → `/ralph`): True Ralph Wiggum loop. Same prompt piped to
   the agent every iteration. The agent sees its previous work through the filesystem
   and decides what to do next. No pre-decomposed tasks. Best for greenfield work where
@@ -98,7 +92,7 @@ design intent of the feature; the implementation agent decides *how* to build th
 Each acceptance criterion in `story.md` has three nested checkboxes, each
 owned by a different flow:
 
-- **Implemented** — checked by `/feature-implement`, `/tasker`, or `/ralph`
+- **Implemented** — checked by `/feature-implement` or `/ralph`
   when the behavior is in the code.
 - **Reviewed** — checked by the `/feature-code-review` Behavior Verification
   sub-agent per criterion it covers.
@@ -117,8 +111,6 @@ checked and `Action Required` is unchecked.
 - Active features live in `~/.claude/features/<name>/`
 - Completed features move to `~/.claude/features/done/<name>/`
 - All related md files for a feature go in its folder
-- Tasker loop files (`tasks.md`, `TASKER.md`, `progress.md`) also live in the
-  feature folder
 - Ralph loop files (`PROMPT.md`) also live in the feature folder
 
 If a feature folder already exists, you may read its files to resume context across
@@ -170,7 +162,7 @@ reads this table to clean up all worktrees.
   (Step 8b). Worktrees are created by default for all repos involved in the
   feature. To skip worktree creation, the user must explicitly request no
   worktrees in the initial prompt.
-- `/feature-implement`, `/tasker`, and `/ralph` detect `> Worktree: true` in
+- `/feature-implement` and `/ralph` detect `> Worktree: true` in
   `story.md` and **skip branch creation** — the worktree is already on the
   correct branch.
 - `/feature-done` **cleans up** the worktree after archiving: removes the git

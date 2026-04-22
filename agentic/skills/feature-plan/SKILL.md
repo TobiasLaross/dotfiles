@@ -38,8 +38,8 @@ There is no separate plan file — criteria live in `story.md`.
 - Report status: what exists, what's missing
 - If `story.md` exists and is complete (user story, discovery, acceptance
   criteria, repos, open questions), ask the user:
-  _"Feature already planned. Continue to implementation with `/feature-implement`,
-  `/tasker`, or `/ralph`, or replan from scratch?"_
+  _"Feature already planned. Continue to implementation with `/feature-implement`
+  or `/ralph`, or replan from scratch?"_
 - If the folder exists but `story.md` is missing or partial, continue from
   Step 2 (or whichever step the work stopped at)
 
@@ -415,7 +415,7 @@ fine; the nested checkboxes stay for tracking consistency:
 
 Each criterion has three nested checkboxes, each owned by a different flow:
 
-- **Implemented** — marked by `/feature-implement`, `/tasker`, or `/ralph`
+- **Implemented** — marked by `/feature-implement` or `/ralph`
   once the behavior is in the code.
 - **Reviewed** — marked by the `/feature-code-review` sub-agent (specifically
   the Behavior Verification agent, which walks criteria one-by-one) once the
@@ -688,7 +688,7 @@ agent — it needs the "why" behind non-obvious decisions.]
 
 The nested `Implemented`, `Reviewed`, and `Action Required` checkboxes under
 each criterion are the tracking mechanism for all flows.
-`/feature-implement`, `/tasker`, and `/ralph` mark `Implemented`.
+`/feature-implement` and `/ralph` mark `Implemented`.
 `/feature-code-review` sub-agents mark `Reviewed` and — when the criterion
 has open findings — also mark `Action Required`. `/feature-code-fix` unchecks
 `Action Required` once findings for that criterion are resolved.
@@ -736,7 +736,7 @@ Entry format:
 - **Alternatives considered:** <bullet list of options considered and why
   they were rejected, or "None">
 - **Source:** <which flow / skill made the decision, e.g. "feature-implement",
-  "tasker iteration 3", "feature-code-fix F04">
+  "ralph iteration 3", "feature-code-fix F04">
 
 ## Decisions
 
@@ -808,7 +808,7 @@ each repo (including the current one):
 After creating all worktrees, update `story.md`:
 
 1. Replace the `> Working directory:` line with the **primary** worktree
-   path (the worktree for the current repo — the one `tasker.sh`/`ralph.sh`
+   path (the worktree for the current repo — the one `ralph.sh`
    will `cd` into).
 2. Add worktree metadata immediately after:
    ```md
@@ -843,8 +843,6 @@ Then prompt:
 
 _"The feature is ready. Choose your implementation path:_
 - _`/feature-implement` — interactive implementation in this session_
-- _`/tasker` — autonomous task loop (one task per context window, runs until
-  done)_
 - _`/ralph` — true Ralph Wiggum loop (same prompt every iteration, agent
   decides what to do)"_
 
@@ -857,11 +855,7 @@ _"Worktrees are ready. Open the primary worktree in a new tmux session with
 /feature-implement <name>
 ```
 
-_or for autonomous loops:_
-
-```
-/tasker <name>
-```
+_or for an autonomous loop:_
 
 ```
 /ralph <name>

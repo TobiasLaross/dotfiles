@@ -30,7 +30,7 @@ lint, full test runs, coverage top-up, commits, and PR creation are handled
 by subagents **orchestrated from this session**. Worktrees are created by
 `/feature-plan`; subagents operate on the worktree paths via absolute paths.
 The orchestrator does not change its cwd, and no secondary `claude -p`
-session is spawned (unlike `/tasker` and `/ralph`).
+session is spawned (unlike `/ralph`).
 
 **This skill does NOT run `/feature-done`.** The feature folder stays in
 `~/.claude/features/<name>/` until the user runs `/feature-done` after the
@@ -80,7 +80,7 @@ sign-offs are bypassed**:
 - **Step 9 (final story approval):** do **not** prompt for final approval.
   Write `story.md` and proceed straight to Step 10 (worktree creation).
 - **Step 11 (offer implementation path):** do **not** prompt the user to
-  pick `/feature-implement` / `/tasker` / `/ralph`. After worktrees are
+  pick `/feature-implement` / `/ralph`. After worktrees are
   created (Step 10), proceed directly to Step 3 below.
 
 `/feature-plan` seeds both `story.md` and `design.md`. After it finishes:

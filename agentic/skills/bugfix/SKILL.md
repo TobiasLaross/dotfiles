@@ -290,7 +290,6 @@ key step]
 [1–2 sentences pointing at the most likely fix, naming the specific
 location]
 ```
-```
 
 ---
 
@@ -358,7 +357,6 @@ Write a summary to ~/.claude/bugs/<short-name>/failing-test.md:
 ## How to run
 [Exact command to run only these tests]
 ```
-```
 
 ---
 
@@ -373,21 +371,19 @@ Run the exact command from the "How to run" section of
 `~/.claude/bugs/<short-name>/failing-test.md` to confirm the tests fail
 before any fix is applied.
 
-**If `manual`:**
-
-Prompt the user to run the tests. Show the exact command from the
-"How to run" section of `failing-test.md`. Wait for the user to share
-the output.
-
 **Then evaluate the result:**
 
 - If the tests **fail as expected** → report the root cause candidates
-  and test locations to the user, then proceed automatically to Step 5.
+and test locations to the user, then proceed automatically to Step 5.
 - If the tests **unexpectedly pass** → stop and report:
-  _"The failing tests passed before any fix — the bug may already be
-  fixed, or the tests may not be targeting the right code path. Review
-  failing-test.md before proceeding."_
-  Do not continue to Step 5.
+_"The failing tests passed before any fix — the bug may already be
+fixed, or the tests may not be targeting the right code path. Review
+failing-test.md before proceeding."_
+Do not continue to Step 5.
+
+**If `manual`:**
+Skip step 4
+
 
 ## Step 5 — Spawn fix subagent
 
@@ -471,15 +467,38 @@ the output.
 
 If tests are `auto`, the fix subagent already ran them — proceed to
 Step 6.
+``` 
 
-## Step 6 — Delegate to /review-code
+## Step 6 — Delegate to /review-code in a foreground subagent
 
-After the fix is verified, invoke the `/review-code` skill. All bug
-context (bug.md, investigation.md, fix.md, failing-test.md) and the
-changed files are already in the conversation — `/review-code` will use
-them without re-collecting.
+After the fix is verified, spawn one foreground subagent
+(`subagent_type: general`) and wait for it to finish. The subagent invokes
+the `/review-code` skill, which in turn launches 3 sub-agents in parallel.
+Running `/review-code` inside a subagent keeps the main session's context
+small — only the synthesized findings come back, not the full review
+transcripts.
 
-The review launches 3 sub-agents in parallel:
+Prompt:
+
+```
+You are running a code review for a bugfix.
+
+Bug folder: ~/.claude/bugs/<short-name>/
+
+## Context
+
+Read the following before starting:
+- bug.md — bug description, working directory, test preference
+- investigation.md — root cause analysis
+- fix.md — the fix that was applied
+- failing-test.md — the tests written to verify the fix
+
+Use the **Working directory** field in bug.md to determine where to run
+git commands and read source files from.
+
+## Task
+
+Invoke the `/review-code` skill. It will launch 3 sub-agents in parallel:
 1. **Behavior Verification** — confirms the fix exhibits the expected
    behavior described in fix.md and failing-test.md, and flags any
    behavior drift or unclaimed behavior introduced by the fix
@@ -488,12 +507,16 @@ The review launches 3 sub-agents in parallel:
 3. **Pattern Consistency** — verifies the fix follows existing codebase
    patterns
 
-Wait for `/review-code` to complete and present its findings.
+Feed `/review-code` the bug context above as its spec source (the
+acceptance criteria equivalent is: the fix described in fix.md should
+make the tests in failing-test.md pass, without behavior drift).
 
-## Step 7 — Write review-fixes.md
+Wait for `/review-code` to complete.
 
-After the review completes, collect the findings and write
-`~/.claude/bugs/<short-name>/review-fixes.md`:
+## Write review-fixes.md
+
+Synthesize the 3 sub-agent outputs and write
+`~/.claude/bugs/<short-name>/review-fixes.md` directly:
 
 ```md
 # Review Findings
@@ -520,18 +543,35 @@ observations]
 | [brief description] | Behavior Verification | LOW | [why no action needed] |
 ```
 
-> **CRITICAL WARNING:** If any CRITICAL finding exists, highlight it
-> prominently at the top of the file before the Findings section.
+Rules:
+- Assign stable F-ids (F01, F02, …) in the order you list findings.
+- Deduplicate: if two agents raised the same issue, merge into one
+  finding and list both sources.
+- Drop informational observations from the Findings section — put them
+  in the No Action Needed table with a one-line rationale.
+- If any CRITICAL finding exists, add a prominent warning block at the
+  top of the file before the Findings section.
+- Keep all lines ≤ 140 characters.
 
-Then present a summary grouped by severity and prompt:
+## Output
 
-_"Next step: run `/bugfix-fix <short-name>` to apply review fixes, or
-review the findings in
-`~/.claude/bugs/<short-name>/review-fixes.md` first."_
+Return a concise summary to the orchestrator:
+- Counts by severity (CRITICAL / HIGH / LOW).
+- A one-line note confirming review-fixes.md was written.
+- A one-line headline per CRITICAL finding, if any.
 
-## Step 8 — Triage findings with the user
+Do not return the full findings — they are in review-fixes.md now and
+the next subagent will read them from there.
+```
 
-Present a summary of all findings grouped by severity:
+Wait for the subagent to finish, then present the one-line summary it
+returned (e.g. "Review complete: 2 CRITICAL, 3 HIGH, 1 LOW — see
+review-fixes.md").
+
+## Step 7 — Delegate fix execution to a single subagent
+
+Present a brief summary of findings grouped by severity (from the review
+subagent's report):
 
 ```
 CRITICAL: N findings
@@ -539,105 +579,155 @@ HIGH: N findings
 LOW: N findings
 ```
 
-Ask the user: _"Apply all findings, or would you like to exclude any?"_
+Tell the user the fix subagent will now judge and apply findings
+automatically, and that they can still interrupt if they want to force a
+specific finding to be skipped.
 
-If the user wants to exclude some, note which ones. For excluded CRITICAL
-findings, warn explicitly that a known critical risk will remain.
+Do not pre-filter findings. The fix subagent reads every finding from
+`review-fixes.md` itself, weighs it against the full bug context (bug.md,
+investigation.md, fix.md, failing-test.md), and decides which ones warrant
+a code change, which are already satisfied, and which should be rejected
+as incorrect or out-of-scope. If the user has proactively asked to
+force-skip specific findings, pass those in the prompt as `forced-skip`
+so the subagent leaves them alone and marks them Excluded.
 
-## Step 9 — Batch and apply review fixes
+Spawn one foreground subagent (`subagent_type: general`) and wait for it
+to finish. The subagent owns the entire execution phase: judging each
+finding, applying the fixes it accepts, running tests, and updating
+`review-fixes.md` with per-finding status. One agent sees the whole
+picture and applies the fixes coherently, rather than splitting work
+across per-file sub-subagents.
 
-Group accepted findings by file. For each file (or small group of related
-files), spawn a subagent (`subagent_type: general`) to apply all fixes
-for that file in a single pass.
+Prompt:
 
-Launch independent file groups in parallel. Files that depend on each
-other (e.g., a function definition and its callers) should be handled by
-the same subagent.
-
-Each subagent receives:
 ```
-You are applying code review fixes to specific files.
+You are triaging and applying code-review findings for a bugfix.
 
 Bug folder: ~/.claude/bugs/<short-name>/
-Fixes to apply:
-<for each fix assigned to this subagent>
+
+## Inputs
+
+All findings (you decide which to apply):
+<for each finding in review-fixes.md>
 - F<id>: <finding description>
+  Source: <agent name>
   Severity: <severity>
+  Files: <file paths>
   Suggested fix: <suggestion>
 </for each>
 
-Files to change: <file paths>
+Forced-skip findings (the user explicitly told the orchestrator not to
+touch these — do not apply, mark as Excluded with the user's reason):
+<for each forced-skip finding>
+- F<id>: <finding description> — reason: <user's reason>
+</for each>
 
-## Instructions
+Bug files you MUST read before judging findings:
+- bug.md — bug description, working directory, and test preference (auto/manual)
+- investigation.md — root cause analysis
+- fix.md — the fix that was applied
+- failing-test.md — the tests written to verify the fix
+- review-fixes.md — the finding list you are updating
 
-1. Read the relevant files.
-2. Apply all listed fixes in a single coherent pass.
-3. If a fix involves writing a missing test, follow existing test
-   conventions.
-4. Do not change anything beyond what the findings require.
-5. Do not create commits — only make the changes.
-6. Verify your fixes are logically correct before finishing.
-```
+## Execution
 
-## Step 10 — Run tests after review fixes
+1. **Read all context first.** Read bug.md, investigation.md, fix.md, and
+   failing-test.md in full. Then read the source files referenced by the
+   findings. Do not start editing until you understand what was fixed and
+   why.
 
-After all fix subagents complete, check `bug.md` for `> Tests:`.
+2. **Judge each finding.** For every finding (except forced-skip ones),
+   decide independently whether to apply it. A finding should be applied
+   when it identifies a real defect, regression, missing case, or
+   meaningful quality issue in the fix. A finding should be rejected when
+   it is:
+   - Incorrect (misreads the code, based on a faulty assumption, or
+     contradicted by the investigation or existing tests)
+   - Already satisfied by the current code (the reviewer missed something)
+   - Out of scope for this bugfix (unrelated refactor, speculative
+     hardening, stylistic preference that fights existing conventions)
+   - In direct conflict with a higher-severity finding you are applying
+   - Demanding behavior the bug report and investigation explicitly do
+     not call for
 
-**If `auto` (or no preference):**
+   Use the bug context, not just the finding text, to make the call.
+   Severity is a signal, not a mandate — a LOW finding with a real defect
+   still gets applied; a CRITICAL finding based on a misread does not.
 
-Run only the test files touched during this step:
+3. **Apply accepted fixes.** Work through the accepted findings and change
+   the code to address each one. Group related findings in the same file
+   into a single coherent edit pass — do not make multiple passes over the
+   same file if one pass will do. If two accepted findings conflict,
+   prefer the higher-severity one and note the conflict in
+   review-fixes.md.
 
-1. Collect all files modified by the fix subagents.
-2. Filter to test files (files in test directories, or files matching
-   `*.test.*`, `*_test.*`, `*Spec.*`, `*Tests.*` conventions).
-3. If test files were directly modified, run those. If only source files
-   were modified, identify and run the test files most closely associated
-   with the changed source files (same module, adjacent test directory,
-   etc.).
-4. Do not run the full test suite — limit scope to touched test files
-   only.
+4. **Respect scope.** Do not change anything beyond what the accepted
+   findings require. If a fix requires writing a missing test, follow
+   existing test conventions in the repo. Do not create commits — only
+   make the changes.
 
-- If tests pass: proceed to Step 11.
-- If tests fail: diagnose and fix. If the failure is unrelated to the
-  review fixes, note it and proceed. If it's caused by a fix, correct it.
+5. **Run tests.** Check bug.md for `> Tests:`.
 
-**If `manual`:**
+   If `auto` (or no preference): after all edits land, run only the test
+   files touched during this step:
+   - Collect all files modified.
+   - Filter to test files (files in test directories, or matching *.test.*,
+     *_test.*, *Spec.*, *Tests.* conventions).
+   - If test files were directly modified, run those. If only source files
+     were modified, identify and run the test files most closely associated
+     with the changed source files (same module, adjacent test directory).
+   - Do not run the full test suite — limit scope to touched test files.
 
-Prompt the user to run the relevant tests. List the test files written or
-modified so they know what to run. Wait for the user to share the output.
-Diagnose any failures and fix them.
+   If tests pass, proceed. If tests fail and the failure is caused by a
+   fix, correct it and re-run (max 3 attempts). If still failing, record
+   the failure in review-fixes.md under the relevant finding's status and
+   move on.
 
-## Step 11 — Update review-fixes.md and present summary
+   If `manual`: skip running tests — the orchestrator will prompt the user
+   to run them. List the test files you modified so the orchestrator can
+   share that list.
 
-Update `~/.claude/bugs/<short-name>/review-fixes.md` to reflect what was
-done. Change the findings section to include status:
+6. **Update review-fixes.md.** For every finding, add a Status line with
+   the decision you made. Use one of: Fixed, Rejected, Excluded, Failed.
+   Always explain Rejected and Excluded so the user can audit the call.
 
-```md
-### F01 — <Short title>
-- **Source:** <Agent name> (<severity>)
-- **Finding:** <description>
-- **Files:** <file paths>
-- **Status:** Fixed / Excluded
-```
+   ```md
+   ### F01 — <Short title>
+   - **Source:** <Agent name> (<severity>)
+   - **Finding:** <description>
+   - **Files:** <file paths>
+   - **Status:** Fixed
+                 / Rejected — <why the finding does not apply>
+                 / Excluded — <user's forced-skip reason>
+                 / Failed — <what went wrong>
+   ```
 
-Then present a changelog:
+## Output
 
-```md
-## Fix Changelog
+Return a concise report to the orchestrator containing:
+- A changelog table (one row per finding) with columns: F-id, brief
+  description, severity, status.
+- For every Rejected finding, a one-line rationale so the user can
+  challenge the call if they disagree.
+- Test summary (pass/fail counts, any lingering failures), or the list of
+  modified test files if tests are `manual`.
 
-| Fix | Finding | Severity | Status |
-|-----|---------|----------|--------|
-| F01 | [brief description] | CRITICAL/HIGH/LOW | Fixed |
-| F02 | [brief description] | LOW | Excluded — [reason] |
+Do not re-describe the fixes in detail — the Edit history and
+review-fixes.md already capture that.
 
-**Tests:** Passed / Failed (details)
-```
+Wait for the subagent to finish.
 
-> **CRITICAL WARNING:** If any CRITICAL finding was **Excluded**,
-> highlight it here. The user must consciously acknowledge they are
-> accepting a known critical risk.
+## Step 8 — Verify tests (manual only)
 
-Then present the final summary:
+If `> Tests: manual` in `bug.md`, prompt the user to run the relevant tests
+now. Use the list of modified test files reported by the subagent. Wait for
+the user to share the output. Diagnose any failures and fix them.
+
+If tests are `auto`, the subagent already ran them — proceed to Step 9.
+
+## Step 9 — Present summary
+
+Present the summary:
 
 ```md
 ## Bugfix Complete

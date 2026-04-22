@@ -85,7 +85,7 @@ WORK="$HOME/Developer/work"
 DOTFILES="$HOME/dotfiles"
 ```
 
-Notable aliases: `vim` → `nvim`, `sess` → `scripts/sessionizer.sh`, `tasker` → `scripts/tasker.sh`, `ralph` → `scripts/ralph.sh`, git shortcuts (`gcb`, `gcm`, `gcd`, `gd`, `gds`), `brewski` (brew update+cleanup), `reload`.
+Notable aliases: `vim` → `nvim`, `sess` → `scripts/sessionizer.sh`, `ralph` → `scripts/ralph.sh`, git shortcuts (`gcb`, `gcm`, `gcd`, `gd`, `gds`), `brewski` (brew update+cleanup), `reload`.
 
 Lazy-loaded: `gcloud`/`bq`/`gsutil` (GCP SDK), `nvm`.
 
@@ -103,14 +103,6 @@ Additional functions in `zsh/config/functions.zsh`:
 - On selection, creates a tmux session with windows: Code, Test, Lazygit (Dotfiles gets Code + Test only)
 - Session name: directory basename converted to kebab-case then capitalised
 - Special shortcuts: `sess dotfiles`, `sess notes`, `sess existing`
-
-**`tasker.sh`** — autonomous task loop runner:
-- Runs `claude -p --dangerously-skip-permissions` in a loop, one task per context window
-- Reads working directory from `story.md`, auto-cds into the repo
-- Shows task progress (`done/total`) each iteration
-- Max iteration cap (default 50, configurable via second arg)
-- Exits and archives to `~/.claude/features/done/` when `TASKER_DONE` appears in `progress.md`
-- Usage: `tasker <name> [max-iterations]` (run `/feature-plan` then `/tasker` first)
 
 **`ralph.sh`** — true Ralph Wiggum loop runner:
 - Runs `claude -p --dangerously-skip-permissions` in a loop, same PROMPT.md every iteration
@@ -158,9 +150,8 @@ opencode auto-discovers skills from `~/.claude/skills/` (it scans `~/.claude` fo
 
 | Skill | Description |
 |-------|-------------|
-| `/feature-plan` | Discovery Q&A, draft story with subagent-reviewed acceptance criteria — shared entry point for all four flows |
+| `/feature-plan` | Discovery Q&A, draft story with subagent-reviewed acceptance criteria — shared entry point for all three flows |
 | `/feature-implement` | Implement directly from story.md (interactive) |
-| `/tasker` | Decompose acceptance criteria into tasks, launch autonomous task loop |
 | `/ralph` | True Ralph Wiggum loop (same prompt every iteration, agent decides what to do) |
 | `/feature-auto` | End-to-end autonomous flow: plan (interactive story + Q&A) → implement → review/fix → lint/tests/coverage → PRs. Skips `/feature-done`. |
 | `/feature-code-review` | Review implemented feature code, delegates to /review-code |
@@ -177,11 +168,11 @@ opencode auto-discovers skills from `~/.claude/skills/` (it scans `~/.claude` fo
 
 **Global instructions** (`agentic/CLAUDE.md`) define:
 - Shared planning via `/feature-plan` (discovery, story with subagent-reviewed acceptance criteria)
-- Four implementation flows: tasker (autonomous task loop), ralph (autonomous Ralph
+- Three implementation flows: ralph (autonomous Ralph
   Wiggum loop), feature (interactive), and auto (plan-to-PR orchestrated from the
   current session, skips `/feature-done`)
 - Feature lifecycle under `~/.claude/features/` (active → `done/`)
-- Tasker and Ralph loop files live alongside feature files in `~/.claude/features/<name>/`
+- Ralph loop files live alongside feature files in `~/.claude/features/<name>/`
 - Git worktrees for feature isolation (optional, offered during `/feature-plan`)
 - Repo context workflow: read `~/.claude/repo-context/<repo>.md` before source code
 - Work repos live in `~/Developer/work/`; personal repos in `~/Developer/personal/`
@@ -196,7 +187,7 @@ fzf entries and tmux sessions. When the feature involves multiple repos, a
 worktree is created for each one.
 
 When used, `story.md` records `> Worktree: true`, `> Worktree source:`, and
-`> Branch:`. Downstream skills (`/feature-implement`, `/tasker`, `/ralph`)
+`> Branch:`. Downstream skills (`/feature-implement`, `/ralph`)
 detect these lines and skip branch creation. `/feature-done` cleans up:
 removes the git worktree, deletes the directory, and kills the tmux session.
 
