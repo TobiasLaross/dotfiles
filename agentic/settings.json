@@ -31,5 +31,7 @@
     "swift-lsp@claude-plugins-official": true
   },
   "skipDangerousModePermissionPrompt": true,
-  "skipAutoPermissionPrompt": true
+  "agentPushNotifEnabled": true,
+  "skipAutoPermissionPrompt": true,
+  "effortLevel": "high"
 }
