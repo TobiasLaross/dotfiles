@@ -167,3 +167,153 @@ lilaDevice() {
   echo "Launching $bundle_id…"
   xcrun devicectl device process launch --device "$coredevice_uuid" "$bundle_id"
 }
+
+# Stream Lilium logs from Tobias's iPhone 17 Pro over the network.
+lilaLogs() {
+  idevicesyslog -n -q -u 00008150-00124D500108401C -m Lilium "$@"
+}
+
+# ---------------------------------------------------------------------------
+# Autonomous user-agent helpers
+#
+# Each persona has its own dedicated iPhone simulator clone, named
+# exactly "Sara" / "Jonas" / "Lina" (no prefix). The agent harness lives
+# at ~/Developer/personal/lilium/agent/ as a Python package using the
+# Claude Agent SDK.
+#
+# `lila<Persona>` rebuilds Lilium for the simulator, installs the fresh
+# build on that persona's clone, and launches `python -m agent --persona
+# <name>`. `lila<Persona>Log` tails the persona's most recent
+# `events.ndjson` (last 25 lines, then live).
+# ---------------------------------------------------------------------------
+
+# Resolve a simulator clone's UDID by name. Echoes the UDID on success,
+# returns non-zero with a message if the named clone doesn't exist.
+_lilaPersonaUDID() {
+  local name="$1"
+  local udid
+  udid=$(xcrun simctl list devices --json 2>/dev/null \
+    | jq -r --arg name "$name" \
+        '[.devices[] | .[] | select(.name == $name and .isAvailable)] | .[0].udid // empty')
+  if [[ -z "$udid" ]]; then
+    echo "Could not find a simulator clone named '$name'." >&2
+    echo "Available agent clones:" >&2
+    xcrun simctl list devices --json 2>/dev/null \
+      | jq -r '.devices[] | .[] | select(.name == "Sara" or .name == "Jonas" or .name == "Lina") | "  \(.name) — \(.udid) (\(.state))"' >&2
+    return 1
+  fi
+  echo "$udid"
+}
+
+# Internal: build Lilium for the simulator destination, install the .app
+# on the named persona's clone, then launch the agent for that persona.
+# All steps fail fast and return the offending command's exit code.
+_lilaAgentRun() {
+  local persona="$1"
+  local proj_root="$HOME/Developer/personal/lilium"
+  local proj="$proj_root/Lilium.xcodeproj"
+  local bundle_id="se.laross.lila"
+
+  if [[ ! -f "$proj/project.pbxproj" ]]; then
+    echo "Could not find Lilium.xcodeproj at $proj" >&2
+    return 1
+  fi
+
+  # Map persona slug to the simulator clone's display name.
+  local clone_name
+  case "$persona" in
+    sara)  clone_name="Sara" ;;
+    jonas) clone_name="Jonas" ;;
+    lina)  clone_name="Lina" ;;
+    *) echo "Unknown persona '$persona' (expected: sara | jonas | lina)" >&2; return 2 ;;
+  esac
+
+  local udid
+  udid=$(_lilaPersonaUDID "$clone_name") || return 1
+
+  echo "Building Lilium for $clone_name simulator ($udid)…"
+  xcodebuild build \
+    -project "$proj" \
+    -scheme Lilium \
+    -configuration Debug \
+    -destination "platform=iOS Simulator,id=$udid" \
+    CODE_SIGNING_ALLOWED=NO \
+    > /tmp/lilium-build-$persona.log 2>&1 \
+    || { echo "xcodebuild failed; see /tmp/lilium-build-$persona.log" >&2; return $?; }
+
+  local app_path
+  app_path=$(ls -td "$HOME"/Library/Developer/Xcode/DerivedData/Lilium-*/Build/Products/Debug-iphonesimulator/Lilium.app 2>/dev/null | head -1)
+  if [[ -z "$app_path" ]]; then
+    echo "Could not locate built Lilium.app under DerivedData" >&2
+    return 1
+  fi
+
+  # Lina's clone is erased every session by the agent, so installing
+  # before the agent runs is wasted work for her — the agent will boot
+  # her into a freshly-erased state without Lilium present. We skip
+  # the install for Lina; the agent's first restart_app will fail and
+  # the agent should be launched manually once on Lina to install via
+  # the App Store flow (or the user can install after the agent erases).
+  if [[ "$persona" != "lina" ]]; then
+    echo "Booting $clone_name (if shutdown) and installing $(basename "$app_path")…"
+    xcrun simctl boot "$udid" >/dev/null 2>&1   # idempotent
+    xcrun simctl install "$udid" "$app_path" || return $?
+  else
+    echo "Skipping pre-install for Lina — her clone is erased every session by the agent."
+    echo "If this is the first run after a reset, install Lilium manually after the agent erases."
+  fi
+
+  echo "Launching python -m agent --persona $persona…"
+  local agent_rc=0
+  ( cd "$proj_root" && "$proj_root/agent/.venv/bin/python" -m agent --persona "$persona" )
+  agent_rc=$?
+
+  # Print the post-session token / cost summary unconditionally — even
+  # on early exits, the partial events.ndjson is worth seeing. The
+  # `--usage` flag was added in feat/token-usage; on older agent
+  # checkouts it'll exit with `unrecognized arguments`, which we
+  # swallow so the alias keeps working.
+  if [[ $agent_rc -eq 0 ]] || [[ $agent_rc -eq 1 ]]; then
+    echo
+    ( cd "$proj_root" && "$proj_root/agent/.venv/bin/python" -m agent --usage "latest:$persona" 2>/dev/null ) || true
+  fi
+  return $agent_rc
+}
+
+lilaSara()  { _lilaAgentRun sara  "$@" }
+lilaJonas() { _lilaAgentRun jonas "$@" }
+lilaLina()  { _lilaAgentRun lina  "$@" }
+
+# Internal: tail the persona's most recent agent session, showing the
+# last 25 lines first, then following new events. Pretty-prints each
+# line with `jq` so the timeline is readable instead of raw NDJSON.
+_lilaAgentLog() {
+  local persona="$1"
+  local sessions_root="$HOME/Developer/personal/lilium/.agentic-user-sessions"
+  if [[ ! -d "$sessions_root" ]]; then
+    echo "No sessions yet under $sessions_root" >&2
+    return 1
+  fi
+
+  # Match folder names that end in -<persona> (each session dir is
+  # `<utc-timestamp>-<persona>`).
+  local latest
+  latest=$(ls -t "$sessions_root" 2>/dev/null | grep -- "-${persona}\$" | head -1)
+  if [[ -z "$latest" ]]; then
+    echo "No session found for persona '$persona' under $sessions_root" >&2
+    return 1
+  fi
+
+  local events="$sessions_root/$latest/events.ndjson"
+  echo "Tailing $events"
+  if (( ${+commands[jq]} )); then
+    tail -n 25 -f "$events" \
+      | jq -c '{ts: .ts, kind: .kind, summary: (.tool // .text // .message // .title // null)}'
+  else
+    tail -n 25 -f "$events"
+  fi
+}
+
+lilaSaraLog()  { _lilaAgentLog sara }
+lilaJonasLog() { _lilaAgentLog jonas }
+lilaLinaLog()  { _lilaAgentLog lina }
