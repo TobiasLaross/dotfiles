@@ -187,6 +187,16 @@ lilaLogs() {
 # `events.ndjson` (last 25 lines, then live).
 # ---------------------------------------------------------------------------
 
+# Enforce Simulator.app settings that prevent host activity from leaking
+# into the agent's run: host keystrokes typing into focused inputs and
+# the host clipboard syncing into the simulator pasteboard. Both have
+# caused agent runs to fail (e.g. an Xcode build-notification getting
+# pasted into a password field). Idempotent — safe to call every run.
+_lilaSafeSimulatorDefaults() {
+  defaults write com.apple.iphonesimulator ConnectHardwareKeyboard -bool false
+  defaults write com.apple.iphonesimulator PasteboardAutomaticSync -bool false
+}
+
 # Resolve a simulator clone's UDID by name. Echoes the UDID on success,
 # returns non-zero with a message if the named clone doesn't exist.
 _lilaPersonaUDID() {
@@ -230,6 +240,8 @@ _lilaAgentRun() {
 
   local udid
   udid=$(_lilaPersonaUDID "$clone_name") || return 1
+
+  _lilaSafeSimulatorDefaults
 
   echo "Building Lilium for $clone_name simulator ($udid)…"
   xcodebuild build \
@@ -317,3 +329,55 @@ _lilaAgentLog() {
 lilaSaraLog()  { _lilaAgentLog sara }
 lilaJonasLog() { _lilaAgentLog jonas }
 lilaLinaLog()  { _lilaAgentLog lina }
+
+# Open the multi-persona bot dashboard. Starts the local server in
+# the background if it isn't already running, then opens the dashboard
+# in the default browser.
+#
+# The server self-shuts-down after 5 minutes with no requests, so
+# closing the browser tab cleans things up automatically — no
+# orphaned background processes. The PID is printed so a manual `kill`
+# is always one copy-paste away if you want it gone immediately.
+lilaReport() {
+  local proj_root="$HOME/Developer/personal/lilium"
+  local port="${LILA_BOT_PORT:-8765}"
+  local logfile="${TMPDIR:-/tmp}/lilium-bot-server.log"
+  local url="http://127.0.0.1:${port}/"
+
+  local already_up=0
+  if curl -sf -o /dev/null --max-time 1 "${url}api/status"; then
+    already_up=1
+  fi
+
+  if (( already_up == 0 )); then
+    if [[ ! -x "$proj_root/agent/.venv/bin/python" ]]; then
+      echo "agent venv not found at $proj_root/agent/.venv — run the agent setup first" >&2
+      return 1
+    fi
+    ( cd "$proj_root" && \
+      LILA_BOT_PORT="$port" \
+      nohup "$proj_root/agent/.venv/bin/python" -m agent.serve \
+        > "$logfile" 2>&1 & disown )
+    local i=0
+    while (( i < 30 )); do
+      if curl -sf -o /dev/null --max-time 1 "${url}api/status"; then
+        break
+      fi
+      sleep 0.1
+      i=$((i + 1))
+    done
+    # Pull the friendly startup line from the log (it has the PID).
+    local startup_line
+    startup_line=$(head -n 1 "$logfile" 2>/dev/null)
+    if [[ -n "$startup_line" ]]; then
+      echo "$startup_line"
+    else
+      echo "Started bot dashboard on $url"
+    fi
+    echo "Log: $logfile"
+  else
+    echo "Bot dashboard already running on $url"
+  fi
+
+  open "$url"
+}
