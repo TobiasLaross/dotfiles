@@ -144,6 +144,13 @@ git rev-parse --is-inside-work-tree &>/dev/null \
 
 If this returns true, the directory is a worktree (not the main repo).
 
+### Product / module context
+
+Product and module context files live at `~/.claude/products/<product>/`. Each product
+folder contains an `index.md` listing all files and when to read each one. Read
+`index.md` first, then only the file(s) relevant to the current task — avoid loading
+all files at once.
+
 ### Work repos
 
 When working inside a `/work/` directory, related repositories live in

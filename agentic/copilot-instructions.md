@@ -208,3 +208,11 @@ helpers like `_.get`, `_.has`, and similar. Exceptions:
   when it is a like-for-like replacement of the same function (e.g. `_.get(obj,
   'a.b')` → `obj?.a?.b`). Do not swap out lodash functions that have no direct
   native equivalent (e.g. `_.isEqual`, `_.cloneDeep`, `_.groupBy`).
+
+### Testing style
+
+When multiple test cases share the same setup/assertions and differ only in a
+few variables (e.g. input values, expected status codes, flag states), use
+parameterized tests — loop over an array of case objects — instead of
+duplicating `describe`/`before`/`it` blocks. This keeps tests concise and
+makes it easy to add new cases without copy-pasting scaffolding.
