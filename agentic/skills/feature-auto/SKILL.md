@@ -22,12 +22,14 @@ that shape the feature's intent:
 2. Discovery Q&A (`/feature-plan` Step 3)
 
 **Everything after Q&A is autonomous** — including the acceptance-criteria
-draft + review, repos / open-questions capture, and the final story
-write-out. The subagent-revised criteria from Step 5 are auto-approved; the
-repos and open questions from discovery are written directly to `story.md`;
-the final story review is skipped. Implementation, code review, fixes,
-lint, full test runs, coverage top-up, commits, and PR creation are handled
-by subagents **orchestrated from this session**. Worktrees are created by
+write-out, repos / open-questions capture, and the final story file. A
+single subagent drafts the criteria *and* applies the Step-5 review
+checklist *and* writes `story.md` directly (see the override below);
+the orchestrator never re-types criteria into a template. Repos and
+open questions from discovery are derived without re-prompts; the final
+story review is skipped. Implementation, code review, fixes, lint, full
+test runs, coverage top-up, commits, and PR creation are handled by
+subagents **orchestrated from this session**. Worktrees are created by
 `/feature-plan`; subagents operate on the worktree paths via absolute paths.
 The orchestrator does not change its cwd, and no secondary `claude -p`
 session is spawned (unlike `/ralph`).
@@ -46,8 +48,8 @@ Starting /feature-auto. Manual checkpoints are only two early gates:
   - Answer discovery questions
 
 Everything after Q&A is autonomous:
-  - Acceptance criteria drafted + subagent-reviewed + auto-approved
-  - Repos, open questions, and final story written to story.md without re-prompts
+  - Acceptance criteria drafted, reviewed, and written to story.md in one subagent pass
+  - Repos, open questions, and metadata captured without re-prompts
   - Worktrees created for every repo involved
   - Implementation (ad-hoc tests, AC marked Implemented incrementally,
     non-obvious decisions appended to design.md)
@@ -64,24 +66,53 @@ the PRs merge.
 
 Invoke the `/feature-plan` skill with `$ARGUMENTS`. Follow every step in
 `agentic/skills/feature-plan/SKILL.md` **with these overrides — all post-Q&A
-sign-offs are bypassed**:
+sign-offs are bypassed, and Steps 4 / 5 / 8 are collapsed into a single
+subagent pass**:
 
-- **Step 6 (acceptance-criteria approval):** do **not** prompt the user to
-  approve the revised criteria. The Step 5 subagent's revised list is
-  treated as approved. Still show the revised criteria and the Step 5
-  changelog to the user as an informational update so they can spot
-  anything obviously wrong — but proceed without waiting for a reply.
+- **Steps 4, 5, and 8 (collapsed criteria pass):** instead of running Step
+  4 (orchestrator drafts criteria) → Step 5 (subagent revises) → Step 8
+  (orchestrator transcribes into `story.md`), spawn ONE foreground
+  `general-purpose` subagent that does all three in a single invocation.
+  The orchestrator does not draft criteria itself and does not transcribe
+  the subagent's output. The subagent's prompt must include:
+  - The confirmed user story (Step 2)
+  - The full discovery summary (Step 3 product context + decisions)
+  - The codebase context gathered in Step 3a (repo-context file +
+    keyword-search results + any focused-subagent summary)
+  - The repos involved (Step 7a — auto-derived from discovery)
+  - The open questions (Step 7b — auto-derived from discovery)
+  - `> Tests: auto` is forced (Step 7c)
+  - The full criterion-shape guidance and review checklist from
+    `feature-plan` Steps 4 + 5 (scenario / rule / out-of-scope shapes,
+    the three nested checkboxes, the 10-point coverage / shape /
+    ambiguity / leakage / right-sizing checks)
+  - The exact target path: `~/.claude/features/<name>/story.md`
+  - The exact target template (header, discovery, AC, repos, open
+    questions, notes — same shape as `feature-plan` Step 8 produces)
+
+  The subagent must:
+  1. Apply the Step-5 review checklist *while drafting* (not as a second
+     pass on its own draft).
+  2. Write `story.md` directly to disk in the canonical template.
+  3. Return a short changelog of any non-obvious choices it made
+     (criteria added beyond the obvious happy path, criteria split or
+     merged, ambiguities resolved). The orchestrator shows this changelog
+     to the user as an informational update — but does not wait for a
+     reply.
+
+  Also seed `design.md` (Step 8b) — the orchestrator can do this directly
+  with the empty template since it is mechanical.
+
+- **Step 6 (acceptance-criteria approval):** do **not** prompt the user.
+  Show the subagent's changelog as informational only.
 - **Step 7a/b (repos + open-questions confirmation):** do **not** ask the
-  user to confirm. Derive the repos and open questions from discovery and
-  write them directly into `story.md`.
-- **Step 7c (test preference):** do **not** ask. Test preference for
-  `/feature-auto` is always `auto`. Record `> Tests: auto` in `story.md`
-  directly.
-- **Step 9 (final story approval):** do **not** prompt for final approval.
-  Write `story.md` and proceed straight to Step 10 (worktree creation).
-- **Step 11 (offer implementation path):** do **not** prompt the user to
-  pick `/feature-implement` / `/ralph`. After worktrees are
-  created (Step 10), proceed directly to Step 3 below.
+  user. The collapsed subagent has already written them into `story.md`.
+- **Step 7c (test preference):** do **not** ask. Always `auto`.
+- **Step 9 (final story approval):** do **not** prompt. The subagent
+  already wrote `story.md`; proceed straight to Step 10 (worktree
+  creation).
+- **Step 11 (offer implementation path):** do **not** prompt. After
+  worktrees are created (Step 10), proceed directly to Step 3 below.
 
 `/feature-plan` seeds both `story.md` and `design.md`. After it finishes:
 
@@ -306,6 +337,11 @@ Tell the user:
 - The only manual moments in `/feature-auto` are the two early
   `/feature-plan` sign-offs: user story confirmation (Step 2) and
   discovery Q&A (Step 3). The rest of the flow runs autonomously.
+- The orchestrator never drafts acceptance criteria itself and never
+  transcribes them into `story.md`. The collapsed Steps 4 / 5 / 8
+  subagent owns both the drafting + reviewing and the file write.
+  Skipping the subagent and inlining the criteria yourself is a
+  regression — don't do it.
 - Every subagent operates on worktree paths via absolute paths; the
   orchestrator never changes its own cwd.
 - Every subagent reads `design.md` before working and appends

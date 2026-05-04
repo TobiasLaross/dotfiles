@@ -202,14 +202,14 @@ docker build --no-cache --platform linux/amd64 -t gcr.io/$GCP_PROJECT_ID/lila:la
 docker push gcr.io/$GCP_PROJECT_ID/lila:latest && \
 gcloud run deploy lila --image gcr.io/$GCP_PROJECT_ID/lila:latest --platform managed --region $GCP_REGION \
 --update-secrets=GRAFANA_LOKI_HOST=grafana-loki-host:latest,GRAFANA_LOKI_USER=grafana-loki-user:latest,GRAFANA_LOKI_TOKEN=grafana-loki-token:latest \
---set-env-vars=NODE_ENV=stage,GCLOUD_PROJECT_ID=$GCP_PROJECT_ID,GCLOUD_PROJECT_NUMBER=$GCP_PROJECT_NUMBER'
+--update-env-vars=NODE_ENV=stage,GCLOUD_PROJECT_ID=$GCP_PROJECT_ID,GCLOUD_PROJECT_NUMBER=$GCP_PROJECT_NUMBER,CLOUD_SCHEDULER_AUDIENCE=$CLOUD_SCHEDULER_AUDIENCE,CLOUD_SCHEDULER_SERVICE_ACCOUNT=$CLOUD_SCHEDULER_SERVICE_ACCOUNT'
 
 alias deployLilaStageNoTests='npm install && \
 docker build --platform linux/amd64 -t gcr.io/$GCP_PROJECT_ID/lila:latest . --build-arg NODE_ENV=stage && \
 docker push gcr.io/$GCP_PROJECT_ID/lila:latest && \
 gcloud run deploy lila --image gcr.io/$GCP_PROJECT_ID/lila:latest --platform managed --region $GCP_REGION \
 --update-secrets=GRAFANA_LOKI_HOST=grafana-loki-host:latest,GRAFANA_LOKI_USER=grafana-loki-user:latest,GRAFANA_LOKI_TOKEN=grafana-loki-token:latest \
---set-env-vars=NODE_ENV=stage,GCLOUD_PROJECT_ID=$GCP_PROJECT_ID,GCLOUD_PROJECT_NUMBER=$GCP_PROJECT_NUMBER'
+--update-env-vars=NODE_ENV=stage,GCLOUD_PROJECT_ID=$GCP_PROJECT_ID,GCLOUD_PROJECT_NUMBER=$GCP_PROJECT_NUMBER,CLOUD_SCHEDULER_AUDIENCE=$CLOUD_SCHEDULER_AUDIENCE,CLOUD_SCHEDULER_SERVICE_ACCOUNT=$CLOUD_SCHEDULER_SERVICE_ACCOUNT'
 
 alias deployLilaDev='npm install && npm run test && docker compose up --build'
 

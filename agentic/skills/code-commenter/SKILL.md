@@ -1,6 +1,6 @@
 ---
 name: code-commenter
-description: Adds, reviews, or improves code comments so they explain intent and rationale rather than restating mechanics. Use when the user asks to comment code, review comments, or clean up noisy comments.
+description: Adds, reviews, or improves code comments so they explain intent and rationale rather than restating mechanics. **PROACTIVELY invoke whenever you are about to write, modify, or extend a comment in any source file** — including inline comments added during feature work or bug fixes — and whenever the user asks to comment code, review comments, or clean up noisy comments. Run it BEFORE committing any change that touches comments.
 argument-hint: [file path or scope]
 disable-model-invocation: false
 allowed-tools: Read, Grep, Glob, Edit
