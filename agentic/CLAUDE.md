@@ -187,3 +187,11 @@ few variables (e.g. input values, expected status codes, flag states), use
 parameterized tests — loop over an array of case objects — instead of
 duplicating `describe`/`before`/`it` blocks. This keeps tests concise and
 makes it easy to add new cases without copy-pasting scaffolding.
+
+Never use faker (or similar random-data libraries) in tests. Use plain,
+deterministic literals instead. Random values obscure intent, make failures
+harder to reproduce, and add a dependency that provides no real coverage
+benefit. When a test needs a UUID or similar identifier, hard-code a
+realistic but fixed value (e.g. `"d7a1c3e0-4b2f-4e8a-9f6d-1a2b3c4d5e6f"`)
+so it is grep-searchable across the codebase. Never generate UUIDs at
+runtime in tests.
