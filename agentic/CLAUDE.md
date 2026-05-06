@@ -144,6 +144,26 @@ git rev-parse --is-inside-work-tree &>/dev/null \
 
 If this returns true, the directory is a worktree (not the main repo).
 
+### Implicit context loading
+
+When the user mentions a feature or product by name — even without running a
+skill — find and load the matching context automatically:
+
+- **Features**: phrases like "load the gdpr consent feature", "regarding the
+  gdpr feature", or "continue with gdpr consent" mean there is a folder
+  matching the keyword under `~/.claude/features/` (active) or
+  `~/.claude/features/done/` (archived). Glob for `~/.claude/features/*<keyword>*/`
+  and read `story.md` (and `design.md` if it exists) from the best match.
+- **Products**: phrases like "regarding the scomp product", "in the context of
+  scomp", or "for the scomp module" mean there is a folder matching the
+  keyword under `~/.claude/products/`. Glob for
+  `~/.claude/products/*<keyword>*/` and read `index.md` first, then only
+  the file(s) relevant to the current task.
+
+Use fuzzy substring matching on the folder name — the user will not type the
+exact folder name. If multiple folders match, prefer the closest match; if
+still ambiguous, ask the user to clarify.
+
 ### Product / module context
 
 Product and module context files live at `~/.claude/products/<product>/`. Each product
