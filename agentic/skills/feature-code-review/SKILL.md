@@ -92,10 +92,31 @@ responsible for this) and that criteria with findings also have
 `- [x] Action Required`. If any criterion is missing `Reviewed`, fix it
 yourself here before moving to Step 5.
 
-## Step 5 — Write review-fixes.md
+## Step 5 — Comment pass via `/code-commenter`
 
-After the review completes, take the synthesized findings and write them to
-`~/.claude/features/<name>/review-fixes.md`:
+After `/review-code` finishes, invoke the `/code-commenter` skill with the
+PR diff as its input — `git diff $MERGE_BASE` (the same merge base used
+in Step 3, resolved against `origin/main`, `origin/master`, or
+`origin/develop`). Pass the diff itself, not bare file paths; this scopes
+the skill to:
+
+1. Comments added or modified in this PR (any comment line that appears
+   as `+` in the diff).
+2. Pre-existing comments that directly annotate code touched in this PR
+   — i.e. comments on a symbol or statement that has at least one `+`/`-`
+   line in the same hunk.
+
+Comments on untouched symbols elsewhere in a changed file are out of
+scope. `/code-commenter` only edits comments — never source — so it is
+safe to run between the review pass and the fix pass.
+
+Skip the step when the diff contains no source files (config-only
+changes) or no comment-worthy hunks.
+
+## Step 6 — Write review-fixes.md
+
+After the review and comment pass complete, take the synthesized findings and
+write them to `~/.claude/features/<name>/review-fixes.md`:
 
 ```md
 # Review Findings

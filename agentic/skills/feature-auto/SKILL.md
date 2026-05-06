@@ -179,7 +179,9 @@ prompt. The subagent writes
 `~/.claude/features/<name>/review-fixes.md` and — via `/review-code`'s
 Behavior Verification agent — checks `- [x] Reviewed` on every
 criterion it covers, and checks `- [x] Action Required` on every
-criterion that has findings requiring a code change.
+criterion that has findings requiring a code change. The subagent also
+runs `/feature-code-review`'s `/code-commenter` pass on the changed
+files (Step 5 of that skill) before writing `review-fixes.md`.
 
 ### 4b — Triage
 
