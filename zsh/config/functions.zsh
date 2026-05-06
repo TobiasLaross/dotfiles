@@ -187,114 +187,15 @@ lilaLogs() {
 # `events.ndjson` (last 25 lines, then live).
 # ---------------------------------------------------------------------------
 
-# Enforce Simulator.app settings that prevent host activity from leaking
-# into the agent's run: host keystrokes typing into focused inputs and
-# the host clipboard syncing into the simulator pasteboard. Both have
-# caused agent runs to fail (e.g. an Xcode build-notification getting
-# pasted into a password field). Idempotent — safe to call every run.
-_lilaSafeSimulatorDefaults() {
-  defaults write com.apple.iphonesimulator ConnectHardwareKeyboard -bool false
-  defaults write com.apple.iphonesimulator PasteboardAutomaticSync -bool false
-}
+# Persona launchers. The actual build / sim-boot / install / run
+# logic lives in `./agent` inside the lilium repo (which delegates to
+# `lilaAgent/scripts/...`). These wrappers exist purely so terminal
+# users can still type `lilaJonas` etc.
+_lilaDispatcher="$HOME/Developer/personal/lilium/agent"
 
-# Resolve a simulator clone's UDID by name. Echoes the UDID on success,
-# returns non-zero with a message if the named clone doesn't exist.
-_lilaPersonaUDID() {
-  local name="$1"
-  local udid
-  udid=$(xcrun simctl list devices --json 2>/dev/null \
-    | jq -r --arg name "$name" \
-        '[.devices[] | .[] | select(.name == $name and .isAvailable)] | .[0].udid // empty')
-  if [[ -z "$udid" ]]; then
-    echo "Could not find a simulator clone named '$name'." >&2
-    echo "Available agent clones:" >&2
-    xcrun simctl list devices --json 2>/dev/null \
-      | jq -r '.devices[] | .[] | select(.name == "Sara" or .name == "Jonas" or .name == "Lina") | "  \(.name) — \(.udid) (\(.state))"' >&2
-    return 1
-  fi
-  echo "$udid"
-}
-
-# Internal: build Lilium for the simulator destination, install the .app
-# on the named persona's clone, then launch the agent for that persona.
-# All steps fail fast and return the offending command's exit code.
-_lilaAgentRun() {
-  local persona="$1"
-  local proj_root="$HOME/Developer/personal/lilium"
-  local proj="$proj_root/Lilium.xcodeproj"
-  local bundle_id="se.laross.lila"
-
-  if [[ ! -f "$proj/project.pbxproj" ]]; then
-    echo "Could not find Lilium.xcodeproj at $proj" >&2
-    return 1
-  fi
-
-  # Map persona slug to the simulator clone's display name.
-  local clone_name
-  case "$persona" in
-    sara)  clone_name="Sara" ;;
-    jonas) clone_name="Jonas" ;;
-    lina)  clone_name="Lina" ;;
-    *) echo "Unknown persona '$persona' (expected: sara | jonas | lina)" >&2; return 2 ;;
-  esac
-
-  local udid
-  udid=$(_lilaPersonaUDID "$clone_name") || return 1
-
-  _lilaSafeSimulatorDefaults
-
-  echo "Building Lilium for $clone_name simulator ($udid)…"
-  xcodebuild build \
-    -project "$proj" \
-    -scheme Lilium \
-    -configuration Debug \
-    -destination "platform=iOS Simulator,id=$udid" \
-    CODE_SIGNING_ALLOWED=NO \
-    > /tmp/lilium-build-$persona.log 2>&1 \
-    || { echo "xcodebuild failed; see /tmp/lilium-build-$persona.log" >&2; return $?; }
-
-  local app_path
-  app_path=$(ls -td "$HOME"/Library/Developer/Xcode/DerivedData/Lilium-*/Build/Products/Debug-iphonesimulator/Lilium.app 2>/dev/null | head -1)
-  if [[ -z "$app_path" ]]; then
-    echo "Could not locate built Lilium.app under DerivedData" >&2
-    return 1
-  fi
-
-  # Lina's clone is erased every session by the agent, so installing
-  # before the agent runs is wasted work for her — the agent will boot
-  # her into a freshly-erased state without Lilium present. We skip
-  # the install for Lina; the agent's first restart_app will fail and
-  # the agent should be launched manually once on Lina to install via
-  # the App Store flow (or the user can install after the agent erases).
-  if [[ "$persona" != "lina" ]]; then
-    echo "Booting $clone_name (if shutdown) and installing $(basename "$app_path")…"
-    xcrun simctl boot "$udid" >/dev/null 2>&1   # idempotent
-    xcrun simctl install "$udid" "$app_path" || return $?
-  else
-    echo "Skipping pre-install for Lina — her clone is erased every session by the agent."
-    echo "If this is the first run after a reset, install Lilium manually after the agent erases."
-  fi
-
-  echo "Launching python -m agent --persona $persona…"
-  local agent_rc=0
-  ( cd "$proj_root" && "$proj_root/agent/.venv/bin/python" -m agent --persona "$persona" )
-  agent_rc=$?
-
-  # Print the post-session token / cost summary unconditionally — even
-  # on early exits, the partial events.ndjson is worth seeing. The
-  # `--usage` flag was added in feat/token-usage; on older agent
-  # checkouts it'll exit with `unrecognized arguments`, which we
-  # swallow so the alias keeps working.
-  if [[ $agent_rc -eq 0 ]] || [[ $agent_rc -eq 1 ]]; then
-    echo
-    ( cd "$proj_root" && "$proj_root/agent/.venv/bin/python" -m agent --usage "latest:$persona" 2>/dev/null ) || true
-  fi
-  return $agent_rc
-}
-
-lilaSara()  { _lilaAgentRun sara  "$@" }
-lilaJonas() { _lilaAgentRun jonas "$@" }
-lilaLina()  { _lilaAgentRun lina  "$@" }
+lilaSara()  { "$_lilaDispatcher" sara  "$@" }
+lilaJonas() { "$_lilaDispatcher" jonas "$@" }
+lilaLina()  { "$_lilaDispatcher" lina  "$@" }
 
 # Internal: tail the persona's most recent agent session, showing the
 # last 25 lines first, then following new events. Pretty-prints each
@@ -339,57 +240,5 @@ lilaLinaLog()  { _lilaAgentLog lina }
 # orphaned background processes. The PID is printed so a manual `kill`
 # is always one copy-paste away if you want it gone immediately.
 lilaReport() {
-  local proj_root="$HOME/Developer/personal/lilium"
-  local port="${LILA_BOT_PORT:-8765}"
-  local logfile="${TMPDIR:-/tmp}/lilium-bot-server.log"
-  local pidfile="${TMPDIR:-/tmp}/lilium-bot-server.pid"
-  local url="http://127.0.0.1:${port}/"
-
-  # Always start fresh so dashboard code edits land without manual kills.
-  local old_pid=""
-  [[ -r "$pidfile" ]] && old_pid=$(<"$pidfile")
-  if [[ -n "$old_pid" ]] && kill -0 "$old_pid" 2>/dev/null; then
-    kill "$old_pid" 2>/dev/null
-    local i=0
-    while (( i < 30 )) && kill -0 "$old_pid" 2>/dev/null; do
-      sleep 0.1
-      i=$((i + 1))
-    done
-    if kill -0 "$old_pid" 2>/dev/null; then
-      kill -9 "$old_pid" 2>/dev/null
-    fi
-    echo "Stopped previous bot dashboard (pid $old_pid)."
-  elif curl -sf -o /dev/null --max-time 1 "${url}api/status"; then
-    # Pidfile missing/stale but something is bound to the port — best-effort.
-    pkill -f 'agent\.serve' 2>/dev/null
-    sleep 0.3
-  fi
-
-  if [[ ! -x "$proj_root/agent/.venv/bin/python" ]]; then
-    echo "agent venv not found at $proj_root/agent/.venv — run the agent setup first" >&2
-    return 1
-  fi
-  ( cd "$proj_root" && \
-    LILA_BOT_PORT="$port" \
-    nohup "$proj_root/agent/.venv/bin/python" -m agent.serve \
-      > "$logfile" 2>&1 & disown )
-  local i=0
-  while (( i < 30 )); do
-    if curl -sf -o /dev/null --max-time 1 "${url}api/status"; then
-      break
-    fi
-    sleep 0.1
-    i=$((i + 1))
-  done
-  # Pull the friendly startup line from the log (it has the PID).
-  local startup_line
-  startup_line=$(head -n 1 "$logfile" 2>/dev/null)
-  if [[ -n "$startup_line" ]]; then
-    echo "$startup_line"
-  else
-    echo "Started bot dashboard on $url"
-  fi
-  echo "Log: $logfile"
-
-  open "$url"
+  "$HOME/Developer/personal/lilium/agent" dashboard "$@"
 }
