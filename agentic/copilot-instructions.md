@@ -209,6 +209,13 @@ helpers like `_.get`, `_.has`, and similar. Exceptions:
   'a.b')` → `obj?.a?.b`). Do not swap out lodash functions that have no direct
   native equivalent (e.g. `_.isEqual`, `_.cloneDeep`, `_.groupBy`).
 
+### Code comments
+
+When writing, modifying, or extending a comment in any source file — including inline
+comments added during feature work or bug fixes — invoke `/code-commenter` so comments
+explain intent and rationale rather than restating mechanics. Run it before committing
+any change that touches comments.
+
 ### Testing style
 
 When multiple test cases share the same setup/assertions and differ only in a
