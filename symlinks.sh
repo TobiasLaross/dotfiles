@@ -15,6 +15,9 @@ ln -sf "$ROOT_DIR/ghostty/config" "$HOME/Library/Application Support/com.mitchel
 
 git -C "$ROOT_DIR" submodule update --init --recursive
 
+# Patch tmux-cpu plugin to use memory_pressure instead of vm_stat
+ln -sf "$ROOT_DIR/tmux/patches/ram_percentage.sh" "$ROOT_DIR/tmux/plugins/tmux-cpu/scripts/ram_percentage.sh"
+
 # Claude + Copilot CLI + opencode share the same skills and global instructions
 mkdir -p ~/.claude/skills ~/.copilot/skills ~/.config/opencode
 for skill in "$ROOT_DIR"/agentic/skills/*/; do
