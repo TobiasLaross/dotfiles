@@ -163,6 +163,39 @@ is the always-on log dashboard the user runs locally. Touching them on `main`
 risks pushing a half-finished change. Worktrees keep the original checkout
 clean and let the user keep working on something else in parallel.
 
+**Ad-hoc worktrees have no `/feature-done` to clean them up.** When you
+open a PR from one of these manually-created worktrees, end that turn with
+a reminder along the lines of *"PR is up — let me know when it's merged
+and I'll delete the worktree."* That puts the cleanup on the user's radar
+without nagging.
+
+When the user later says the PR landed (or asks you to clean up),
+**verify the change is on `main` before removing anything.** Trust the
+GitHub PR state, not `git branch --merged` (squash merges leave the
+original commits unreachable from `main` even though the PR is closed):
+
+```sh
+git -C ~/Developer/personal/<repo> fetch origin main --quiet
+gh -R <owner>/<repo> pr view <branch> --json state,mergedAt
+```
+
+The PR must report `state: "MERGED"`. Also check the worktree itself:
+
+```sh
+git -C <worktree-path> status --porcelain
+```
+
+If anything is uncommitted, stop and ask — the diff is unrecoverable
+once the worktree is removed. Only when the PR is MERGED *and* the
+worktree is clean, run the cleanup (mirrors `/feature-done` Step 4b):
+
+```sh
+git -C ~/Developer/personal/<repo> worktree remove <worktree-path>
+git -C ~/Developer/personal/<repo> branch -D <branch-name>
+```
+
+Kill the tmux session named after the worktree directory if one exists.
+
 ### Implicit context loading
 
 When the user mentions a feature or product by name — even without running a
