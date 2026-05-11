@@ -144,6 +144,25 @@ git rev-parse --is-inside-work-tree &>/dev/null \
 
 If this returns true, the directory is a worktree (not the main repo).
 
+#### Always-on repos: lilium, trillium, and logger
+
+Any change to `~/Developer/personal/lilium`, `~/Developer/personal/trillium`,
+or `~/Developer/personal/logger` — even a one-line bug fix outside a
+`/feature-plan` flow — runs in a worktree. Never commit on `main` of those
+repos directly. If a quick fix lands without a feature folder, create the
+worktree manually:
+
+```sh
+cd ~/Developer/personal/<repo>
+git worktree add ../<repo>--<short-name> -b <branch-name>
+cd ../<repo>--<short-name>
+```
+
+`lilium` and `trillium` host the production iOS app and its backend; `logger`
+is the always-on log dashboard the user runs locally. Touching them on `main`
+risks pushing a half-finished change. Worktrees keep the original checkout
+clean and let the user keep working on something else in parallel.
+
 ### Implicit context loading
 
 When the user mentions a feature or product by name — even without running a
@@ -200,12 +219,14 @@ helpers like `_.get`, `_.has`, and similar. Exceptions:
   'a.b')` → `obj?.a?.b`). Do not swap out lodash functions that have no direct
   native equivalent (e.g. `_.isEqual`, `_.cloneDeep`, `_.groupBy`).
 
-### Code comments
+### Naming
 
-When writing, modifying, or extending a comment in any source file — including inline
-comments added during feature work or bug fixes — invoke `/code-commenter` so comments
-explain intent and rationale rather than restating mechanics. Run it before committing
-any change that touches comments.
+Never use one-letter variable names (`e`, `r`, `i`, `m`, etc.). The only exception is
+the conventional loop counter inside a tight `for` body that fits on one line. Even
+short-lived locals in `.map`, `.filter`, `.forEach`, `try/catch`, and arrow callbacks get
+a real name (`entry`, `response`, `index`, `match`, `error`). The cost of a longer name
+is one more character per occurrence; the benefit is a stack trace, log line, or grep
+result that reads like prose.
 
 ### Testing style
 
@@ -222,3 +243,29 @@ benefit. When a test needs a UUID or similar identifier, hard-code a
 realistic but fixed value (e.g. `"d7a1c3e0-4b2f-4e8a-9f6d-1a2b3c4d5e6f"`)
 so it is grep-searchable across the codebase. Never generate UUIDs at
 runtime in tests.
+
+Never `Task.sleep` (or `setTimeout`, `Thread.sleep`, `time.sleep`,
+`DispatchQueue.asyncAfter`, `RunLoop.run(until:)`, or any other "wait
+wall-clock time" primitive) in tests — in any language. Sleep-based tests are
+slow and flaky; under contention (parallel runners, shared MainActor / event
+loop) the wake-up can be delayed arbitrarily. If a test seems to need a sleep,
+the design is missing a seam. Make the time-dependent thing testable instead:
+
+- **Inject a clock.** Pass a `() -> Date` / `Clock` / `Date.now`-equivalent
+  function the SUT reads; in tests use a fake that returns whatever you set.
+- **Expose the work the timer does as a method.** A periodic ticker should call
+  a `tick()` (or `advance()`, `flush()`) method that does all the real work
+  (recompute, fire side effects, dismiss when past deadline). Production wires
+  the real timer → that method; tests advance the fake clock and call it
+  directly. The timer plumbing becomes a thin shim, and the behavior lives in
+  a deterministically-tested method.
+- **Await the work itself**, not wall time. `await sut.lastTask?.value` for
+  fire-and-forget Tasks; drive `AsyncStream` / `EventEmitter` continuations
+  directly; `await` the promise the production code returns.
+- **Inject a scheduler.** When an integration test really must cover the
+  scheduling plumbing, extract a `Scheduler` protocol and inject a test
+  scheduler whose `advance(by:)` synchronously fires due work — don't sleep
+  longer and hope.
+
+There is always a better way than `sleep`. If you cannot find one, the SUT
+needs a refactor before the test does.
