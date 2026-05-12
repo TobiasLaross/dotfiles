@@ -756,6 +756,8 @@ Review the changes, then commit and open a PR when ready.
 - Worktree naming convention: `<repo>--<short-name>` as a sibling of
   the original repo directory
 - Worktree cleanup is the user's responsibility — run
-  `git worktree remove <path>` from the source repo and kill the
-  tmux session
+  `git worktree remove <path>` from the source repo, kill the tmux
+  session, and delete any Xcode DerivedData folders whose
+  `info.plist` `WorkspacePath` points inside the worktree (see the
+  cleanup snippet in `~/.claude/CLAUDE.md` under "Always-on repos")
 - Lines in all markdown files must not exceed 140 characters

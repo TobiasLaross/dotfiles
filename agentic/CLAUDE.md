@@ -196,6 +196,27 @@ git -C ~/Developer/personal/<repo> branch -D <branch-name>
 
 Kill the tmux session named after the worktree directory if one exists.
 
+Then delete the Xcode caches keyed to that worktree path. Xcode hashes
+the absolute workspace path into the DerivedData folder name, so the
+worktree has its own folder separate from the source repo. Remove every
+DerivedData folder whose `info.plist` references the worktree path:
+
+```sh
+for derived in "$HOME/Library/Developer/Xcode/DerivedData"/*/; do
+  info_plist="$derived/info.plist"
+  [ -f "$info_plist" ] || continue
+  workspace_path=$(/usr/libexec/PlistBuddy \
+    -c "Print :WorkspacePath" "$info_plist" 2>/dev/null) || continue
+  case "$workspace_path" in
+    "<worktree-path>"|"<worktree-path>"/*) rm -rf "$derived" ;;
+  esac
+done
+```
+
+Never touch the shared `ModuleCache.noindex` directory under DerivedData.
+Per-worktree SwiftPM build output and `xcodebuild.nvim` caches live
+inside the worktree directory and are removed with it.
+
 ### Implicit context loading
 
 When the user mentions a feature or product by name — even without running a

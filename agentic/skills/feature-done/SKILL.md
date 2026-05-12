@@ -120,14 +120,39 @@ If the feature used worktrees:
       ```
       If no tmux session with that name exists, this is a no-op.
 
+   d. Delete Xcode caches keyed to the worktree path. Xcode names each
+      DerivedData folder `<ProjectName>-<hash>` where the hash is derived
+      from the absolute workspace path, so a worktree gets its own folder
+      distinct from the source repo's. Find and remove every DerivedData
+      folder whose `info.plist` references the worktree path:
+      ```sh
+      for derived in "$HOME/Library/Developer/Xcode/DerivedData"/*/; do
+        info_plist="$derived/info.plist"
+        [ -f "$info_plist" ] || continue
+        workspace_path=$(/usr/libexec/PlistBuddy \
+          -c "Print :WorkspacePath" "$info_plist" 2>/dev/null) || continue
+        case "$workspace_path" in
+          "<worktree-path>"|"<worktree-path>"/*)
+            rm -rf "$derived"
+            ;;
+        esac
+      done
+      ```
+      Also remove any per-worktree SwiftPM build artifacts and
+      `xcodebuild.nvim` caches that live inside the worktree itself —
+      these go away with `rm -rf "<worktree-path>"` in step (b), so no
+      extra command is needed. Never touch the shared
+      `ModuleCache.noindex` directory under DerivedData.
+
 ## Step 5 — Report
 
 Tell the user:
 - Feature `<name>` has been moved to `~/.claude/features/done/<name>/`
 - Summary: X of Y acceptance criteria completed, review status
 - If a worktree was cleaned up: which directory was removed, which tmux
-  session was killed (or "no active session found"). If multiple worktrees
-  were cleaned up, list each one.
+  session was killed (or "no active session found"), and how many Xcode
+  DerivedData folders were deleted for that worktree (or "no DerivedData
+  found"). If multiple worktrees were cleaned up, list each one.
 - The feature is now archived
 
 ## Rules
