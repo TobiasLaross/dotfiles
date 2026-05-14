@@ -229,10 +229,37 @@ lilaEmilyLog() { _lilaAgentLog emily }
 lilaJonasLog() { _lilaAgentLog jonas }
 lilaLinaLog()  { _lilaAgentLog lina }
 
-# Open the multi-persona dashboard. Delegates to the Agentic-QA helper
-# script which kills any prior server bound to the port, launches a fresh
-# `agentic-qa serve`, polls until ready, and opens the dashboard in the
-# default browser.
+# Restart the multi-persona dashboard so it picks up source changes.
+#
+# The dashboard runs as a launchd-managed always-on service (installed via
+# `agentic-qa serve --project lilium --install-launchd`). Editable pipx
+# means *.py changes are on disk immediately, but the running interpreter
+# has the old code in memory until the process restarts. `kickstart -k`
+# stops the current PID; launchd respawns it within ~3 s with the latest
+# code. Browser tab survives via Tailscale and reconnects on next poll.
+#
+# Dashboard URL: http://mbp1/agentic-qa/ (or http://127.0.0.1:8765/agentic-qa/).
 lilaReport() {
-  "$HOME/Developer/personal/Agentic-QA/scripts/start-dashboard.sh" "$@"
+  local label="com.tobiaslaross.agentic-qa.dashboard.lilium"
+  local domain="gui/$UID"
+  if ! launchctl print "$domain/$label" >/dev/null 2>&1; then
+    echo "lilaReport: launchd agent not installed. Run once:" >&2
+    echo "  agentic-qa serve --project lilium --install-launchd" >&2
+    return 1
+  fi
+  launchctl kickstart -k "$domain/$label"
+  # Wait for the new pid to start serving.
+  local i=0
+  while (( i < 30 )); do
+    if curl -sf -o /dev/null --max-time 1 http://127.0.0.1:8765/agentic-qa/api/status; then
+      break
+    fi
+    sleep 0.1
+    i=$((i + 1))
+  done
+  local pid=$(launchctl print "$domain/$label" 2>/dev/null | awk -F'= ' '/^[[:space:]]*pid =/ { print $2; exit }')
+  echo "lilaReport: dashboard restarted (pid $pid) on http://mbp1/agentic-qa/ + http://127.0.0.1:8765/agentic-qa/"
+  if [[ "${LILA_OPEN:-1}" == "1" ]] && command -v open >/dev/null 2>&1; then
+    open "http://127.0.0.1:8765/agentic-qa/"
+  fi
 }
