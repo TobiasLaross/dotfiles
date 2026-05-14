@@ -174,35 +174,33 @@ lilaLogs() {
 }
 
 # ---------------------------------------------------------------------------
-# Autonomous user-agent helpers
+# Autonomous user-agent helpers (Agentic-QA backend)
 #
-# Each persona has its own dedicated iPhone simulator clone, named
-# exactly "Sara" / "Jonas" / "Lina" (no prefix). The agent harness lives
-# at ~/Developer/personal/lilium/agent/ as a Python package using the
-# Claude Agent SDK.
+# The harness lives at ~/Developer/personal/Agentic-QA and is installed via
+# `pipx install -e ~/Developer/personal/Agentic-QA`, putting `agentic-qa` on
+# PATH. Per-project config (bundle id, scheme, persona clones, …) lives at
+# ~/.agentic-qa/config.yml and is merged from lilium/.agentic-qa.yml via
+# `agentic-qa init lilium --from-repo ~/Developer/personal/lilium`.
 #
-# `lila<Persona>` rebuilds Lilium for the simulator, installs the fresh
-# build on that persona's clone, and launches `python -m agent --persona
-# <name>`. `lila<Persona>Log` tails the persona's most recent
-# `events.ndjson` (last 25 lines, then live).
+# Each persona has its own dedicated iPhone simulator clone, named exactly
+# "Emily" / "Jonas" / "Lina" (no prefix). `lila<Persona>` builds Lilium for
+# the simulator, installs on the clone, and runs a session.
+# `lila<Persona>Log` tails the persona's most recent `events.ndjson` (last
+# 25 lines, then live).
 # ---------------------------------------------------------------------------
 
-# Persona launchers. The actual build / sim-boot / install / run
-# logic lives in `./agent` inside the lilium repo (which delegates to
-# `lilaAgent/scripts/...`). These wrappers exist purely so terminal
-# users can still type `lilaJonas` etc.
-_lilaDispatcher="$HOME/Developer/personal/lilium/agent"
-
-lilaSara()  { "$_lilaDispatcher" sara  "$@" }
-lilaJonas() { "$_lilaDispatcher" jonas "$@" }
-lilaLina()  { "$_lilaDispatcher" lina  "$@" }
+# Persona launchers. The build / sim-boot / install / run logic lives in
+# `agentic-qa run` (see scripts/launch-persona.sh in the Agentic-QA repo).
+lilaEmily() { agentic-qa run --project lilium --persona emily "$@" }
+lilaJonas() { agentic-qa run --project lilium --persona jonas "$@" }
+lilaLina()  { agentic-qa run --project lilium --persona lina  "$@" }
 
 # Internal: tail the persona's most recent agent session, showing the
 # last 25 lines first, then following new events. Pretty-prints each
 # line with `jq` so the timeline is readable instead of raw NDJSON.
 _lilaAgentLog() {
   local persona="$1"
-  local sessions_root="$HOME/Developer/personal/lilium/.agentic-user-sessions"
+  local sessions_root="$HOME/.agentic-qa/lilium/sessions"
   if [[ ! -d "$sessions_root" ]]; then
     echo "No sessions yet under $sessions_root" >&2
     return 1
@@ -227,18 +225,14 @@ _lilaAgentLog() {
   fi
 }
 
-lilaSaraLog()  { _lilaAgentLog sara }
+lilaEmilyLog() { _lilaAgentLog emily }
 lilaJonasLog() { _lilaAgentLog jonas }
 lilaLinaLog()  { _lilaAgentLog lina }
 
-# Open the multi-persona bot dashboard. Starts the local server in
-# the background if it isn't already running, then opens the dashboard
-# in the default browser.
-#
-# The server self-shuts-down after 5 minutes with no requests, so
-# closing the browser tab cleans things up automatically — no
-# orphaned background processes. The PID is printed so a manual `kill`
-# is always one copy-paste away if you want it gone immediately.
+# Open the multi-persona dashboard. Delegates to the Agentic-QA helper
+# script which kills any prior server bound to the port, launches a fresh
+# `agentic-qa serve`, polls until ready, and opens the dashboard in the
+# default browser.
 lilaReport() {
-  "$HOME/Developer/personal/lilium/agent" dashboard "$@"
+  "$HOME/Developer/personal/Agentic-QA/scripts/start-dashboard.sh" "$@"
 }
