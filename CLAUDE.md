@@ -104,6 +104,12 @@ Additional functions in `zsh/config/functions.zsh`:
 - Session name: directory basename converted to kebab-case then capitalised
 - Special shortcuts: `sess dotfiles`, `sess notes`, `sess existing`
 
+**`macos-defaults.sh`** — one-shot macOS tweaks for a fresh machine:
+- Disables the press-and-hold accent popup (`ApplePressAndHoldEnabled`) so Vim/Neovim key repeat works
+- Lowers `KeyRepeat` and `InitialKeyRepeat` below the System Settings minimums
+- Idempotent; run once per machine, then log out/in for changes to take effect
+- Not wired into `symlinks.sh` — it's a one-shot, not a config refresh
+
 **`ralph.sh`** — true Ralph Wiggum loop runner:
 - Runs `claude -p --dangerously-skip-permissions` in a loop, same PROMPT.md every iteration
 - No pre-decomposed tasks — agent decides what to work on each iteration
