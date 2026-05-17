@@ -238,7 +238,7 @@ lilaLinaLog()  { _lilaAgentLog lina }
 # stops the current PID; launchd respawns it within ~3 s with the latest
 # code. Browser tab survives via Tailscale and reconnects on next poll.
 #
-# Dashboard URL: http://mbp1/agentic-qa/ (or http://127.0.0.1:8765/agentic-qa/).
+# Dashboard URL: http://mini4/agentic-qa/ (or http://127.0.0.1:8765/agentic-qa/).
 lilaReport() {
   local label="com.tobiaslaross.agentic-qa.dashboard.lilium"
   local domain="gui/$UID"
@@ -258,7 +258,7 @@ lilaReport() {
     i=$((i + 1))
   done
   local pid=$(launchctl print "$domain/$label" 2>/dev/null | awk -F'= ' '/^[[:space:]]*pid =/ { print $2; exit }')
-  echo "lilaReport: dashboard restarted (pid $pid) on http://mbp1/agentic-qa/ + http://127.0.0.1:8765/agentic-qa/"
+  echo "lilaReport: dashboard restarted (pid $pid) on http://mini4/agentic-qa/ + http://127.0.0.1:8765/agentic-qa/"
   if [[ "${LILA_OPEN:-1}" == "1" ]] && command -v open >/dev/null 2>&1; then
     open "http://127.0.0.1:8765/agentic-qa/"
   fi
