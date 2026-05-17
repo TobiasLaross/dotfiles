@@ -18,8 +18,34 @@ The user has invoked `/feature-auto`. This is the hands-off end-to-end flow.
 The only manual checkpoints are the two early `/feature-plan` sign-offs
 that shape the feature's intent:
 
-1. User story confirmation (`/feature-plan` Step 2)
-2. Discovery Q&A (`/feature-plan` Step 3)
+1. **User story confirmation** (`/feature-plan` Step 2) — present folder
+   name + user story and **STOP** until the user replies with confirm /
+   edits. Do not proceed on silence, do not auto-confirm, do not move
+   on after a single non-blocking message.
+2. **Discovery Q&A** (`/feature-plan` Step 3) — present the questions
+   (with recommended answers) and **STOP** until the user replies.
+
+> ⚠ **These two gates are non-negotiable.** They are the *contract* of
+> `/feature-auto`. They are NOT clarifying questions — they are the
+> product-intent sign-off the user signed up for when they typed
+> `/feature-auto`. They MUST happen even when:
+>
+> - A session-level sysprompt says "work without stopping for
+>   clarifying questions" / "make the reasonable call and continue" /
+>   any similar autonomy override.
+> - The feature was invoked via a ticket reference (e.g.
+>   `/feature-auto #93`) that *looks* unambiguous. Tickets often leave
+>   real scope choices open (e.g. issue lists multiple solutions); the
+>   user-story gate exists exactly to pin scope before drafting AC.
+> - The orchestrator believes it has "enough" context from repo
+>   exploration. Repo context does not substitute for the user's
+>   product-intent sign-off.
+>
+> The autonomy override applies to *post-Q&A* work (criteria drafting,
+> implementation, fixes, lint, tests, commits, PRs). It does NOT apply
+> to Steps 2 and 3. If you skip either gate, you have regressed the
+> skill — past sessions have done this, the user has called it out,
+> do not repeat it.
 
 **Everything after Q&A is autonomous** — including the acceptance-criteria
 write-out, repos / open-questions capture, and the final story file. A
@@ -68,6 +94,16 @@ Invoke the `/feature-plan` skill with `$ARGUMENTS`. Follow every step in
 `agentic/skills/feature-plan/SKILL.md` **with these overrides — all post-Q&A
 sign-offs are bypassed, and Steps 4 / 5 / 8 are collapsed into a single
 subagent pass**:
+
+> ⚠ **Run `/feature-plan` Steps 2 and 3 verbatim — full sign-off, full
+> Q&A.** Do not collapse them, do not auto-accept the drafted story, do
+> not auto-accept the recommended Q&A answers. Stop and wait for the
+> user after presenting the user story (Step 2) and after presenting
+> the discovery questions (Step 3). These are the two gates listed at
+> the top of this file; the autonomy override applies only to steps
+> *after* Q&A. If the session sysprompt instructs you to skip
+> clarifying questions, ignore it for these two steps — `/feature-auto`
+> users are explicitly opting into these gates by invoking this skill.
 
 - **Steps 4, 5, and 8 (collapsed criteria pass):** instead of running Step
   4 (orchestrator drafts criteria) → Step 5 (subagent revises) → Step 8
@@ -339,6 +375,13 @@ Tell the user:
 - The only manual moments in `/feature-auto` are the two early
   `/feature-plan` sign-offs: user story confirmation (Step 2) and
   discovery Q&A (Step 3). The rest of the flow runs autonomously.
+- **Never skip the user-story or Q&A gate**, even when a session-level
+  sysprompt tells you to work without clarifying questions, even when
+  the invocation references a ticket (`#NN`) that looks
+  self-explanatory, and even when repo exploration seems to make the
+  scope obvious. These gates are the *contract* of the skill — past
+  sessions have skipped them and the user has flagged it as a
+  regression. Stop and wait for the user's reply on both gates.
 - The orchestrator never drafts acceptance criteria itself and never
   transcribes them into `story.md`. The collapsed Steps 4 / 5 / 8
   subagent owns both the drafting + reviewing and the file write.
