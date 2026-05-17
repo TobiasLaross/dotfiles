@@ -1,6 +1,20 @@
 require("config.options")
 require("config.keymaps")
 
+-- Ensure node (managed by nvm) is on PATH for plugin subprocesses (mason, treesitter CLI, etc.),
+-- regardless of how nvim was launched.
+do
+	local nvm_default_alias = vim.fn.expand("~/.nvm/alias/default")
+	if vim.fn.filereadable(nvm_default_alias) == 1 then
+		local alias_target = vim.fn.readfile(nvm_default_alias)[1] or ""
+		local matches = vim.fn.glob("~/.nvm/versions/node/v" .. alias_target .. "*/bin", false, true)
+		local node_bin = matches[1]
+		if node_bin and vim.fn.isdirectory(node_bin) == 1 and not vim.env.PATH:find(node_bin, 1, true) then
+			vim.env.PATH = node_bin .. ":" .. vim.env.PATH
+		end
+	end
+end
+
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 
 if not vim.loop.fs_stat(lazypath) then

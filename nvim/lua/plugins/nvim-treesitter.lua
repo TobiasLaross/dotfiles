@@ -4,7 +4,7 @@ return {
 	event = "BufReadPost",
 	build = ":TSUpdate",
 	dependencies = {
-		"nvim-treesitter/nvim-treesitter-textobjects",
+		{ "nvim-treesitter/nvim-treesitter-textobjects", branch = "master" },
 		{ "OXY2DEV/markview.nvim", ft = "markdown" },
 		"nvim-tree/nvim-web-devicons",
 	},

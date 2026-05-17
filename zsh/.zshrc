@@ -23,7 +23,7 @@ path=(
   "./node_modules/.bin"
   "$HOME/.local/bin"
   "$HOME/.cargo/bin"
-  "$HOME/.nvm/versions/node/v20.19.0/bin"
+  "$HOME/.nvm/versions/node/v22.22.3/bin"
   "/opt/homebrew/bin"
   "/opt/homebrew/sbin"
   "$RBENV_ROOT/bin"
@@ -227,12 +227,14 @@ if [[ -d "$_gcloud_sdk_root" ]]; then
   gsutil()  { _gcloud_lazy_init; gsutil  "$@"; }
 fi
 
-# --- Lazy-load nvm ---
+# --- Lazy-load nvm (installed via Homebrew) ---
 export NVM_DIR="$HOME/.nvm"
-nvm() { unfunction nvm node npm npx; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"; nvm "$@"; }
-node() { unfunction nvm node npm npx; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; node "$@"; }
-npm() { unfunction nvm node npm npx; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; npm "$@"; }
-npx() { unfunction nvm node npm npx; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; npx "$@"; }
+NVM_SH="/opt/homebrew/opt/nvm/nvm.sh"
+NVM_COMP="/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"
+nvm() { unfunction nvm node npm npx; [ -s "$NVM_SH" ] && \. "$NVM_SH" && [ -s "$NVM_COMP" ] && \. "$NVM_COMP"; nvm "$@"; }
+node() { unfunction nvm node npm npx; [ -s "$NVM_SH" ] && \. "$NVM_SH"; node "$@"; }
+npm() { unfunction nvm node npm npx; [ -s "$NVM_SH" ] && \. "$NVM_SH"; npm "$@"; }
+npx() { unfunction nvm node npm npx; [ -s "$NVM_SH" ] && \. "$NVM_SH"; npx "$@"; }
 
 # To customize prompt, run `p10k configure` or edit ~/dotfiles/p10k/p10k.zsh.
 [[ ! -f ~/dotfiles/p10k/p10k.zsh ]] || source ~/dotfiles/p10k/p10k.zsh
