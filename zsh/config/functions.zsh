@@ -124,10 +124,9 @@ function memtop() {
             printf "%-20s %7s %5s %5s\n", "--------------------", "-------", "-----", "-----"
             printf "%-20s %7.2f %5.1f%% %5.1f%%\n", "TOTAL (top 10)", sum_gb, sum_mem, sum_cpu
           }')
-        clear
+        tput home
+        tput ed
         echo "$output"
-        echo ""
-        echo "Press q or Ctrl-C to exit"
         if read -t 1 -k 1 key 2>/dev/null && [[ "$key" == "q" ]]; then
             break
         fi
