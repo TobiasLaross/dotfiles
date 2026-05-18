@@ -7,3 +7,4 @@ zsh/config/assa.zsh
 tmux/plugins/*
 claude/tasks/
 .claude/settings.local.json
+agentic/skills-local/

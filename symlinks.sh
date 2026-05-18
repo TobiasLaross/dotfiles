@@ -26,6 +26,14 @@ for skill in "$ROOT_DIR"/agentic/skills/*/; do
 	ln -sf "$resolved" ~/.copilot/skills/
 done
 
+# Machine-local skills (gitignored, not shared across machines)
+mkdir -p "$ROOT_DIR/agentic/skills-local"
+for skill in "$ROOT_DIR"/agentic/skills-local/*(N/); do
+	resolved=${skill:A}
+	ln -sf "$resolved" ~/.claude/skills/
+	ln -sf "$resolved" ~/.copilot/skills/
+done
+
 # Remove dangling skill symlinks (from deleted skills)
 for dir in ~/.claude/skills ~/.copilot/skills; do
 	for link in "$dir"/*(N@); do
