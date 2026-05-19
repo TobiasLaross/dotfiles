@@ -229,8 +229,8 @@ fi
 
 # --- Lazy-load nvm (installed via Homebrew) ---
 export NVM_DIR="$HOME/.nvm"
-NVM_SH="/opt/homebrew/opt/nvm/nvm.sh"
-NVM_COMP="/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"
+NVM_SH="$NVM_DIR/nvm.sh"
+NVM_COMP="$NVM_DIR/bash_completion"
 nvm() { unfunction nvm node npm npx; [ -s "$NVM_SH" ] && \. "$NVM_SH" && [ -s "$NVM_COMP" ] && \. "$NVM_COMP"; nvm "$@"; }
 node() { unfunction nvm node npm npx; [ -s "$NVM_SH" ] && \. "$NVM_SH"; node "$@"; }
 npm() { unfunction nvm node npm npx; [ -s "$NVM_SH" ] && \. "$NVM_SH"; npm "$@"; }
