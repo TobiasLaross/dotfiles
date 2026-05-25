@@ -1,6 +1,6 @@
 ---
 name: humanizer
-description: Rewrites text or comments to remove AI writing tics and make them sound like a human wrote them. Use after generating prose, commit messages, code comments, docs, or PR descriptions — or whenever the user says something "sounds like AI".
+description: Rewrites text or comments to remove AI writing tics (delve/leverage/robust, tricolons, em-dash overuse, empty intros and closers, cheerleader tone) and make them sound like a human engineer wrote them. **Use after generating any prose Claude wrote: commit messages, code comments, PR descriptions, READMEs, story.md / design.md / spec docs, release notes, Slack/email drafts** — or whenever the user says something "sounds like AI", "is too markety", "is too flowery", or asks you to tighten/dehydrate the wording. Preserves meaning exactly; only the style changes.
 argument-hint: [file path, range, or pasted text]
 disable-model-invocation: false
 allowed-tools: Read, Edit, Grep, Glob
@@ -11,6 +11,18 @@ allowed-tools: Read, Edit, Grep, Glob
 Rewrite the target text so it reads like a human engineer wrote it in a hurry, not like a model generating
 plausible prose. **Preserve meaning exactly** — do not add information, soften claims, or hedge things that
 were stated plainly. Only the *style* changes.
+
+## Hard constraints
+
+- **Only touch prose, doc comments, and markdown.** Never edit code, identifiers, type signatures, imports,
+  config keys, JSON/YAML values, regex patterns, SQL, shell commands, or anything inside fenced code blocks. If
+  a sentence quotes an identifier or value, rewrite the surrounding prose but leave the quoted text byte-for-byte
+  intact.
+- **Preserve technical claims verbatim.** If the text says "deadlocks under contention" or "returns 401 on an
+  expired token", do not soften, generalize, or hedge it. The tells you remove are stylistic; the substance stays.
+- **Match the surrounding voice.** If the file or thread already has a clear voice (the user's existing commit
+  messages, a colleague's code review, a project's README tone), edit toward that voice — don't impose a generic
+  "humanized" style.
 
 ## Tells to remove
 
@@ -57,6 +69,23 @@ Replace or delete on sight:
   potentially lead to a deadlock scenario".
 - **Code, identifiers, paths, links, numbers, error messages** — never paraphrase these.
 - **The author's voice** if it's already present (e.g. existing commit messages, code review comments).
+
+## Don't over-humanize
+
+The goal is "tired senior engineer wrote this", not "rude bot with a 50-word vocabulary". Watch for these
+failure modes and back off when you see yourself doing them:
+
+- **Choppy fragments.** Cutting until every sentence is three words. Some flow is fine — humans use connectors.
+  Keep "because", "so", "when", "if", "since" when they carry real meaning.
+- **Stripping structure that was earning its keep.** A real list of four distinct items should stay a list. A
+  heading that introduces a genuinely separate section should stay a heading. Cut structure that's decorative,
+  not structure that's load-bearing.
+- **One-pass-too-many.** If you already cut 30%, stop. Re-reading three times and trimming each pass turns
+  the text into a telegram. When in doubt, leave it.
+- **Replacing one tic with another.** Don't trade "leverage" for "harness", "robust" for "solid", "delve" for
+  "dig into". If you can't say it plainly, leave the original word.
+- **Removing necessary hedges.** "May fail under load" is a calibrated claim, not a cheerleader hedge. Strip
+  "it could be argued that…" but keep "may", "can", "sometimes" when they're load-bearing.
 
 ## Workflow
 

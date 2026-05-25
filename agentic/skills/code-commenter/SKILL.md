@@ -1,6 +1,6 @@
 ---
 name: code-commenter
-description: Adds, reviews, or improves code comments so they explain intent and rationale rather than restating mechanics. **PROACTIVELY invoke whenever you are about to write, modify, or extend a comment in any source file** — including inline comments added during feature work or bug fixes — and whenever the user asks to comment code, review comments, or clean up noisy comments. Run it BEFORE committing any change that touches comments.
+description: Adds, reviews, or improves code comments so they explain intent and rationale rather than restating mechanics. **PROACTIVELY invoke in either of these cases: (1) you are about to write, modify, or extend a comment in any source file — including inline comments added during feature work or bug fixes; (2) you are modifying code that has a comment within a few lines above, below, or attached to it (doc comment, inline note, TODO, invariant, workaround marker) — because the edit may invalidate, contradict, or outdate that comment.** Also invoke whenever the user asks to comment code, review comments, or clean up noisy comments. Run it BEFORE committing any change that touches comments OR code adjacent to comments.
 argument-hint: [file path or scope]
 disable-model-invocation: false
 allowed-tools: Read, Grep, Glob, Edit
@@ -8,7 +8,22 @@ allowed-tools: Read, Grep, Glob, Edit
 
 # Code Commenter
 
-## Hard constraints
+## Two invocation modes
+
+This skill runs in one of two modes — figure out which one you are in before doing anything else:
+
+- **Comment-focused mode** — the user asked you to write, review, or clean up comments, or you are about to add
+  a new comment as part of your own work. In this mode, follow the *Hard constraints* below: touch comments
+  only, never code.
+- **Code-edit mode** — you are mid-edit on source code and a comment lives within a few lines above, below, or
+  attached to the lines you are changing (doc comment on the enclosing symbol, inline `//` note next to the
+  expression, TODO/FIXME/HACK marker, invariant/precondition note, workaround/upstream-bug reference). In this
+  mode, finish your code edit as planned, but **before moving on, check every nearby comment against the new
+  code** and update or delete any that are now wrong, misleading, or stale. Use the same quality bar as
+  comment-focused mode (see *When a comment IS warranted* and *Anti-patterns to remove*). The code edit is not
+  done until adjacent comments still tell the truth.
+
+## Hard constraints (comment-focused mode)
 
 - **Only touch comments.** Never modify, refactor, rename, or reformat source code — not even obvious bugs, dead
   code, or style violations. Your sole output is comment changes. If you spot a real bug, mention it in your final
@@ -53,7 +68,7 @@ When reviewing existing comments, delete or rewrite:
 - **Author / date stamps** (`// Written by X on 2019-04-01`) — git blame handles this.
 - **Vague hand-waves** like `// magic` or `// don't touch` with no reason.
 
-## Workflow
+## Workflow — comment-focused mode
 
 1. Read the target file(s) and identify each comment plus each public symbol without one.
 2. For each existing comment, classify it: keep, rewrite, or delete (per the rules above).
@@ -64,3 +79,23 @@ When reviewing existing comments, delete or rewrite:
    and make them sound like a human wrote them.
 6. Report a short summary: how many comments added, rewritten, and deleted, plus any code issues you noticed
    but deliberately left alone.
+
+## Workflow — code-edit mode
+
+You arrive here in the middle of a code change, not a comment task. Do not redirect the work — finish the code
+edit. Then, before declaring the change done:
+
+1. **Scan the comment neighborhood.** For each region you modified, look at the doc comment on the enclosing
+   symbol and any inline comments within ~5 lines above or below the changed lines. Also check comments
+   attached to the changed expression itself (trailing `// ...`, surrounding block comments).
+2. **Compare each comment to the new code.** Ask: does this comment still describe what the code does? Are its
+   invariants and preconditions still true? Does it still point at the right line, variable, or branch? Does
+   the TODO/FIXME marker still apply, or did you just fix the thing it warned about?
+3. **Update or delete stale comments.** Apply the same rules as comment-focused mode (see *Anti-patterns to
+   remove* and *When a comment IS warranted*). If a comment now contradicts the code, the comment is wrong —
+   fix it or delete it; do not "fix" the code to match the old comment. If a TODO was resolved by your edit,
+   delete it (or its tracking reference). If the comment is still accurate, leave it alone.
+4. **Run `humanizer` on any comments you added or rewrote** so they don't sound generated.
+5. In your final message, briefly note any nearby comments you touched as part of the code change, and flag any
+   comment you deliberately left alone because it is still accurate even though it looks adjacent to the
+   diff.

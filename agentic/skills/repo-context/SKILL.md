@@ -167,6 +167,8 @@ so prefer dense, accurate prose over padding.
 ```md
 # <REPO_NAME>
 
+> Type: <personal | work>     # match the source directory: personal/ → personal, work/ → work
+
 ## Purpose
 One or two sentences describing what this repo does and who/what uses it.
 

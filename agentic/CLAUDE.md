@@ -244,17 +244,35 @@ folder contains an `index.md` listing all files and when to read each one. Read
 `index.md` first, then only the file(s) relevant to the current task — avoid loading
 all files at once.
 
-### Work repos
+### Repos and repo-context
 
-When working inside a `/work/` directory, related repositories live in
-`~/Developer/work/`. Scan that directory to identify which repos are relevant to a
-given task or feature.
+Related repositories live under `~/Developer/work/` (work projects) and
+`~/Developer/personal/` (personal projects). Scan the relevant directory to
+identify which repos are involved in a given task or feature — and stay within
+the matching side: when the cwd (or its worktree, `<repo>--<feature>`) is under
+`~/Developer/work/`, only treat sibling repos in `~/Developer/work/` as related;
+when under `~/Developer/personal/`, only treat siblings in
+`~/Developer/personal/`. Never cross-link work and personal repos.
 
-Pre-built context files for each repo live at
-`~/.claude/repo-context/<repo-name>.md`. When they exist, read them before reading
-source code — they contain purpose, architecture, inter-repo dependencies, external
-communication protocols, and canonical design patterns. Fall back to reading source
-only when context files are missing or insufficient.
+Pre-built context files for each repo live in a single flat folder at
+`~/.claude/repo-context/<repo-name>.md` regardless of which side the repo is on.
+Each file declares its side on the second line with a blockquote:
+
+```
+# <repo-name>
+
+> Type: personal     # or: > Type: work
+```
+
+When loading repo-context — both for the current repo and for any sibling repo
+you read while exploring dependencies — only read files whose `Type:` matches
+the current side. Skip files of the opposite type even if the name matches.
+
+Read the matching file at the start of the session before reading source code;
+it contains purpose, architecture, inter-repo dependencies, external
+communication protocols, canonical design patterns, and known-quirks /
+troubleshooting notes. Fall back to reading source only when the context file
+is missing or insufficient.
 
 ### Markdown files
 
