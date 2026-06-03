@@ -268,11 +268,14 @@ When loading repo-context — both for the current repo and for any sibling repo
 you read while exploring dependencies — only read files whose `Type:` matches
 the current side. Skip files of the opposite type even if the name matches.
 
-Read the matching file at the start of the session before reading source code;
-it contains purpose, architecture, inter-repo dependencies, external
-communication protocols, canonical design patterns, and known-quirks /
-troubleshooting notes. Fall back to reading source only when the context file
-is missing or insufficient.
+At the start of the session, read only the first 40 lines of the matching
+context file (the quick-reference section above the `---` separator). This
+gives you the repo's purpose, language, framework, test commands,
+architecture, and entry points without loading detailed sections. Read the
+full file only when the task requires information below the separator
+(test setup details, internal dependencies, external communication
+protocols, design patterns, environment config, or deployment). Fall back
+to reading source only when the context file is missing or insufficient.
 
 ### Markdown files
 

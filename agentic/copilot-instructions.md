@@ -187,10 +187,14 @@ When working inside a `/work/` directory, related repositories live in
 given task or feature.
 
 Pre-built context files for each repo live at
-`~/.claude/repo-context/<repo-name>.md`. When they exist, read them before reading
-source code — they contain purpose, architecture, inter-repo dependencies, external
-communication protocols, and canonical design patterns. Fall back to reading source
-only when context files are missing or insufficient.
+`~/.claude/repo-context/<repo-name>.md`. Each file uses a two-tier layout:
+a quick-reference section (purpose, language, framework, test commands,
+architecture, entry points) above a `---` separator, and detailed sections
+below. At the start of a session, read only the first 40 lines of the
+matching context file. Read the full file only when the task requires
+details below the separator (test setup, dependencies, communication
+protocols, design patterns, environment, deployment). Fall back to reading
+source only when context files are missing or insufficient.
 
 ### Markdown files
 
