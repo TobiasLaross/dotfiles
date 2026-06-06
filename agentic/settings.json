@@ -6,6 +6,7 @@
       "Bash(mkdir -p ~/.claude/repo-context)",
       "Bash(ls ~/.claude/repo-context/:*)",
       "Bash(git:*)",
+      "Bash(gh issue create:*)",
       "Bash(cat:*)",
       "Bash(ls:*)",
       "Bash(find:*)",
