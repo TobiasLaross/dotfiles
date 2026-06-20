@@ -1,0 +1,55 @@
+{
+  "skill_name": "swift-accessibility-skill",
+  "evals": [
+    {
+      "id": 0,
+      "name": "touch-target",
+      "prompt": "Can you audit the accessibility of Lilium/Components/ArchiveButtonView.swift in my lilium repo? I want it clean before I open the PR.",
+      "expected_output": "Flags the 30x40 icon frame as below the 44pt HIG touch-target minimum (High) with a concrete fix. Does NOT falsely claim the delete button is missing a label/identifier (both present), and does NOT flag the .white foreground as a contrast bug (correct on the always-purple TIL card).",
+      "files": [],
+      "assertions": [
+        "Flags the 30x40 icon frame as below the 44pt HIG touch-target minimum",
+        "Does NOT falsely claim the delete button is missing a label or identifier (both present)",
+        "Gives a concrete fix (expand hit area to >=44pt / contentShape)",
+        "DISCRIMINATING: does NOT flag the hardcoded .white foreground as a contrast problem (correct on the always-purple TIL card)"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "missing-id-precision",
+      "prompt": "I just wrote Lilium/App/User/ProfileListButton.swift in the lilium repo. Is this row accessible for VoiceOver users, and did I miss anything the test bots need?",
+      "expected_output": "Flags that the row Button has no .accessibilityIdentifier of its own (two-modifier contract; bots can't reach it). Does NOT raise false findings about the .accessibilityHidden icon/chevron or the decorative 8x8 badge dot.",
+      "files": [],
+      "assertions": [
+        "Flags that the tappable row Button has no .accessibilityIdentifier of its own (two-modifier contract / bot reachability)",
+        "Does NOT raise a false finding about the .accessibilityHidden icon/chevron image",
+        "Does NOT flag the decorative 8x8 badge dot as a touch-target violation"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "container-collapse",
+      "prompt": "Check Lilium/App/Import/ImportHighlightRow.swift in the lilium repo for accessibility problems. The agentic bots can't seem to tap the buttons in this row even though both buttons have identifiers.",
+      "expected_output": "Identifies .accessibilityElement(children: .combine) (line 67) as collapsing the two child buttons' identifiers, recommends .contain, and connects it to the symptom. Does NOT falsely report the already-labeled toggle as missing a label.",
+      "files": [],
+      "assertions": [
+        "Identifies .accessibilityElement(children: .combine) (line 67) as the cause of the ids not enumerating",
+        "Recommends .accessibilityElement(children: .contain) (or removing the modifier)",
+        "Connects the fix to the reported symptom (bots cannot tap / ids absent from AX tree)",
+        "Does NOT falsely report the already-labeled toggle as missing a label"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "dynamic-type-precision",
+      "prompt": "Audit Lilium/App/User/UserEventsListView.swift in the lilium repo for accessibility before I ship the Activity screen.",
+      "expected_output": "Flags the hardcoded .font(.system(size: 36)) as a Dynamic Type issue with a scalable fix. Does NOT flag the static .scaleEffect(1.6) as a Reduce Motion/Dynamic Type finding, and does NOT misreport semantic serif styles as hardcoded sizes.",
+      "files": [],
+      "assertions": [
+        "Identifies the hardcoded .font(.system(size: 36)) as a Dynamic Type issue with a scalable fix",
+        "DISCRIMINATING: does NOT flag the static .scaleEffect(1.6) as a Reduce Motion or Dynamic Type finding (it is a static transform, not motion)",
+        "Does NOT misreport semantic serif styles (.font(.system(.body, design: .serif))) as hardcoded sizes"
+      ]
+    }
+  ]
+}
