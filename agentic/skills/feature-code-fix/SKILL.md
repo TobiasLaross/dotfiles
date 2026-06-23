@@ -122,6 +122,17 @@ Feature files you MUST read before judging findings:
    Severity is a signal, not a mandate — a LOW finding with a real defect
    still gets applied; a CRITICAL finding based on a misread does not.
 
+   Minimization & consolidation findings (raised by the Pattern Consistency &
+   Minimization review agent) are an intended product of the review, not scope
+   creep. A consolidation that refactors existing code *outside* the diff onto
+   shared logic is in-scope by design — do NOT reject it merely because it
+   touches files the feature didn't originally change. Apply it when the shared
+   logic is genuinely the same concept and the result stays at least as
+   readable. Still reject such a finding when it would hurt readability or
+   maintainability, over-DRYs two only-coincidentally-similar things (false
+   sharing), or the reviewer misread the duplication — the readability guardrail
+   outranks the line-count win.
+
    CRITICAL: Every finding you do not apply MUST be marked Rejected (or
    Excluded if forced-skip) with a concrete rationale. Silently skipping
    a finding is not allowed — if it is not Fixed, explain why in

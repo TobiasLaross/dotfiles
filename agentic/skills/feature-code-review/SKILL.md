@@ -84,7 +84,10 @@ Invoke the `/review-code` skill. It will launch 3 sub-agents in parallel:
    the exact rules.
 2. **Contextual Review** — reviews with full feature context (story, design,
    and repo context)
-3. **Pattern Consistency** — verifies the code follows existing codebase patterns
+3. **Pattern Consistency & Minimization** — verifies the code follows existing
+   codebase patterns, and assesses whether the same behaviour could be written
+   with less code or share logic that already exists (consolidating duplicated
+   logic across the codebase), never at the cost of readability
 
 Wait for `/review-code` to complete and present its findings. After it
 completes, verify that every criterion now has `- [x] Reviewed` (Agent 1 is
@@ -145,6 +148,12 @@ write them to `~/.claude/features/<name>/review-fixes.md`:
 The `Criterion` line lets `/feature-code-fix` know which `Action Required`
 checkbox to uncheck once the finding is resolved. Use `General` for findings
 that are not tied to a specific criterion (e.g. cross-cutting style issues).
+
+Minimization & consolidation findings (raised by the Pattern Consistency &
+Minimization agent) are usually **Criterion:** `General`. A consolidation
+finding that refactors existing code outside the diff still goes here — list
+both the new and the existing file paths under **Files** so `/feature-code-fix`
+knows the refactor touches both call sites.
 
 > **CRITICAL WARNING:** If any CRITICAL finding exists, highlight it prominently
 > at the top of the file.

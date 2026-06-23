@@ -2,9 +2,10 @@
 name: review-code
 description: >-
   Reviews implemented code from 3 perspectives in parallel — behavior verification
-  against the spec, contextual review, and pattern consistency. Use when asked to
-  review code, a completed implementation, or when another skill delegates a code
-  review step.
+  against the spec, contextual review, and pattern consistency & code minimization
+  (can the solution be smaller / share existing logic without hurting readability).
+  Use when asked to review code, a completed implementation, or when another skill
+  delegates a code review step.
 argument-hint: "[file paths or description of what was implemented]"
 disable-model-invocation: false
 allowed-tools: Read, Grep, Glob, Bash, Agent
@@ -221,20 +222,26 @@ Requirements: [REQUIREMENTS]
 
 ---
 
-### Agent 3 — Pattern Consistency (full context, pattern-focused)
+### Agent 3 — Pattern Consistency & Code Minimization (full context)
 
-This agent also receives full context but has a single focused mandate: verify that
-the new code follows the same design patterns, coding style, and conventions as the
-rest of the codebase. It has filesystem access to read existing code for comparison.
+This agent receives full context and has two linked mandates: (a) verify that the new
+code follows the same design patterns, coding style, and conventions as the rest of the
+codebase, and (b) assess whether the implementation could be **smaller without being
+worse** — written with less code, or sharing logic that already exists instead of
+re-implementing it. The two belong together because both require reading the surrounding
+codebase, and this agent already has filesystem access to do so. The grep-for-similar-code
+work that Part A needs is exactly what surfaces the duplication Part B looks for.
 
 ```
-You are reviewing code specifically for consistency with existing codebase patterns
-and coding style. You have access to the filesystem.
+You are reviewing code for two linked things, using the filesystem: (A) consistency with
+existing codebase patterns, and (B) whether the implementation can be made smaller
+without making it worse. Do Part A first — the files you read there feed Part B.
 
-Your job is to ensure the new code looks like it belongs in this codebase — same
-patterns, same conventions, same style. New code should be indistinguishable from
-existing code in how it structures logic, handles errors, names things, and
-organises files.
+## Part A — Pattern consistency
+
+Ensure the new code looks like it belongs in this codebase — same patterns, same
+conventions, same style. New code should be indistinguishable from existing code in how
+it structures logic, handles errors, names things, and organises files.
 
 Steps:
 1. Detect the current repo name from the working directory path.
@@ -243,23 +250,67 @@ Steps:
    the '## Design patterns' section as your primary source of truth for canonical
    patterns.
 3. Use Glob and Grep to find 2-4 existing files or features similar to what was
-   implemented. Read those files to understand the established patterns.
+   implemented. Read those files to understand the established patterns — and keep them
+   in mind for Part B, since logic the new code duplicates usually lives in exactly
+   these neighbouring files.
 4. Compare the new implementation against those patterns and flag deviations.
    If the context file named a canonical pattern for an area touched by the new
    code, flag any deviation as HIGH or CRITICAL.
 
-Focus areas: naming conventions, error handling patterns, file/module organisation,
-abstraction levels, test structure and conventions, API patterns, state management
-patterns, and any repo-specific idioms.
+Pattern focus areas: naming conventions, error handling patterns, file/module
+organisation, abstraction levels, test structure and conventions, API patterns, state
+management patterns, and any repo-specific idioms.
 
-Reference file names and line numbers. When flagging a deviation, cite the existing
-file that demonstrates the correct pattern. Use severity flags
-CRITICAL / HIGH / LOW on each finding.
+## Part B — Code minimization & consolidation
+
+Using the files you read in Part A (plus further Glob/Grep as needed), assess whether the
+same behaviour could be achieved with less code:
+
+1. **Within the diff** — redundant branches, hand-rolled logic a standard-library or
+   already-imported helper covers, repeated blocks that collapse into a loop or
+   parameterised helper, over-engineered abstractions (indirection with a single caller,
+   premature generality), and dead or unreachable code the change introduced.
+2. **Across the codebase** — does the new code duplicate logic that already exists? If an
+   existing function or utility does the same or nearly the same thing, the new code
+   should call it instead of re-implementing it. Name the existing file:line.
+3. **Shared-refactor opportunities** — if the new code and existing code now express the
+   *same* concept twice, propose extracting the shared logic into one reusable unit and
+   refactoring **both** call sites onto it, even when that touches code outside the diff.
+   Name the existing file:line that would be refactored.
+
+HARD GUARDRAIL — readability and maintainability outrank line count. Do NOT raise a
+"simplification" that collapses cases a reader needs to see separately, removes a
+well-named intermediate that documents intent, over-DRYs two only-coincidentally-similar
+things that would need to diverge later (false sharing), hurts testability, breaks an
+established pattern, or trades an obvious construct for a clever terse one. When fewer
+lines and clearer code conflict, clearer code wins and you drop the finding. Only raise a
+minimization finding when the shared logic is genuinely the same concept, the result is
+at least as readable, and net maintenance burden goes down. A clean implementation with
+no redundancy is the expected outcome — reporting "no minimization findings" is valid and
+common.
+
+For each minimization finding, give the files/lines involved (including any existing
+file:line to refactor), the proposed change, the concrete benefit (lines removed,
+duplication eliminated, single source of truth), and a one-line note on why it does NOT
+hurt readability or maintainability.
+
+## Reporting
+
+Reference file names and line numbers. When flagging a pattern deviation, cite the
+existing file that demonstrates the correct pattern; when flagging duplication, cite the
+existing file:line whose logic should be shared. Use severity flags CRITICAL / HIGH / LOW
+on each finding.
 
 - CRITICAL: breaks a canonical pattern documented in repo-context or universally
   followed in the codebase
-- HIGH: deviates from a common pattern followed by most similar code
-- LOW: minor style inconsistency
+- HIGH: deviates from a common pattern followed by most similar code; OR the diff
+  re-implements logic that already exists elsewhere (true duplication worth consolidating)
+- LOW: minor style inconsistency, or a local tidy-up inside the diff that clearly reduces
+  code with no readability cost
+
+Group your output into two labelled sections — "Pattern findings" and "Minimization
+findings" — so the synthesizer can tell them apart. Use the one severity scale above for
+both, and write "None" under either heading when it has no findings.
 
 Tech stack: [TECH_STACK]
 Project structure: [PROJECT_STRUCTURE]
@@ -294,9 +345,11 @@ findings and should stay prominent.]
 ### Contextual Review
 [Agent 2 findings — bullet points with file:line references and severity flags]
 
-### Pattern Consistency
-[Agent 3 findings — bullet points with file:line references and severity flags,
-citing existing files as examples]
+### Pattern Consistency & Minimization
+[Agent 3 findings — keep the two labelled sub-sections as returned: "Pattern
+findings" and "Minimization findings". Bullet points with file:line references and
+severity flags, citing existing files as examples (the correct pattern, or the
+existing logic that should be shared).]
 
 ### Summary
 **Overall assessment:** [1-2 sentences on whether the code is ready to merge]
