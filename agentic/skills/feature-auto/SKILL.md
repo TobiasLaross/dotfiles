@@ -79,9 +79,13 @@ Everything after Q&A is autonomous:
   - Worktrees created for every repo involved
   - Implementation (ad-hoc tests, AC marked Implemented incrementally,
     non-obvious decisions appended to design.md)
-  - Review + fix loop (up to 3 rounds; every finding auto-applied —
-    loop exits when no criterion has Action Required checked)
-  - Linters + full test suite + coverage top-up (≥95% on feature files)
+  - Review + fix loop (up to 3 rounds; every finding of every severity
+    auto-applied — loop exits only when no Action Required AND no
+    unresolved finding remains)
+  - Runtime/visual verification where the project requires it (e.g.
+    screenshots for UI changes) — a bug hunt whose fixes land BEFORE the gate
+  - Linters + full test suite + coverage top-up (≥95% on feature files) —
+    the final automated gate, after every code-changing step
   - Commit, push, and gh pr create for every repo involved
 
 The feature is NOT archived — run /feature-done <name> yourself after
@@ -287,7 +291,33 @@ After the loop exits cleanly, confirm that every criterion with
 has `- [x] Action Required`. Any deviation means a subagent missed
 an update — fix it before moving on.
 
+## Step 4.5 — Runtime / visual verification (when the project requires it)
+
+If the project mandates a runtime or visual verification for the kind of
+change this feature makes — e.g. screenshots for any user-visible UI change,
+or a manual smoke-run — do it **here**, after the review/fix loop and
+**before** the Step 5 gate. This is a **bug hunt that produces code fixes**,
+not a photo op: it routinely surfaces truncation, contrast/theme slips,
+missing accessibility, broken empty/error states, wrong navigation, and decode
+mismatches that build-green and unit tests cannot catch. Fix every defect it
+finds in the worktree, append the decision to `design.md`, and re-verify —
+exactly like a fix round.
+
+Order matters: this step must run **before** Step 5, never after. Step 5 (lint
++ full tests + coverage) is the **final automated gate** — it only certifies
+the tree green if every code-changing step has already happened. Running
+screenshots/manual QA *after* Step 5 (or after Step 6's PR) means any fix they
+produce bypasses the gate: it ships un-lint-checked, un-tested, and outside the
+coverage top-up, validated only by CI after the fact. If a project has no
+runtime/visual mandate for this change (e.g. a backend-only or refactor-only
+feature), skip this step.
+
 ## Step 5 — Lint, full tests, coverage
+
+This is the **final automated gate** before commit. By the time it runs, every
+step that can change code — implementation, the review/fix loop, and Step 4.5's
+runtime/visual fixes — must already be done, so the sweep certifies the
+complete tree. If a later step changes code, re-run this gate.
 
 Spawn one `general-purpose` subagent per repo (parallel when repos are
 independent). Each subagent receives:
