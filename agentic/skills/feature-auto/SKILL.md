@@ -203,8 +203,20 @@ surface the gap to the user.
 
 ## Step 4 — Review / fix loop
 
-Iterate review + fix until **no criterion has `- [x] Action Required`**,
-with a hard cap of **3 rounds**.
+Iterate review + fix until **both** are true — no criterion has
+`- [x] Action Required` **and** `review-fixes.md` has no unresolved
+actionable finding of any severity — with a hard cap of **3 rounds**.
+
+`Action Required` is a per-*criterion* gate (it only fires for findings that
+map to a criterion with PARTIAL/MISSING coverage or HIGH/CRITICAL drift). It
+is **not** the list of things worth fixing. Many real improvements land as
+LOW findings that don't flip any criterion's `Action Required` — a plural-rule
+typo, a one-frame flash, a missing nil-guard. The fix step (4c) auto-applies
+**every** finding regardless of severity, so the loop must keep going while any
+actionable finding remains, not just while `Action Required` is set. Gating the
+loop on `Action Required` alone would let a round that produced only LOW
+findings exit before any fix subagent ran — silently dropping every one of
+them. Don't do that.
 
 ### 4a — Review
 
@@ -223,9 +235,16 @@ files (Step 5 of that skill) before writing `review-fixes.md`.
 
 Read `story.md` and `review-fixes.md`.
 
-- If no criterion has `- [x] Action Required` checked: exit the loop
-  and proceed to Step 5.
-- Otherwise: proceed to 4c.
+- If `review-fixes.md` has **no unresolved actionable finding** (every finding
+  is marked Fixed or Won't-fix-with-reason) **and** no criterion has
+  `- [x] Action Required` checked: exit the loop and proceed to Step 5.
+- Otherwise (any criterion has `Action Required`, **or** `review-fixes.md`
+  still lists any unresolved finding of any severity — LOW included): proceed
+  to 4c.
+
+A round that surfaced only LOW findings and zero `Action Required` still goes
+to 4c — those LOWs are real improvements and must be applied (or explicitly
+won't-fixed with a reason), never skipped because no criterion gate fired.
 
 ### 4c — Fix (auto-accept all findings)
 
@@ -233,23 +252,35 @@ Spawn a `general-purpose` subagent to execute
 `agentic/skills/feature-code-fix/SKILL.md` Step 4 (the execution
 subagent) directly. `/feature-auto` pre-authorises full auto-apply, so
 **skip the Step 3 interactive triage** — every finding in
-`review-fixes.md` is treated as accepted. The fix subagent will:
+`review-fixes.md`, **of every severity (LOW included)**, is treated as
+accepted. The fix subagent will:
 
-- Apply every accepted finding.
+- Apply every accepted finding that improves the code or app — regardless of
+  severity or whether it mapped to an `Action Required` criterion.
+- For any finding it does **not** apply, mark it `Won't-fix` in
+  `review-fixes.md` with a one-line reason. A finding may only be won't-fixed
+  when it is genuinely not an improvement — a false positive, a
+  story-sanctioned choice, an intentional behavior, or a
+  deliberately-rejected minimization. "Too small / out of scope" is **not** a
+  valid reason to drop a real improvement: if a real improvement is being
+  deferred rather than applied, file it as a tracked GitHub issue (tier label
+  matching its size, plus the feature name) and record the issue link as the
+  finding's status, so it is never silently lost.
 - Append non-obvious decisions to `design.md` with Source
   `feature-code-fix F<id>`.
 - Uncheck `Action Required` for every criterion whose findings were
   all resolved.
-- Update `review-fixes.md` with per-finding status.
+- Update `review-fixes.md` with per-finding status (Fixed / Won't-fix-reason /
+  tracked-as-#NN).
 
 Return to 4a for the next round.
 
 ### Loop exit
 
-If round 3 still has criteria with `- [x] Action Required`, stop the
-loop and surface the outstanding criteria + findings to the user —
-this signals a reviewer/fixer disagreement that needs human judgment.
-Do not proceed to Step 5 until the user decides.
+If round 3 still has criteria with `- [x] Action Required` (or unresolved
+non-won't-fixed findings), stop the loop and surface the outstanding criteria
++ findings to the user — this signals a reviewer/fixer disagreement that needs
+human judgment. Do not proceed to Step 5 until the user decides.
 
 After the loop exits cleanly, confirm that every criterion with
 `- [x] Implemented` also has `- [x] Reviewed` and that no criterion
@@ -392,8 +423,11 @@ Tell the user:
 - Every subagent reads `design.md` before working and appends
   non-obvious decisions with the correct Source tag.
 - Force `> Tests: auto`; never ask.
-- Exit the review/fix loop on **no `Action Required` checkboxes**, not
-  on finding severity counts.
+- Exit the review/fix loop only when **both** no criterion has
+  `Action Required` **and** `review-fixes.md` has no unresolved finding of any
+  severity. Every finding — LOW included — is applied or explicitly
+  won't-fixed with a reason (deferred real improvements get a tracked issue,
+  not silence). Never gate the loop on `Action Required` alone.
 - Never invoke `/feature-done` from this skill — the user archives
   after merge.
 - `/feature-auto` pre-authorises `git push` and `gh pr create`; do not
