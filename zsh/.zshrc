@@ -240,3 +240,10 @@ npx() { unfunction nvm node npm npx; [ -s "$NVM_SH" ] && \. "$NVM_SH"; npx "$@";
 
 # opencode
 export PATH=/Users/tobias/.opencode/bin:$PATH
+
+# bun completions
+[ -s "/Users/tobias/.bun/_bun" ] && source "/Users/tobias/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
