@@ -81,7 +81,8 @@ Everything after Q&A is autonomous:
     non-obvious decisions appended to design.md)
   - Review + fix loop (up to 3 rounds; every finding of every severity
     auto-applied — loop exits only when no Action Required AND no
-    unresolved finding remains)
+    unresolved finding remains). The review pass also humanizes the
+    prose the feature wrote (comments, story.md / design.md)
   - Runtime/visual verification where the project requires it (e.g.
     screenshots for UI changes) — a bug hunt whose fixes land BEFORE the gate
   - Linters + full test suite + coverage top-up (≥95% on feature files) —
@@ -234,6 +235,13 @@ criterion it covers, and checks `- [x] Action Required` on every
 criterion that has findings requiring a code change. The subagent also
 runs `/feature-code-review`'s `/code-commenter` pass on the changed
 files (Step 5 of that skill) before writing `review-fixes.md`.
+
+After the `/code-commenter` pass, the same subagent runs `/humanizer`
+over the prose the feature introduced or changed — code comments in the
+changed files plus any `story.md` / `design.md` text this session wrote
+— to strip AI writing tics before the fixes and the PR description are
+generated. `/humanizer` only rewrites style; it must preserve meaning
+exactly. Its edits ride along in the review round like any other change.
 
 ### 4b — Triage
 
@@ -458,6 +466,9 @@ Tell the user:
   severity. Every finding — LOW included — is applied or explicitly
   won't-fixed with a reason (deferred real improvements get a tracked issue,
   not silence). Never gate the loop on `Action Required` alone.
+- The review pass (Step 4a) runs `/humanizer` over the prose the feature
+  wrote — comments plus `story.md` / `design.md` — after `/code-commenter`
+  and before fixes/PR generation. Style-only; meaning is preserved.
 - Never invoke `/feature-done` from this skill — the user archives
   after merge.
 - `/feature-auto` pre-authorises `git push` and `gh pr create`; do not
