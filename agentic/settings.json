@@ -37,6 +37,11 @@
             "type": "command",
             "command": "python3 /Users/tobias/.claude/hooks/guard-piped-exit-code.py",
             "statusMessage": "Checking for masked pipeline exit code"
+          },
+          {
+            "type": "command",
+            "command": "python3 /Users/tobias/.claude/hooks/guard-sim-against-prod.py",
+            "statusMessage": "Checking simulator is not pointed at production"
           }
         ]
       },
