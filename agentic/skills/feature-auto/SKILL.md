@@ -311,6 +311,15 @@ mismatches that build-green and unit tests cannot catch. Fix every defect it
 finds in the worktree, append the decision to `design.md`, and re-verify —
 exactly like a fix round.
 
+The accessibility tree and screenshots catch **different** bug classes, so when
+a project supports both, use both. The AX tree verifies **behavioral** state —
+values, labels, navigation, and whether an element resolves at all; screenshots
+verify **rendering** — layout, spacing, color, typography, truncation. A green
+AX assertion doesn't prove the pixels are right, and a clean screenshot doesn't
+prove the control is reachable. Prefer the AX tree first (it's text — cheap and
+precise), and reach for a screenshot when layout, color, or typography is what's
+actually in question.
+
 Order matters: this step must run **before** Step 5, never after. Step 5 (lint
 + full tests + coverage) is the **final automated gate** — it only certifies
 the tree green if every code-changing step has already happened. Running
@@ -357,6 +366,14 @@ Each subagent's job:
    testing choice (e.g. stubbing a boundary, choosing contract vs unit
    scope for a piece of logic), append to `design.md` with Source
    `feature-auto Step 5`.
+
+**Swift / Xcode repos:** run `xcodebuild` piped through `xcbeautify` with
+`set -o pipefail` (`xcodebuild … 2>&1 | tee build.log | xcbeautify`) so the
+gate reads a few `file:line:col` anchors instead of thousands of compiler
+lines — the mirrored `build.log` is the fallback when an anchor isn't enough.
+`xcbeautify` collapses each `@Test(arguments:)` suite to one pass/fail line, so
+on a parameterized failure, read `build.log` for the failing argument row
+before concluding which case broke.
 
 Each subagent reports back:
 
