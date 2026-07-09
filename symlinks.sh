@@ -18,11 +18,12 @@ git -C "$ROOT_DIR" submodule update --init --recursive
 # Patch tmux-cpu plugin to use memory_pressure instead of vm_stat
 ln -sf "$ROOT_DIR/tmux/patches/ram_percentage.sh" "$ROOT_DIR/tmux/plugins/tmux-cpu/scripts/ram_percentage.sh"
 
-# Claude + Copilot CLI + opencode share the same skills and global instructions
-mkdir -p ~/.claude/skills ~/.copilot/skills ~/.config/opencode
+# Claude + Codex + Copilot CLI + opencode share the same skills and global instructions
+mkdir -p ~/.claude/skills ~/.codex/skills ~/.copilot/skills ~/.config/opencode
 for skill in "$ROOT_DIR"/agentic/skills/*/; do
 	resolved=${skill:A}
 	ln -sf "$resolved" ~/.claude/skills/
+	ln -sf "$resolved" ~/.codex/skills/
 	ln -sf "$resolved" ~/.copilot/skills/
 done
 
@@ -31,11 +32,12 @@ mkdir -p "$ROOT_DIR/agentic/skills-local"
 for skill in "$ROOT_DIR"/agentic/skills-local/*(N/); do
 	resolved=${skill:A}
 	ln -sf "$resolved" ~/.claude/skills/
+	ln -sf "$resolved" ~/.codex/skills/
 	ln -sf "$resolved" ~/.copilot/skills/
 done
 
 # Remove dangling skill symlinks (from deleted skills)
-for dir in ~/.claude/skills ~/.copilot/skills; do
+for dir in ~/.claude/skills ~/.codex/skills ~/.copilot/skills; do
 	for link in "$dir"/*(N@); do
 		if [[ ! -e "$link" ]]; then
 			rm "$link"
@@ -44,6 +46,8 @@ for dir in ~/.claude/skills ~/.copilot/skills; do
 done
 
 ln -sf "$ROOT_DIR/agentic/CLAUDE.md" ~/.claude/CLAUDE.md
+ln -sf "$ROOT_DIR/agentic/CLAUDE.md" ~/.codex/AGENTS.md
+ln -sf "$ROOT_DIR/agentic/codex.config.toml" ~/.codex/config.toml
 ln -sf "$ROOT_DIR/agentic/copilot-instructions.md" ~/.copilot/copilot-instructions.md
 ln -sf "$ROOT_DIR/agentic/settings.json" ~/.claude/settings.json
 ln -sf "$ROOT_DIR/agentic/opencode.json" ~/.config/opencode/opencode.json

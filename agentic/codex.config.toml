@@ -1,0 +1,9 @@
+model_reasoning_effort = "high"
+approval_policy = "never"
+sandbox_mode = "danger-full-access"
+
+[projects."/Users/tobias/Developer/personal/gto-poker-ios"]
+trust_level = "trusted"
+
+[projects."/Users/tobias/dotfiles"]
+trust_level = "trusted"
