@@ -47,7 +47,6 @@ done
 
 ln -sf "$ROOT_DIR/agentic/CLAUDE.md" ~/.claude/CLAUDE.md
 ln -sf "$ROOT_DIR/agentic/CLAUDE.md" ~/.codex/AGENTS.md
-ln -sf "$ROOT_DIR/agentic/codex.config.toml" ~/.codex/config.toml
 ln -sf "$ROOT_DIR/agentic/copilot-instructions.md" ~/.copilot/copilot-instructions.md
 ln -sf "$ROOT_DIR/agentic/settings.json" ~/.claude/settings.json
 ln -sf "$ROOT_DIR/agentic/opencode.json" ~/.config/opencode/opencode.json
