@@ -148,7 +148,7 @@ Skills and global instructions are **shared** between Claude and Copilot. `symli
 
 opencode auto-discovers skills from `~/.claude/skills/` (it scans `~/.claude` for `skills/**/SKILL.md`) so no separate skill symlinks are needed for it.
 
-**`settings.json`** sets the default model to `opus`, enables the `swift-lsp` plugin, and pre-allows common read-only and git commands so Claude doesn't prompt for them. It also grants access to `~/Developer/work` and `~/Developer/personal`.
+**`settings.json`** sets the default model to `claude-opus-5[1m]` (Opus 5, 1M context), enables the `swift-lsp` plugin, and pre-allows common read-only and git commands so Claude doesn't prompt for them. It also grants access to `~/Developer/work` and `~/Developer/personal`.
 
 **`opencode.json`** sets the model to `anthropic/claude-opus-4-6`, points instructions at `~/.claude/CLAUDE.md` (the shared global instructions), and pre-allows read, glob, grep, list, webfetch, websearch, skill, and bash tools.
 

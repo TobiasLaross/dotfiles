@@ -26,7 +26,7 @@
       "~/Developer/personal"
     ]
   },
-  "model": "opus[1m]",
+  "model": "claude-opus-5[1m]",
   "hooks": {
     "PreToolUse": [
       {
