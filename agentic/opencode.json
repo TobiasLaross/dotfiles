@@ -15,7 +15,7 @@
       "enabled": true
     }
   },
-  "instructions": ["~/.claude/CLAUDE.md"],
+  "instructions": ["~/.claude/CLAUDE.md", "~/.claude/*.local.md"],
   "permission": {
     "read": "allow",
     "glob": "allow",
