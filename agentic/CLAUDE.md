@@ -294,6 +294,15 @@ helpers like `_.get`, `_.has`, and similar. Exceptions:
   'a.b')` → `obj?.a?.b`). Do not swap out lodash functions that have no direct
   native equivalent (e.g. `_.isEqual`, `_.cloneDeep`, `_.groupBy`).
 
+Write comparisons as `variable === constant`, never the reverse. Yoda conditions
+(`constants.LockStatuses.LOCKED === status`) read backwards and get flagged in
+review. Use `status === constants.LockStatuses.LOCKED`.
+
+This holds even when the surrounding code is Yoda-style. Matching local style is
+usually right, but not here: the reviewer wants new lines in the correct order
+regardless of their neighbours. Leave the existing lines alone unless the ticket
+is about them.
+
 ### Naming
 
 Never use one-letter variable names (`e`, `r`, `i`, `m`, etc.). The only exception is
