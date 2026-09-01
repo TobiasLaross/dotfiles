@@ -19,11 +19,20 @@ export HOMEBREW_REPOSITORY="/opt/homebrew"
 export RBENV_ROOT="$HOME/.rbenv"
 
 typeset -U path PATH
+
+# Newest installed Node 24 from nvm, globbed rather than pinned so this file survives a point
+# release and works on machines with a different 24.x. Homebrew's node stays installed (eslint,
+# mongosh and mongodb-community depend on it) so this has to sit ahead of /opt/homebrew/bin,
+# otherwise anything that execs `node` from PATH — pnpm especially — silently builds native
+# modules against the wrong ABI.
+_nvm_node_dirs=("$HOME"/.nvm/versions/node/v24.*/bin(N/n))
+_nvm_node_bin=${_nvm_node_dirs[-1]}
+
 path=(
   "./node_modules/.bin"
   "$HOME/.local/bin"
   "$HOME/.cargo/bin"
-  "$HOME/.nvm/versions/node/v22.22.3/bin"
+  ${_nvm_node_bin:+$_nvm_node_bin}
   "/opt/homebrew/bin"
   "/opt/homebrew/sbin"
   "$RBENV_ROOT/bin"
@@ -35,6 +44,7 @@ path=(
   "/sbin"
   $path
 )
+unset _nvm_node_dirs _nvm_node_bin
 
 export RBENV_SHELL=zsh
 [ -z "${MANPATH-}" ] || export MANPATH=":${MANPATH#:}"
@@ -227,13 +237,14 @@ if [[ -d "$_gcloud_sdk_root" ]]; then
 fi
 
 # --- Lazy-load nvm (installed via Homebrew) ---
+# node/npm/npx deliberately get no shim. They resolve straight from PATH above, so an interactive
+# prompt, a script and pnpm all agree on one version. Shimming them meant the first `node` call
+# sourced nvm.sh and switched to whatever the `default` alias pointed at, while anything invoked
+# non-interactively kept using Homebrew's node — two different versions from one config.
 export NVM_DIR="$HOME/.nvm"
 NVM_SH="$NVM_DIR/nvm.sh"
 NVM_COMP="$NVM_DIR/bash_completion"
-nvm() { unfunction nvm node npm npx; [ -s "$NVM_SH" ] && \. "$NVM_SH" && [ -s "$NVM_COMP" ] && \. "$NVM_COMP"; nvm "$@"; }
-node() { unfunction nvm node npm npx; [ -s "$NVM_SH" ] && \. "$NVM_SH"; node "$@"; }
-npm() { unfunction nvm node npm npx; [ -s "$NVM_SH" ] && \. "$NVM_SH"; npm "$@"; }
-npx() { unfunction nvm node npm npx; [ -s "$NVM_SH" ] && \. "$NVM_SH"; npx "$@"; }
+nvm() { unfunction nvm; [ -s "$NVM_SH" ] && \. "$NVM_SH" && [ -s "$NVM_COMP" ] && \. "$NVM_COMP"; nvm "$@"; }
 
 # To customize prompt, run `p10k configure` or edit ~/dotfiles/p10k/p10k.zsh.
 [[ ! -f ~/dotfiles/p10k/p10k.zsh ]] || source ~/dotfiles/p10k/p10k.zsh
