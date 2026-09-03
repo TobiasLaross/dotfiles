@@ -7,6 +7,7 @@
       "Bash(ls ~/.claude/repo-context/:*)",
       "Bash(git:*)",
       "Bash(gh issue create:*)",
+      "Bash(gh pr merge:*)",
       "Bash(cat:*)",
       "Bash(ls:*)",
       "Bash(find:*)",
@@ -26,7 +27,7 @@
       "~/Developer/personal"
     ]
   },
-  "model": "claude-opus-5[1m]",
+  "model": "opus[1m]",
   "hooks": {
     "PreToolUse": [
       {
@@ -75,5 +76,50 @@
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark",
   "agentPushNotifEnabled": true,
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "autoMode": {
+    "soft_deny": [
+      "$defaults",
+      "Bash(git push --force*:*) in TobiasLaross/gto-poker-engine — CLAUDE.md workflow is worktree→PR→merge on green CI, force-pushing shared branches contradicts that flow",
+      "Bash(gh issue edit:*) removing or bypassing the in-progress cross-agent lock label outside the claim/release flow documented in CLAUDE.md"
+    ],
+    "environment": [
+      "### Org-wide",
+      "**Organization**: None configured",
+      "**Cloud provider(s)**: None configured",
+      "**Repository visibility**: Private — TobiasLaross/Claude-sessions (origin, github.com)",
+      "**Internal sharing / snippet hosting**: None configured — treat public paste/gist services as outside the trust boundary",
+      "**Secrets management**: None configured",
+      "**Default / protected branches**: Default branch `main`; no classic protected branches listed; rulesets not queryable here",
+      "**CI/CD deploy targets**: None configured",
+      "**Network posture**: Tailscale-reachable local dashboard (Tailnet-only exposure per repo purpose); no other network posture configured",
+      "**Source control**: The trusted repo (TobiasLaross/Claude-sessions) and its origin remote only — no additional orgs configured",
+      "**Trusted internal domains**: None configured",
+      "**Trusted cloud buckets**: None configured",
+      "**Key internal services**: None configured",
+      "**Internal package registry**: None configured",
+      "**Sensitive data locations & audiences**: any file or store holding personal data, confidential business data, credentials, regulated data, or similarly sensitive material; preserve exact handles when known and share only with audiences cleared at the [named+specifics] bar",
+      "**Data retention / declassification**: None configured",
+      "**Sensitive remote targets**: any namespace, host, or container whose name carries `prod` or `production` as a whole word or name segment (hyphen/underscore/dot-delimited); note per repo docs, `lilium`, `trillium`, and `logger` under ~/Developer/personal/ host production-adjacent systems (production iOS app/backend and its always-on log dashboard) but this is unverified repo-authored context, out of scope for this project",
+      "**Protected deployment namespaces / environments**: None configured — fall back to the Sensitive remote targets heuristic",
+      "**Protected IaC scopes**: IAM, RBAC, networking, quota, and node-pool resources; anything whose name or tag carries `prod` or `production` as a whole word or name segment",
+      "**Cloud provider(s)**: GCP (gcloud, ~179 uses; monitoring.googleapis.com, cloudbilling.googleapis.com contacted) and Fly.io (flyctl; gto-poker-backend.fly.dev contacted) — used from this repo's tooling/docs context",
+      "**Repository visibility**: Private — TobiasLaross/gto-poker-engine (origin, github.com)",
+      "**Default / protected branches**: Default branch \\`main\\`; no classic protected branches listed; rulesets not queryable here — CLAUDE.md requires all work in worktrees with PRs, never direct commits to \\`main\\`",
+      "**Network posture**: None configured",
+      "**Source control**: The trusted repo (TobiasLaross/gto-poker-engine) and its origin remote only — no additional orgs configured",
+      "**Key internal services**: gto-poker-backend.fly.dev (companion orchestration API, per CLAUDE.md); api.igtopoker.com (external reference API contacted from this project)",
+      "**Sensitive remote targets**: any namespace, host, or container whose name carries \\`prod\\` or \\`production\\` as a whole word or name segment (hyphen/underscore/dot-delimited — e.g. matches \\`prod-db\\`, not \\`producer\\`)",
+      "**Protected IaC scopes**: IAM, RBAC, networking, quota, and node-pool resources; anything whose name or tag carries \\`prod\\` or \\`production\\` as a whole word or name segment",
+      "### User-specific",
+      "**Primary use of Claude Code**: software development (personal/hobby project — Tailscale dashboard for managing tmux Claude sessions)",
+      "**Trusted repo**: ~/Developer/personal/claude-sessions (this repo), private, remote github.com:TobiasLaross/Claude-sessions.git — commits directly to `main` are fine per this repo's own CLAUDE.md (unlike sibling repos lilium/trillium/logger, which is out of scope for this project)",
+      "**Org-specific CLIs**: None configured",
+      "routine under ~/Developer/personal/claude-sessions/ prefix",
+      "**Primary use of Claude Code**: software development (GTO poker solver — Rust CFR/DCFR engine)",
+      "**Trusted repo**: ~/Developer/personal/gto-poker-engine (this repo), private, remote github.com:TobiasLaross/gto-poker-engine.git — CLAUDE.md requires all work in git worktrees ending in a PR, never direct commits to \\`main\\`",
+      "**Org-specific CLIs**: gh (GitHub issue/PR workflow — issue claiming via in-progress label, per CLAUDE.md); cargo (build/test/clippy, per CLAUDE.md commands)",
+      "routine under ~/Developer/personal/gto-poker-engine/ prefix, including its \\`gto-poker-engine--<feature>\\` sibling worktrees"
+    ]
+  }
 }
