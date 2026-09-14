@@ -224,18 +224,21 @@ Requirements: [REQUIREMENTS]
 
 ### Agent 3 — Pattern Consistency & Code Minimization (full context)
 
-This agent receives full context and has two linked mandates: (a) verify that the new
+This agent receives full context and has three linked mandates: (a) verify that the new
 code follows the same design patterns, coding style, and conventions as the rest of the
-codebase, and (b) assess whether the implementation could be **smaller without being
+codebase, (b) assess whether the implementation could be **smaller without being
 worse** — written with less code, or sharing logic that already exists instead of
-re-implementing it. The two belong together because both require reading the surrounding
-codebase, and this agent already has filesystem access to do so. The grep-for-similar-code
-work that Part A needs is exactly what surfaces the duplication Part B looks for.
+re-implementing it, and (c) check that the comments the change adds earn their place. All
+three require reading the surrounding codebase, and this agent already has filesystem
+access to do so. The grep-for-similar-code work that Part A needs is exactly what surfaces
+the duplication Part B looks for, and the neighbouring files it reads establish the
+comment density Part C compares against.
 
 ```
-You are reviewing code for two linked things, using the filesystem: (A) consistency with
-existing codebase patterns, and (B) whether the implementation can be made smaller
-without making it worse. Do Part A first — the files you read there feed Part B.
+You are reviewing code for three linked things, using the filesystem: (A) consistency with
+existing codebase patterns, (B) whether the implementation can be made smaller without
+making it worse, and (C) whether the comments it adds earn their place. Do Part A first —
+the files you read there feed Parts B and C.
 
 ## Part A — Pattern consistency
 
@@ -294,23 +297,74 @@ file:line to refactor), the proposed change, the concrete benefit (lines removed
 duplication eliminated, single source of truth), and a one-line note on why it does NOT
 hurt readability or maintainability.
 
+## Part C — Comment economy
+
+The default for a comment is that it should not exist. Judge every comment the diff adds
+against one question: would a competent engineer who has never seen this change be worse
+off without it? If not, it is noise, and noise rots — an unnecessary comment is a future
+stale comment.
+
+Raise a finding when the diff adds:
+
+1. **Restatement.** The comment says what the code already says.
+2. **Argued justification.** The comment defends the decision to a reviewer rather than
+   informing a reader: "rather than", "we considered", "if one ever does", "because
+   otherwise someone might". This is design-doc prose that leaked into the source. The
+   decision record belongs in the PR description, the ticket, or `design.md` / `fix.md`.
+3. **Narration of the review or implementation process.** Comments that only make sense if
+   you watched the change being written, or that answer a question a reviewer asked once.
+4. **Duplication of the commit message, branch name, or ticket body.** Git and the tracker
+   already hold it.
+5. **Transient state.** Anything that will be false after the next release, dependency
+   bump, or feature-flag flip — e.g. "not released yet", "temporarily", "for now". Either
+   express the durable constraint or drop it.
+6. **Disproportion.** A comment block that dominates the code it describes. Flag when added
+   comment lines exceed roughly a third of added code lines in the same hunk, and the
+   surplus is explanation rather than any of the warranted categories below.
+
+Do NOT raise a finding — and explicitly defend the comment if another part of the review
+attacks it — when it records:
+
+- A non-obvious constraint or invariant the code relies on but does not enforce.
+- A rejected alternative that a reviewer would otherwise re-raise every time, or that a
+  future engineer would otherwise "fix" back into a bug.
+- External context that cannot be inferred from the code: ticket, spec, vendor bug,
+  upstream workaround.
+- A trap: an obvious-looking simplification that would break something.
+- Public API contracts, per the language's doc convention.
+
+HARD GUARDRAIL — correctness of comments outranks their absence, and their absence
+outranks their length. Never propose deleting a comment that is load-bearing merely to
+reduce line count, and never propose shortening one into something ambiguous or wrong. If
+a comment is both necessary and long because the constraint is genuinely intricate, leave
+it. "No comment findings" is a valid and common outcome.
+
+Also flag, at the same severity you would give any incorrect code, any comment the diff
+adds or leaves behind that is **wrong, misleading, or now contradicted** by the change —
+including pre-existing comments adjacent to edited lines that the edit invalidated.
+
+For each comment finding, quote the comment, give file:line, say which category it falls
+into, and give the shortened replacement or state that it should be deleted outright.
+
 ## Reporting
 
 Reference file names and line numbers. When flagging a pattern deviation, cite the
 existing file that demonstrates the correct pattern; when flagging duplication, cite the
-existing file:line whose logic should be shared. Use severity flags CRITICAL / HIGH / LOW
-on each finding.
+existing file:line whose logic should be shared; when flagging a comment, quote it. Use
+severity flags CRITICAL / HIGH / LOW on each finding.
 
 - CRITICAL: breaks a canonical pattern documented in repo-context or universally
-  followed in the codebase
+  followed in the codebase; OR a comment the diff adds or invalidates is actively wrong
+  and would mislead a future reader into a bug
 - HIGH: deviates from a common pattern followed by most similar code; OR the diff
-  re-implements logic that already exists elsewhere (true duplication worth consolidating)
-- LOW: minor style inconsistency, or a local tidy-up inside the diff that clearly reduces
-  code with no readability cost
+  re-implements logic that already exists elsewhere (true duplication worth consolidating);
+  OR a comment describes transient state that is already stale or will be within a release
+- LOW: minor style inconsistency, a local tidy-up inside the diff that clearly reduces
+  code with no readability cost, or a comment that is merely redundant or over-long
 
-Group your output into two labelled sections — "Pattern findings" and "Minimization
-findings" — so the synthesizer can tell them apart. Use the one severity scale above for
-both, and write "None" under either heading when it has no findings.
+Group your output into three labelled sections — "Pattern findings", "Minimization
+findings", and "Comment findings" — so the synthesizer can tell them apart. Use the one
+severity scale above for all three, and write "None" under any heading with no findings.
 
 Tech stack: [TECH_STACK]
 Project structure: [PROJECT_STRUCTURE]
@@ -345,11 +399,11 @@ findings and should stay prominent.]
 ### Contextual Review
 [Agent 2 findings — bullet points with file:line references and severity flags]
 
-### Pattern Consistency & Minimization
-[Agent 3 findings — keep the two labelled sub-sections as returned: "Pattern
-findings" and "Minimization findings". Bullet points with file:line references and
-severity flags, citing existing files as examples (the correct pattern, or the
-existing logic that should be shared).]
+### Pattern Consistency, Minimization & Comments
+[Agent 3 findings — keep the three labelled sub-sections as returned: "Pattern
+findings", "Minimization findings" and "Comment findings". Bullet points with file:line
+references and severity flags, citing existing files as examples (the correct pattern, or
+the existing logic that should be shared) and quoting any comment flagged.]
 
 ### Summary
 **Overall assessment:** [1-2 sentences on whether the code is ready to merge]

@@ -469,6 +469,30 @@ If tests are `auto`, the fix subagent already ran them — proceed to
 Step 6.
 ``` 
 
+## Step 5c — Comment pass
+
+Run the `code-commenter` skill over the diff of every repo touched, before the
+review. This is not conditional on whether the comments look fine to you — the
+failure mode it prevents is skipping it precisely when you are confident.
+
+1. Collect the diff for each repo (`git diff` and `git diff --cached`).
+2. Invoke `code-commenter` in code-edit mode against those diffs.
+3. Apply its findings.
+
+Two additions to its checklist, being the comments most likely to survive a
+self-review:
+
+- **Comments that argue.** "rather than", "we considered", "if one ever does" —
+  that is a decision record defending the fix to a reviewer. It belongs in
+  `fix.md` or the PR description, not the source.
+- **Comments describing transient state.** "not released yet", "for now",
+  "temporarily" — false by the next release or dependency bump. State the
+  durable constraint or delete it.
+
+A bugfix diff is usually small, so a large comment block is a strong signal on
+its own. If added comment lines approach a third of added code lines, re-read
+them assuming the reader has the ticket open.
+
 ## Step 6 — Delegate to /review-code in a foreground subagent
 
 After the fix is verified, spawn one foreground subagent

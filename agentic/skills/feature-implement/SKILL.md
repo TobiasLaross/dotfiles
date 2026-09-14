@@ -209,6 +209,26 @@ Prompt the user to run the relevant tests. List the test files written or
 modified during Step 5 so they know what to run. Wait for the user to share
 the output. Diagnose any failures and fix them.
 
+## Step 6b — Comment pass
+
+Run the `code-commenter` skill over the diff of every repo touched, before the
+review. This is not conditional on whether the comments look fine to you — the
+failure mode it prevents is skipping it precisely when you are confident.
+
+1. Collect the diff for each repo (`git diff` and `git diff --cached`).
+2. Invoke `code-commenter` in code-edit mode against those diffs.
+3. Apply its findings.
+
+Two additions to its checklist, being the comments most likely to survive a
+self-review:
+
+- **Comments that argue.** "rather than", "we considered", "if one ever does" —
+  that is a decision record defending the change to a reviewer. It belongs in
+  `design.md` or the PR description, not the source.
+- **Comments describing transient state.** "not released yet", "for now",
+  "temporarily" — false by the next release or dependency bump. State the
+  durable constraint or delete it.
+
 ## Step 7 — Report and review
 
 When implementation is complete and tests pass, report:

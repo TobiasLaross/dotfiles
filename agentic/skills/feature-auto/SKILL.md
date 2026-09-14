@@ -184,7 +184,7 @@ The subagent prompt must include:
 - Feature folder path (`~/.claude/features/<name>/`)
 - Every worktree path (absolute) with its repo name
 - Instruction to follow `agentic/skills/feature-implement/SKILL.md`
-  Steps 3b through 6, with these constraints:
+  Steps 3b through 6b, with these constraints:
   - Operate via **absolute paths** and `git -C "<worktree>"`. Do not
     assume a particular cwd; the orchestrator keeps its own.
   - Skip branch creation — worktrees already have `feature/<name>`
@@ -199,6 +199,9 @@ The subagent prompt must include:
     **Source** as `feature-implement`.
   - Run only the test files it wrote/touched at the end (Step 6 `auto`
     mode). The full lint + test + coverage sweep runs later in Step 5.
+  - Run the Step 6b comment pass (`code-commenter` over every worktree
+    diff) before returning. Not optional, and not conditional on the
+    comments looking fine to it.
 
 When the subagent returns, re-read `story.md`. If any acceptance
 criterion still shows `- [ ] Implemented`, spawn a follow-up subagent
