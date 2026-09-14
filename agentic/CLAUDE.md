@@ -1,5 +1,40 @@
 # Global Claude Instructions
 
+## Answer length: TL;DR by default
+
+**Lead with the answer, then stop.** One or two sentences carrying the finding, the
+recommendation, or the result. Detail is opt-in: give it when asked, when a decision
+genuinely turns on it, or when something went wrong and the why is the answer.
+
+Cut by default:
+- Preamble, restating the question, and "here's what I did" narration.
+- A play-by-play of the work. The diff and the PR body already carry it.
+- Tables, headings and bullet lists that hold less than a sentence would.
+- Explaining a file path or symbol you just named. Keep the reference, drop the gloss.
+- Listing options you already rejected, or caveats nobody asked about.
+
+Keep regardless of length:
+- The merge-ask ELI5 a repo asks for: one or two sentences, plain English — what was
+  broken, what the fix does. Never more. It is the short version, so "keep it" is not
+  licence to expand it: no mechanism, no file names, no caveats, no second paragraph.
+- Anything the user has to act on: a decision, a blocker, a risk, a thing left undone.
+- Verbatim errors, command output, and file:line references.
+
+If a longer answer is genuinely warranted, still open with the TL;DR and put the rest under it.
+"How does X work" and "explain Y" are requests for detail, so answer them properly.
+
+### Closing a piece of work
+
+The message that ends a task is not a report. Where a PR, issue comment or diff already
+carries the detail, name what landed and what the user has to decide — nothing else:
+
+> Fix is up as #1176. Merging before tonight's 01:38 run keeps the buffer whole. Merge on green?
+
+Specifically, do not close with: the root cause, the design and why it is right, what the
+tests pin, pass/fail counts, coverage numbers, or a recap of anything already said earlier in
+this conversation. The user can open the PR. A regression you caused gets one sentence on the
+cause, not a post-mortem — the apology is in the fix, not in the paragraph about it.
+
 ## Feature Tracking
 
 Features are tracked in `~/.claude/features/`. The folder and all files are created by
@@ -144,24 +179,45 @@ git rev-parse --is-inside-work-tree &>/dev/null \
 
 If this returns true, the directory is a worktree (not the main repo).
 
-#### Always-on repos: lilium, trillium, and logger
+#### Default: branch in a worktree, in every repo
 
-Any change to `~/Developer/personal/lilium`, `~/Developer/personal/trillium`,
-or `~/Developer/personal/logger` — even a one-line bug fix outside a
-`/feature-plan` flow — runs in a worktree. Never commit on `main` of those
-repos directly. If a quick fix lands without a feature folder, create the
-worktree manually:
+**Every change runs in a worktree on its own branch and ends in a PR.** That is
+the default for all repos under `~/Developer/work/` and `~/Developer/personal/`,
+whether or not a `/feature-plan` sits behind it — a one-line bug fix included.
+Create the worktree before the first edit, not after:
 
 ```sh
-cd ~/Developer/personal/<repo>
+cd ~/Developer/<side>/<repo>
 git worktree add ../<repo>--<short-name> -b <branch-name>
 cd ../<repo>--<short-name>
 ```
 
-`lilium` and `trillium` host the production iOS app and its backend; `logger`
-is the always-on log dashboard the user runs locally. Touching them on `main`
-risks pushing a half-finished change. Worktrees keep the original checkout
-clean and let the user keep working on something else in parallel.
+The point is that the user's own checkout stays on `main` and stays clean, so
+they can keep working while an agent builds something else.
+
+**Pushing to `main` directly is for small things only** — and small means the
+change cannot break a build, a test run, or a deploy:
+
+- prose-only edits: README, docs, a code comment, a typo, a rule in a CLAUDE.md
+- a value in a config or data file with no code path behind it
+- anything the user explicitly says to push straight to `main`
+
+If it touches code, a test, a schema, a dependency, or a pipeline, it gets a
+worktree and a PR however few lines it is. When in doubt, branch: a needless PR
+costs a minute, and a bad push to the `main` of a repo that deploys on push —
+`laross-se` does — costs an outage. Don't ask permission to branch; do ask before
+pushing to `main` when it is not clearly one of the three cases above.
+
+**No exception at all for lilium, trillium, and logger.** Never commit on `main`
+of `~/Developer/personal/lilium`, `~/Developer/personal/trillium`, or
+`~/Developer/personal/logger` — not even for the small things listed above.
+`lilium` and `trillium` host the production iOS app and its backend; `logger` is
+the always-on log dashboard the user runs locally. A half-finished change on
+their `main` is the failure this whole rule exists to prevent.
+
+Some repos say this for themselves — gto-poker-backend's own CLAUDE.md mandates
+worktree → PR and forbids committing on `main`. A repo-level rule is never looser
+than this one; where it is stricter, it wins.
 
 **Ad-hoc worktrees have no `/feature-done` to clean them up.** When you
 open a PR from one of these manually-created worktrees, end that turn with
@@ -175,7 +231,7 @@ GitHub PR state, not `git branch --merged` (squash merges leave the
 original commits unreachable from `main` even though the PR is closed):
 
 ```sh
-git -C ~/Developer/personal/<repo> fetch origin main --quiet
+git -C ~/Developer/<side>/<repo> fetch origin main --quiet
 gh -R <owner>/<repo> pr view <branch> --json state,mergedAt
 ```
 
@@ -190,13 +246,13 @@ once the worktree is removed. Only when the PR is MERGED *and* the
 worktree is clean, run the cleanup (mirrors `/feature-done` Step 4b):
 
 ```sh
-git -C ~/Developer/personal/<repo> worktree remove <worktree-path>
-git -C ~/Developer/personal/<repo> branch -D <branch-name>
+git -C ~/Developer/<side>/<repo> worktree remove <worktree-path>
+git -C ~/Developer/<side>/<repo> branch -D <branch-name>
 ```
 
 Kill the tmux session named after the worktree directory if one exists.
 
-Then delete the Xcode caches keyed to that worktree path. Xcode hashes
+For a Swift repo, delete the Xcode caches keyed to that worktree path. Xcode hashes
 the absolute workspace path into the DerivedData folder name, so the
 worktree has its own folder separate from the source repo. Remove every
 DerivedData folder whose `info.plist` references the worktree path:

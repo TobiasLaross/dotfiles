@@ -34,7 +34,43 @@ tools:
     - Bash(tar:*)
     - Bash(unzip:*)
 ---
+
 # Global Claude Instructions
+
+## Answer length: TL;DR by default
+
+**Lead with the answer, then stop.** One or two sentences carrying the finding, the
+recommendation, or the result. Detail is opt-in: give it when asked, when a decision
+genuinely turns on it, or when something went wrong and the why is the answer.
+
+Cut by default:
+- Preamble, restating the question, and "here's what I did" narration.
+- A play-by-play of the work. The diff and the PR body already carry it.
+- Tables, headings and bullet lists that hold less than a sentence would.
+- Explaining a file path or symbol you just named. Keep the reference, drop the gloss.
+- Listing options you already rejected, or caveats nobody asked about.
+
+Keep regardless of length:
+- The merge-ask ELI5 a repo asks for: one or two sentences, plain English — what was
+  broken, what the fix does. Never more. It is the short version, so "keep it" is not
+  licence to expand it: no mechanism, no file names, no caveats, no second paragraph.
+- Anything the user has to act on: a decision, a blocker, a risk, a thing left undone.
+- Verbatim errors, command output, and file:line references.
+
+If a longer answer is genuinely warranted, still open with the TL;DR and put the rest under it.
+"How does X work" and "explain Y" are requests for detail, so answer them properly.
+
+### Closing a piece of work
+
+The message that ends a task is not a report. Where a PR, issue comment or diff already
+carries the detail, name what landed and what the user has to decide — nothing else:
+
+> Fix is up as #1176. Merging before tonight's 01:38 run keeps the buffer whole. Merge on green?
+
+Specifically, do not close with: the root cause, the design and why it is right, what the
+tests pin, pass/fail counts, coverage numbers, or a recap of anything already said earlier in
+this conversation. The user can open the PR. A regression you caused gets one sentence on the
+cause, not a post-mortem — the apology is in the fix, not in the paragraph about it.
 
 ## Feature Tracking
 
@@ -180,21 +216,159 @@ git rev-parse --is-inside-work-tree &>/dev/null \
 
 If this returns true, the directory is a worktree (not the main repo).
 
-### Work repos
+#### Default: branch in a worktree, in every repo
 
-When working inside a `/work/` directory, related repositories live in
-`~/Developer/work/`. Scan that directory to identify which repos are relevant to a
-given task or feature.
+**Every change runs in a worktree on its own branch and ends in a PR.** That is
+the default for all repos under `~/Developer/work/` and `~/Developer/personal/`,
+whether or not a `/feature-plan` sits behind it — a one-line bug fix included.
+Create the worktree before the first edit, not after:
 
-Pre-built context files for each repo live at
-`~/.claude/repo-context/<repo-name>.md`. Each file uses a two-tier layout:
-a quick-reference section (purpose, language, framework, test commands,
-architecture, entry points) above a `---` separator, and detailed sections
-below. At the start of a session, read only the first 40 lines of the
-matching context file. Read the full file only when the task requires
-details below the separator (test setup, dependencies, communication
-protocols, design patterns, environment, deployment). Fall back to reading
-source only when context files are missing or insufficient.
+```sh
+cd ~/Developer/<side>/<repo>
+git worktree add ../<repo>--<short-name> -b <branch-name>
+cd ../<repo>--<short-name>
+```
+
+The point is that the user's own checkout stays on `main` and stays clean, so
+they can keep working while an agent builds something else.
+
+**Pushing to `main` directly is for small things only** — and small means the
+change cannot break a build, a test run, or a deploy:
+
+- prose-only edits: README, docs, a code comment, a typo, a rule in a CLAUDE.md
+- a value in a config or data file with no code path behind it
+- anything the user explicitly says to push straight to `main`
+
+If it touches code, a test, a schema, a dependency, or a pipeline, it gets a
+worktree and a PR however few lines it is. When in doubt, branch: a needless PR
+costs a minute, and a bad push to the `main` of a repo that deploys on push —
+`laross-se` does — costs an outage. Don't ask permission to branch; do ask before
+pushing to `main` when it is not clearly one of the three cases above.
+
+**No exception at all for lilium, trillium, and logger.** Never commit on `main`
+of `~/Developer/personal/lilium`, `~/Developer/personal/trillium`, or
+`~/Developer/personal/logger` — not even for the small things listed above.
+`lilium` and `trillium` host the production iOS app and its backend; `logger` is
+the always-on log dashboard the user runs locally. A half-finished change on
+their `main` is the failure this whole rule exists to prevent.
+
+Some repos say this for themselves — gto-poker-backend's own CLAUDE.md mandates
+worktree → PR and forbids committing on `main`. A repo-level rule is never looser
+than this one; where it is stricter, it wins.
+
+**Ad-hoc worktrees have no `/feature-done` to clean them up.** When you
+open a PR from one of these manually-created worktrees, end that turn with
+a reminder along the lines of *"PR is up — let me know when it's merged
+and I'll delete the worktree."* That puts the cleanup on the user's radar
+without nagging.
+
+When the user later says the PR landed (or asks you to clean up),
+**verify the change is on `main` before removing anything.** Trust the
+GitHub PR state, not `git branch --merged` (squash merges leave the
+original commits unreachable from `main` even though the PR is closed):
+
+```sh
+git -C ~/Developer/<side>/<repo> fetch origin main --quiet
+gh -R <owner>/<repo> pr view <branch> --json state,mergedAt
+```
+
+The PR must report `state: "MERGED"`. Also check the worktree itself:
+
+```sh
+git -C <worktree-path> status --porcelain
+```
+
+If anything is uncommitted, stop and ask — the diff is unrecoverable
+once the worktree is removed. Only when the PR is MERGED *and* the
+worktree is clean, run the cleanup (mirrors `/feature-done` Step 4b):
+
+```sh
+git -C ~/Developer/<side>/<repo> worktree remove <worktree-path>
+git -C ~/Developer/<side>/<repo> branch -D <branch-name>
+```
+
+Kill the tmux session named after the worktree directory if one exists.
+
+For a Swift repo, delete the Xcode caches keyed to that worktree path. Xcode hashes
+the absolute workspace path into the DerivedData folder name, so the
+worktree has its own folder separate from the source repo. Remove every
+DerivedData folder whose `info.plist` references the worktree path:
+
+```sh
+for derived in "$HOME/Library/Developer/Xcode/DerivedData"/*/; do
+  info_plist="$derived/info.plist"
+  [ -f "$info_plist" ] || continue
+  workspace_path=$(/usr/libexec/PlistBuddy \
+    -c "Print :WorkspacePath" "$info_plist" 2>/dev/null) || continue
+  case "$workspace_path" in
+    "<worktree-path>"|"<worktree-path>"/*) rm -rf "$derived" ;;
+  esac
+done
+```
+
+Never touch the shared `ModuleCache.noindex` directory under DerivedData.
+Per-worktree SwiftPM build output and `xcodebuild.nvim` caches live
+inside the worktree directory and are removed with it.
+
+### Implicit context loading
+
+When the user mentions a feature or product by name — even without running a
+skill — find and load the matching context automatically:
+
+- **Features**: phrases like "load the gdpr consent feature", "regarding the
+  gdpr feature", or "continue with gdpr consent" mean there is a folder
+  matching the keyword under `~/.claude/features/` (active) or
+  `~/.claude/features/done/` (archived). Glob for `~/.claude/features/*<keyword>*/`
+  and read `story.md` (and `design.md` if it exists) from the best match.
+- **Products**: phrases like "regarding the scomp product", "in the context of
+  scomp", or "for the scomp module" mean there is a folder matching the
+  keyword under `~/.claude/products/`. Glob for
+  `~/.claude/products/*<keyword>*/` and read `index.md` first, then only
+  the file(s) relevant to the current task.
+
+Use fuzzy substring matching on the folder name — the user will not type the
+exact folder name. If multiple folders match, prefer the closest match; if
+still ambiguous, ask the user to clarify.
+
+### Product / module context
+
+Product and module context files live at `~/.claude/products/<product>/`. Each product
+folder contains an `index.md` listing all files and when to read each one. Read
+`index.md` first, then only the file(s) relevant to the current task — avoid loading
+all files at once.
+
+### Repos and repo-context
+
+Related repositories live under `~/Developer/work/` (work projects) and
+`~/Developer/personal/` (personal projects). Scan the relevant directory to
+identify which repos are involved in a given task or feature — and stay within
+the matching side: when the cwd (or its worktree, `<repo>--<feature>`) is under
+`~/Developer/work/`, only treat sibling repos in `~/Developer/work/` as related;
+when under `~/Developer/personal/`, only treat siblings in
+`~/Developer/personal/`. Never cross-link work and personal repos.
+
+Pre-built context files for each repo live in a single flat folder at
+`~/.claude/repo-context/<repo-name>.md` regardless of which side the repo is on.
+Each file declares its side on the second line with a blockquote:
+
+```
+# <repo-name>
+
+> Type: personal     # or: > Type: work
+```
+
+When loading repo-context — both for the current repo and for any sibling repo
+you read while exploring dependencies — only read files whose `Type:` matches
+the current side. Skip files of the opposite type even if the name matches.
+
+At the start of the session, read only the first 40 lines of the matching
+context file (the quick-reference section above the `---` separator). This
+gives you the repo's purpose, language, framework, test commands,
+architecture, and entry points without loading detailed sections. Read the
+full file only when the task requires information below the separator
+(test setup details, internal dependencies, external communication
+protocols, design patterns, environment config, or deployment). Fall back
+to reading source only when the context file is missing or insufficient.
 
 ### Markdown files
 
@@ -213,12 +387,23 @@ helpers like `_.get`, `_.has`, and similar. Exceptions:
   'a.b')` → `obj?.a?.b`). Do not swap out lodash functions that have no direct
   native equivalent (e.g. `_.isEqual`, `_.cloneDeep`, `_.groupBy`).
 
-### Code comments
+Write comparisons as `variable === constant`, never the reverse. Yoda conditions
+(`constants.LockStatuses.LOCKED === status`) read backwards and get flagged in
+review. Use `status === constants.LockStatuses.LOCKED`.
 
-When writing, modifying, or extending a comment in any source file — including inline
-comments added during feature work or bug fixes — invoke `/code-commenter` so comments
-explain intent and rationale rather than restating mechanics. Run it before committing
-any change that touches comments.
+This holds even when the surrounding code is Yoda-style. Matching local style is
+usually right, but not here: the reviewer wants new lines in the correct order
+regardless of their neighbours. Leave the existing lines alone unless the ticket
+is about them.
+
+### Naming
+
+Never use one-letter variable names (`e`, `r`, `i`, `m`, etc.). The only exception is
+the conventional loop counter inside a tight `for` body that fits on one line. Even
+short-lived locals in `.map`, `.filter`, `.forEach`, `try/catch`, and arrow callbacks get
+a real name (`entry`, `response`, `index`, `match`, `error`). The cost of a longer name
+is one more character per occurrence; the benefit is a stack trace, log line, or grep
+result that reads like prose.
 
 ### Testing style
 
@@ -227,3 +412,37 @@ few variables (e.g. input values, expected status codes, flag states), use
 parameterized tests — loop over an array of case objects — instead of
 duplicating `describe`/`before`/`it` blocks. This keeps tests concise and
 makes it easy to add new cases without copy-pasting scaffolding.
+
+Never use faker (or similar random-data libraries) in tests. Use plain,
+deterministic literals instead. Random values obscure intent, make failures
+harder to reproduce, and add a dependency that provides no real coverage
+benefit. When a test needs a UUID or similar identifier, hard-code a
+realistic but fixed value (e.g. `"d7a1c3e0-4b2f-4e8a-9f6d-1a2b3c4d5e6f"`)
+so it is grep-searchable across the codebase. Never generate UUIDs at
+runtime in tests.
+
+Never `Task.sleep` (or `setTimeout`, `Thread.sleep`, `time.sleep`,
+`DispatchQueue.asyncAfter`, `RunLoop.run(until:)`, or any other "wait
+wall-clock time" primitive) in tests — in any language. Sleep-based tests are
+slow and flaky; under contention (parallel runners, shared MainActor / event
+loop) the wake-up can be delayed arbitrarily. If a test seems to need a sleep,
+the design is missing a seam. Make the time-dependent thing testable instead:
+
+- **Inject a clock.** Pass a `() -> Date` / `Clock` / `Date.now`-equivalent
+  function the SUT reads; in tests use a fake that returns whatever you set.
+- **Expose the work the timer does as a method.** A periodic ticker should call
+  a `tick()` (or `advance()`, `flush()`) method that does all the real work
+  (recompute, fire side effects, dismiss when past deadline). Production wires
+  the real timer → that method; tests advance the fake clock and call it
+  directly. The timer plumbing becomes a thin shim, and the behavior lives in
+  a deterministically-tested method.
+- **Await the work itself**, not wall time. `await sut.lastTask?.value` for
+  fire-and-forget Tasks; drive `AsyncStream` / `EventEmitter` continuations
+  directly; `await` the promise the production code returns.
+- **Inject a scheduler.** When an integration test really must cover the
+  scheduling plumbing, extract a `Scheduler` protocol and inject a test
+  scheduler whose `advance(by:)` synchronously fires due work — don't sleep
+  longer and hope.
+
+There is always a better way than `sleep`. If you cannot find one, the SUT
+needs a refactor before the test does.
