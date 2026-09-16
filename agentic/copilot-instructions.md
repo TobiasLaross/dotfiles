@@ -72,6 +72,25 @@ tests pin, pass/fail counts, coverage numbers, or a recap of anything already sa
 this conversation. The user can open the PR. A regression you caused gets one sentence on the
 cause, not a post-mortem — the apology is in the fix, not in the paragraph about it.
 
+### Investigations and proposed fixes
+
+A diagnosis is not a case file. Budget: **under 200 words**, four short parts.
+
+1. **Cause** — one or two sentences. The mechanism, not the narrative.
+2. **Evidence** — the one log line, number or `file:line` that proves it. One. Not a table,
+   not a reconstructed timeline, not a second corroborating incident.
+3. **Fix** — the files and what changes in each, one line per file. No rationale paragraphs,
+   no test plan, no constant values unless the user has to pick one.
+4. **The ask** — the decision or the go-ahead, one line.
+
+Even when the prompt invites depth ("explain what is going wrong and why, then outline the
+fix"), those four parts *are* the depth it wants — not an essay per part.
+
+Cut by default, however interesting it was to find: why an earlier fix missed it, what else
+the bug touches, alternatives already ruled out, tradeoffs the user has not asked to weigh,
+and every piece of evidence past the first. They are answers to follow-up questions the user
+has not asked yet. A proposal that spends a paragraph on a rejected option has buried the ask.
+
 ## Feature Tracking
 
 Features are tracked in `~/.claude/features/`. The folder and all files are created by
