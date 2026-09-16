@@ -10,3 +10,4 @@
 [submodule "agentic/vendor/anthropics-skills"]
 	path = agentic/vendor/anthropics-skills
 	url = https://github.com/anthropics/skills
+	ignore = dirty
