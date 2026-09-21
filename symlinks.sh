@@ -13,6 +13,9 @@ ln -sf "$ROOT_DIR/tmux/conf" ~/.config/tmux/
 ln -sf "$ROOT_DIR/OneDark.xccolortheme" "$HOME/Library/Developer/Xcode/UserData/FontAndColorThemes"
 ln -sf "$ROOT_DIR/ghostty/config" "$HOME/Library/Application Support/com.mitchellh.ghostty/config"
 
+git config --global submodule.recurse true
+git config --global push.recurseSubmodules no
+
 git -C "$ROOT_DIR" submodule update --init --recursive
 
 # Patch tmux-cpu plugin to use memory_pressure instead of vm_stat
