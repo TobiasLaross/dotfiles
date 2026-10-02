@@ -121,5 +121,10 @@
       "**Org-specific CLIs**: gh (GitHub issue/PR workflow — issue claiming via in-progress label, per CLAUDE.md); cargo (build/test/clippy, per CLAUDE.md commands)",
       "routine under ~/Developer/personal/gto-poker-engine/ prefix, including its \\`gto-poker-engine--<feature>\\` sibling worktrees"
     ]
+  },
+  "modelSettings": {
+    "claude-opus-5-5": {
+      "effortLevel": "medium"
+    }
   }
 }
