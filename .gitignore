@@ -8,3 +8,4 @@ tmux/plugins/*
 claude/tasks/
 .claude/settings.local.json
 agentic/skills-local/
+__pycache__/
