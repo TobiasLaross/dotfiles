@@ -40,8 +40,8 @@
           },
           {
             "type": "command",
-            "command": "python3 /Users/tobias/.claude/hooks/guard-sim-against-prod.py",
-            "statusMessage": "Checking simulator is not pointed at production"
+            "command": "bash /Users/tobias/.claude/hooks/run-local-hooks.sh pretooluse-bash",
+            "statusMessage": "Running machine-local Bash hooks"
           }
         ]
       },
