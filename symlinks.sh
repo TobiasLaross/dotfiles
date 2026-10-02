@@ -48,6 +48,17 @@ for dir in ~/.claude/skills ~/.codex/skills ~/.copilot/skills; do
 	done
 done
 
+# Hook scripts referenced by agentic/settings.json
+mkdir -p ~/.claude/hooks
+for hook in "$ROOT_DIR"/agentic/hooks/*.(py|sh)(N.); do
+	ln -sf "${hook:A}" ~/.claude/hooks/
+done
+for link in ~/.claude/hooks/*(N@); do
+	if [[ ! -e "$link" ]]; then
+		rm "$link"
+	fi
+done
+
 ln -sf "$ROOT_DIR/agentic/CLAUDE.md" ~/.claude/CLAUDE.md
 ln -sf "$ROOT_DIR/agentic/CLAUDE.md" ~/.codex/AGENTS.md
 ln -sf "$ROOT_DIR/agentic/copilot-instructions.md" ~/.copilot/copilot-instructions.md

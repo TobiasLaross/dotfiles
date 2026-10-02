@@ -1,16 +1,13 @@
 # Claude Code hooks
 
-Backup copies of the hook scripts wired into [`../settings.json`](../settings.json) under
-`hooks.PreToolUse`. They run at the Claude Code harness level (the harness executes them, not the
+Hook scripts wired into [`../settings.json`](../settings.json) under `hooks.PreToolUse`. They run at the Claude Code harness level (the harness executes them, not the
 model), so they enforce behavior the model can't be relied on to remember.
 
-## Why these are copies, not symlinks
+## How they are installed
 
-`settings.json` references each hook by **absolute path** (`/Users/tobias/.claude/hooks/<name>`), and
-the live scripts live in `~/.claude/hooks/`, which is a plain directory — `symlinks.sh` does not link
-it. These files are **backup copies for version control only**; nothing reads them from here at
-runtime. Edit the live script in `~/.claude/hooks/`, then re-copy it here to refresh the backup
-(there is no symlink keeping them in sync, so they can drift — see "Updating a backup" below).
+`settings.json` references each hook by **absolute path** (`/Users/tobias/.claude/hooks/<name>`).
+`symlinks.sh` links every `*.py` and `*.sh` file in this folder into `~/.claude/hooks/` and removes
+links whose target is gone, so this folder is the source of truth: edit the scripts here.
 
 ## Hooks
 
@@ -25,24 +22,3 @@ runtime. Edit the live script in `~/.claude/hooks/`, then re-copy it here to ref
 Hooks that only make sense on one machine live in `~/.claude/hooks-local/<group>/` and are neither referenced
 from `settings.json` nor backed up here. `run-local-hooks.sh <group>` picks them up. To add one, drop an
 executable script into the group directory (e.g. `~/.claude/hooks-local/pretooluse-bash/`).
-
-## Restore on a new machine
-
-The scripts are not auto-installed. After cloning dotfiles, copy them into place and mark executable:
-
-```sh
-mkdir -p ~/.claude/hooks
-cp ~/dotfiles/agentic/hooks/*.py ~/dotfiles/agentic/hooks/*.sh ~/.claude/hooks/
-chmod +x ~/.claude/hooks/*.py ~/.claude/hooks/*.sh
-```
-
-(The `README.md` is skipped by the glob.) `settings.json` is symlinked by `symlinks.sh`, so the hook
-wiring is already in place once the scripts exist at those paths.
-
-## Updating a backup
-
-After editing a live hook in `~/.claude/hooks/`, refresh the copy here so the backup doesn't go stale:
-
-```sh
-cp -p ~/.claude/hooks/<name> ~/dotfiles/agentic/hooks/
-```
