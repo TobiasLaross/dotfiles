@@ -227,11 +227,12 @@ costs a minute, and a bad push to the `main` of a repo that deploys on push —
 `laross-se` does — costs an outage. Don't ask permission to branch; do ask before
 pushing to `main` when it is not clearly one of the three cases above.
 
-**No exception at all for lilium, trillium, and logger.** Never commit on `main`
-of `~/Developer/personal/lilium`, `~/Developer/personal/trillium`, or
-`~/Developer/personal/logger` — not even for the small things listed above.
-`lilium` and `trillium` host the production iOS app and its backend; `logger` is
-the always-on log dashboard the user runs locally. A half-finished change on
+**No exception at all for lilium, trillium, logger, and terra-ios.** Never commit on `main`
+of `~/Developer/personal/lilium`, `~/Developer/personal/trillium`,
+`~/Developer/personal/logger`, or `~/Developer/personal/terra-ios` — not even for the
+small things listed above. `lilium` and `trillium` host the production iOS app and its
+backend; `logger` is the always-on log dashboard the user runs locally; `terra-ios` is
+the next iOS app, held to the same bar from its first commit. A half-finished change on
 their `main` is the failure this whole rule exists to prevent.
 
 Some repos say this for themselves — gto-poker-backend's own CLAUDE.md mandates
@@ -291,6 +292,15 @@ done
 Never touch the shared `ModuleCache.noindex` directory under DerivedData.
 Per-worktree SwiftPM build output and `xcodebuild.nvim` caches live
 inside the worktree directory and are removed with it.
+
+#### A CI run "cancelled by TobiasLaross" is usually just queued
+
+The self-hosted runners run ci-hub's job-priority hook (`~/Developer/personal/ci-hub/scripts/job-priority.sh`;
+see "Job priority" in ci-hub's CLAUDE.md). When a lower-numbered PR has a job waiting, the hook cancels a newly
+started run, records it in `~/actions-runner/.job-priority/<owner>_<repo>/<run-id>`, and re-runs it itself, oldest
+PR first, once nothing ahead of it waits. If the run id is in that folder, keep waiting on the checks: don't report a
+failure, don't ask the user, and don't `gh run rerun` (that jumps the queue). A run that is not in the folder and is
+still on the PR's head commit is the only kind that needs a manual re-run.
 
 ### Implicit context loading
 
