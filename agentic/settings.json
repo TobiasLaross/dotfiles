@@ -8,6 +8,8 @@
       "Bash(git:*)",
       "Bash(gh issue create:*)",
       "Bash(gh pr merge:*)",
+      "Bash(gcloud builds connections:*)",
+      "Bash(gcloud builds triggers:*)",
       "Bash(cat:*)",
       "Bash(ls:*)",
       "Bash(find:*)",
@@ -19,7 +21,10 @@
       "Read",
       "Grep",
       "WebFetch",
-      "WebSearch"
+      "WebSearch",
+      "mcp__revenuecat__create-product-store-state-plan",
+      "mcp__revenuecat__plan-product-store-state-plan",
+      "mcp__revenuecat__apply-product-store-state-plan"
     ],
     "defaultMode": "auto",
     "additionalDirectories": [
@@ -37,6 +42,11 @@
             "type": "command",
             "command": "python3 /Users/tobias/.claude/hooks/guard-piped-exit-code.py",
             "statusMessage": "Checking for masked pipeline exit code"
+          },
+          {
+            "type": "command",
+            "command": "python3 /Users/tobias/.claude/hooks/guard-gh-auto-merge.py",
+            "statusMessage": "Checking for gh auto-merge"
           },
           {
             "type": "command",

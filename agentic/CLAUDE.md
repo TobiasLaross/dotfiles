@@ -227,6 +227,10 @@ costs a minute, and a bad push to the `main` of a repo that deploys on push —
 `laross-se` does — costs an outage. Don't ask permission to branch; do ask before
 pushing to `main` when it is not clearly one of the three cases above.
 
+**`app-promos` is the opposite: commit and push straight to `main`.** It holds the
+Remotion source for the apps' promo videos (`~/Developer/personal/app-promos`), and
+nothing builds, tests or deploys from it, so it needs no worktree and no PR.
+
 **No exception at all for lilium, trillium, logger, and terra-ios.** Never commit on `main`
 of `~/Developer/personal/lilium`, `~/Developer/personal/trillium`,
 `~/Developer/personal/logger`, or `~/Developer/personal/terra-ios` — not even for the
