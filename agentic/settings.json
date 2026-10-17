@@ -8,8 +8,10 @@
       "Bash(git:*)",
       "Bash(gh issue create:*)",
       "Bash(gh pr merge:*)",
-      "Bash(gcloud builds connections:*)",
-      "Bash(gcloud builds triggers:*)",
+      "Bash(gcloud builds connections list:*)",
+      "Bash(gcloud builds connections describe:*)",
+      "Bash(gcloud builds triggers list:*)",
+      "Bash(gcloud builds triggers describe:*)",
       "Bash(cat:*)",
       "Bash(ls:*)",
       "Bash(find:*)",
@@ -23,8 +25,7 @@
       "WebFetch",
       "WebSearch",
       "mcp__revenuecat__create-product-store-state-plan",
-      "mcp__revenuecat__plan-product-store-state-plan",
-      "mcp__revenuecat__apply-product-store-state-plan"
+      "mcp__revenuecat__plan-product-store-state-plan"
     ],
     "defaultMode": "auto",
     "additionalDirectories": [
