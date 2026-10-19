@@ -392,6 +392,13 @@ usually right, but not here: the reviewer wants new lines in the correct order
 regardless of their neighbours. Leave the existing lines alone unless the ticket
 is about them.
 
+### Swift review
+
+Every iOS or macOS repo runs `/swift-safety` on any diff that carries `.swift`, before the commit or
+PR that the repo's own review gate guards, alongside whatever Swift review skills that repo lists. It
+covers swallowed errors, retain cycles, hidden enum cases, iOS security and stray `print()`, which the
+third-party Swift skills don't. A repo that lists no Swift review skills still runs it.
+
 ### Naming
 
 Never use one-letter variable names (`e`, `r`, `i`, `m`, etc.). The only exception is
