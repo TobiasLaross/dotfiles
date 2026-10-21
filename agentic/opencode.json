@@ -3,13 +3,6 @@
   "model": "github-copilot/claude-opus-5.0",
   "lsp": true,
   "mcp": {
-    "atlassian": {
-      "type": "remote",
-      "url": "https://mcp.atlassian.com/v1/mcp/authv2",
-      "oauth": {},
-      "enabled": true,
-      "timeout": 30000
-    },
     "figma": {
       "type": "remote",
       "url": "http://127.0.0.1:3845/mcp",
