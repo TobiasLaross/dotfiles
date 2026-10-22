@@ -399,6 +399,14 @@ PR that the repo's own review gate guards, alongside whatever Swift review skill
 covers swallowed errors, retain cycles, hidden enum cases, iOS security and stray `print()`, which the
 third-party Swift skills don't. A repo that lists no Swift review skills still runs it.
 
+### Simulator runtimes
+
+Never run `xcodebuild -downloadPlatform` or `-downloadAllPlatforms` to probe which versions exist, and never wrap it
+in `timeout`. The download is handed to macOS, which finishes it after `xcodebuild` is killed, and stores it in
+`/System/Library/AssetsV2`, where SIP stops even `sudo rm`. Four probed iOS 26.x runtimes once took 31 GB there that
+nothing could delete. Download a runtime only when the user has asked for that exact version, and ask first if it is
+not iOS for the current Xcode.
+
 ### Naming
 
 Never use one-letter variable names (`e`, `r`, `i`, `m`, etc.). The only exception is
