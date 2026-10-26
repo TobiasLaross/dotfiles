@@ -306,6 +306,12 @@ PR first, once nothing ahead of it waits. If the run id is in that folder, keep 
 failure, don't ask the user, and don't `gh run rerun` (that jumps the queue). A run that is not in the folder and is
 still on the PR's head commit is the only kind that needs a manual re-run.
 
+#### One commit before the PR, new commits after
+
+Until a PR is open, a branch carries a single commit: fold follow-up changes into it with `--amend` (or a soft
+reset and recommit) and `--force-with-lease` if it was already pushed. Once the PR is open, every fix goes in a new
+commit on top, so reviewers can see what changed since they last looked. Never rewrite a branch that has an open PR.
+
 ### Implicit context loading
 
 When the user mentions a feature or product by name — even without running a
