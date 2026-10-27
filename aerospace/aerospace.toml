@@ -70,10 +70,10 @@ automatically-unhide-macos-hidden-apps = true
 [gaps]
     inner.horizontal = 8
     inner.vertical =   8
-    outer.left =       8
+    outer.left =       [{ monitor.'DELL S3425DW' = 300 }, 8]
     outer.bottom =     8
     outer.top =        8
-    outer.right =      8
+    outer.right =      [{ monitor.'DELL S3425DW' = 900 }, 8]
 
 # Monitor sequence number from left to right. 1-based indexing
 # You can specify multiple patterns.
