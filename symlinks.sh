@@ -65,6 +65,7 @@ ln -sf "$ROOT_DIR/agentic/copilot-instructions.md" ~/.copilot/copilot-instructio
 ln -sf "$ROOT_DIR/agentic/settings.json" ~/.claude/settings.json
 ln -sf "$ROOT_DIR/agentic/opencode.json" ~/.config/opencode/opencode.json
 ln -sf "$ROOT_DIR/agentic/tui.json" ~/.config/opencode/tui.json
+ln -sfn "$ROOT_DIR/agentic/opencode-themes" ~/.config/opencode/themes
 
 # Warn if Claude and Copilot instructions diverge in content (ignoring YAML frontmatter)
 _claude_body=$(cat "$ROOT_DIR/agentic/CLAUDE.md")

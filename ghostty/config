@@ -16,6 +16,7 @@
 # on Ghostty's website, at https://ghostty.org/docs/config.
 
 background-opacity = 0.8
+background-opacity-cells = true
 macos-titlebar-style = hidden
 
 font-family = FiraCode Nerd Font Mono
