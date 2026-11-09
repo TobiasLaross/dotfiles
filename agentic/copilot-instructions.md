@@ -264,12 +264,21 @@ costs a minute, and a bad push to the `main` of a repo that deploys on push —
 `laross-se` does — costs an outage. Don't ask permission to branch; do ask before
 pushing to `main` when it is not clearly one of the three cases above.
 
+**`app-promos` is the opposite: commit and push straight to `main`.** It holds the
+Remotion source for the apps' promo videos (`~/Developer/personal/app-promos`), and
+nothing builds, tests or deploys from it, so it needs no worktree and no PR.
+
 **No exception at all for lilium, trillium, and logger.** Never commit on `main`
 of `~/Developer/personal/lilium`, `~/Developer/personal/trillium`, or
-`~/Developer/personal/logger` — not even for the small things listed above.
-`lilium` and `trillium` host the production iOS app and its backend; `logger` is
-the always-on log dashboard the user runs locally. A half-finished change on
-their `main` is the failure this whole rule exists to prevent.
+`~/Developer/personal/logger` — not even for the small things listed above. `lilium` and
+`trillium` host the production iOS app and its backend; `logger` is the always-on log
+dashboard the user runs locally. A half-finished change on their `main` is the failure
+this whole rule exists to prevent.
+
+**terra-ios allows docs only on `main`.** Markdown and docs (`docs/`, `docs/app-store/`,
+a CLAUDE.md) may be committed and pushed straight to `main` of
+`~/Developer/personal/terra-ios`, as its own CLAUDE.md says. Everything else, config
+values included, goes through a worktree and a PR.
 
 Some repos say this for themselves — gto-poker-backend's own CLAUDE.md mandates
 worktree → PR and forbids committing on `main`. A repo-level rule is never looser
@@ -328,6 +337,15 @@ done
 Never touch the shared `ModuleCache.noindex` directory under DerivedData.
 Per-worktree SwiftPM build output and `xcodebuild.nvim` caches live
 inside the worktree directory and are removed with it.
+
+#### A CI run "cancelled by TobiasLaross" is usually just queued
+
+The self-hosted runners run ci-hub's job-priority hook (`~/Developer/personal/ci-hub/scripts/job-priority.sh`;
+see "Job priority" in ci-hub's CLAUDE.md). When a lower-numbered PR has a job waiting, the hook cancels a newly
+started run, records it in `~/actions-runner/.job-priority/<owner>_<repo>/<run-id>`, and re-runs it itself, oldest
+PR first, once nothing ahead of it waits. If the run id is in that folder, keep waiting on the checks: don't report a
+failure, don't ask the user, and don't `gh run rerun` (that jumps the queue). A run that is not in the folder and is
+still on the PR's head commit is the only kind that needs a manual re-run.
 
 ### Implicit context loading
 
@@ -389,6 +407,11 @@ full file only when the task requires information below the separator
 protocols, design patterns, environment config, or deployment). Fall back
 to reading source only when the context file is missing or insufficient.
 
+### No em dashes
+
+Never write an em dash (—) anywhere: chat replies, files, code comments, commit messages, PR bodies, docs. Use a comma,
+colon, period, parentheses or a plain hyphen instead. Existing em dashes in a file can stay unless the task is about them.
+
 ### Markdown files
 
 When writing markdown files, make sure that lines are not longer than 140 characters
@@ -414,6 +437,28 @@ This holds even when the surrounding code is Yoda-style. Matching local style is
 usually right, but not here: the reviewer wants new lines in the correct order
 regardless of their neighbours. Leave the existing lines alone unless the ticket
 is about them.
+
+### Swift review
+
+Every iOS or macOS repo runs `/swift-safety` on any diff that carries `.swift`, before the commit or
+PR that the repo's own review gate guards, alongside whatever Swift review skills that repo lists. It
+covers swallowed errors, retain cycles, hidden enum cases, iOS security and stray `print()`, which the
+third-party Swift skills don't. A repo that lists no Swift review skills still runs it.
+
+### Node version
+
+Run `nvm use` before any Node command in a repo (npm, npx, node, vitest, tsc, eslint). The Bash tool's shell has no `nvm`
+function and its `node` is Homebrew's, so load it first: `. ~/.nvm/nvm.sh --no-use && nvm use`. A new worktree gets its own
+`npm ci` under that Node, never a symlink to the main checkout's `node_modules`: native modules there may be built for
+another version.
+
+### Simulator runtimes
+
+Never run `xcodebuild -downloadPlatform` or `-downloadAllPlatforms` to probe which versions exist, and never wrap it
+in `timeout`. The download is handed to macOS, which finishes it after `xcodebuild` is killed, and stores it in
+`/System/Library/AssetsV2`, where SIP stops even `sudo rm`. Four probed iOS 26.x runtimes once took 31 GB there that
+nothing could delete. Download a runtime only when the user has asked for that exact version, and ask first if it is
+not iOS for the current Xcode.
 
 ### Naming
 

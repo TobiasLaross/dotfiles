@@ -231,13 +231,17 @@ pushing to `main` when it is not clearly one of the three cases above.
 Remotion source for the apps' promo videos (`~/Developer/personal/app-promos`), and
 nothing builds, tests or deploys from it, so it needs no worktree and no PR.
 
-**No exception at all for lilium, trillium, logger, and terra-ios.** Never commit on `main`
-of `~/Developer/personal/lilium`, `~/Developer/personal/trillium`,
-`~/Developer/personal/logger`, or `~/Developer/personal/terra-ios` — not even for the
-small things listed above. `lilium` and `trillium` host the production iOS app and its
-backend; `logger` is the always-on log dashboard the user runs locally; `terra-ios` is
-the next iOS app, held to the same bar from its first commit. A half-finished change on
-their `main` is the failure this whole rule exists to prevent.
+**No exception at all for lilium, trillium, and logger.** Never commit on `main`
+of `~/Developer/personal/lilium`, `~/Developer/personal/trillium`, or
+`~/Developer/personal/logger` — not even for the small things listed above. `lilium` and
+`trillium` host the production iOS app and its backend; `logger` is the always-on log
+dashboard the user runs locally. A half-finished change on their `main` is the failure
+this whole rule exists to prevent.
+
+**terra-ios allows docs only on `main`.** Markdown and docs (`docs/`, `docs/app-store/`,
+a CLAUDE.md) may be committed and pushed straight to `main` of
+`~/Developer/personal/terra-ios`, as its own CLAUDE.md says. Everything else, config
+values included, goes through a worktree and a PR.
 
 Some repos say this for themselves — gto-poker-backend's own CLAUDE.md mandates
 worktree → PR and forbids committing on `main`. A repo-level rule is never looser
@@ -372,6 +376,11 @@ full file only when the task requires information below the separator
 protocols, design patterns, environment config, or deployment). Fall back
 to reading source only when the context file is missing or insufficient.
 
+### No em dashes
+
+Never write an em dash (—) anywhere: chat replies, files, code comments, commit messages, PR bodies, docs. Use a comma,
+colon, period, parentheses or a plain hyphen instead. Existing em dashes in a file can stay unless the task is about them.
+
 ### Markdown files
 
 When writing markdown files, make sure that lines are not longer than 140 characters
@@ -404,6 +413,13 @@ Every iOS or macOS repo runs `/swift-safety` on any diff that carries `.swift`, 
 PR that the repo's own review gate guards, alongside whatever Swift review skills that repo lists. It
 covers swallowed errors, retain cycles, hidden enum cases, iOS security and stray `print()`, which the
 third-party Swift skills don't. A repo that lists no Swift review skills still runs it.
+
+### Node version
+
+Run `nvm use` before any Node command in a repo (npm, npx, node, vitest, tsc, eslint). The Bash tool's shell has no `nvm`
+function and its `node` is Homebrew's, so load it first: `. ~/.nvm/nvm.sh --no-use && nvm use`. A new worktree gets its own
+`npm ci` under that Node, never a symlink to the main checkout's `node_modules`: native modules there may be built for
+another version.
 
 ### Simulator runtimes
 
